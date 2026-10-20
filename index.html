@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Гид паломника JURT</title>
+<meta name="description" content="Офлайн-гид умры для группы JURT, 28.10–06.11.2026">
+<meta name="theme-color" content="#00878A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Умра JURT">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+@font-face{ font-family:"Amiri"; src:url("amiri-400.woff2") format("woff2"); font-weight:400; font-display:swap; }
+:root{
+  --teal:#00878A; --teal-d:#006669; --orange:#FC7F00; --orange-t:#B35A00;
+  --bg:#F3F6F6; --card:#FFFFFF; --ink:#172021; --muted:#59676A; --line:#DCE3E3;
+  --sand:#FFF5EA; --mint:#E5F3F3; --red:#B3261E; --redbg:#FCEDEB; --done:#1E8E5A;
+  --shadow:0 1px 2px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.05);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --teal:#2DB4B6; --teal-d:#7FD6D7; --orange:#FF9A33; --orange-t:#FFB466;
+    --bg:#0E1415; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
+    --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A;
+    --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --teal:#2DB4B6; --teal-d:#7FD6D7; --orange:#FF9A33; --orange-t:#FFB466;
+  --bg:#0E1415; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
+  --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A;
+  --shadow:none; color-scheme:dark;
+}
+html{ font-size:18px; -webkit-text-size-adjust:100%; }
+html[data-fs="1"]{ font-size:20.5px; }
+html[data-fs="2"]{ font-size:23px; }
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{ font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.45; min-height:100vh;
+  padding-bottom:calc(5.2rem + env(safe-area-inset-bottom)); -webkit-tap-highlight-color:transparent; }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+a{ color:var(--teal-d); }
+b{ font-weight:700; }
+
+/* шапка */
+header.app{ position:sticky; top:0; z-index:20; background:var(--teal); color:#fff;
+  padding:calc(.55rem + env(safe-area-inset-top)) 1rem .55rem; display:flex; align-items:center; gap:.7rem; }
+header.app .mark{ width:2rem; height:2rem; flex:none; background:#fff; border-radius:.5rem; padding:.22rem; }
+header.app .mark img{ width:100%; height:100%; display:block; }
+header.app .t{ flex:1; min-width:0; line-height:1.15; }
+header.app .t b{ display:block; font-size:1.02rem; }
+header.app .t span{ font-size:.72rem; opacity:.9; }
+header.app .fs{ font-weight:700; border:1.5px solid rgba(255,255,255,.7); border-radius:.6rem; padding:.2rem .55rem; font-size:.85rem; }
+
+main{ max-width:40rem; margin:0 auto; padding:.9rem 1rem 1rem; }
+.view{ display:none; flex-direction:column; gap:.8rem; }
+.view.on{ display:flex; }
+h2.sec{ font-size:1.45rem; line-height:1.15; color:var(--teal-d); margin:.4rem .1rem 0; }
+.sub{ color:var(--muted); font-size:.85rem; margin:0 .1rem; }
+
+.card{ background:var(--card); border-radius:1rem; box-shadow:var(--shadow); padding:1rem; display:flex; flex-direction:column; gap:.7rem; }
+.card > h3, .body h3{ font-size:1.05rem; color:var(--teal-d); margin-top:.2rem; }
+.card > h3:first-child{ margin-top:0; }
+
+/* прогресс */
+.progress{ display:flex; flex-direction:column; gap:.45rem; }
+.progress .row{ display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; }
+.progress .big{ font-size:1.25rem; font-weight:800; color:var(--teal-d); }
+.bar{ height:.6rem; background:var(--line); border-radius:1rem; overflow:hidden; }
+.bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--teal),var(--orange)); border-radius:1rem; transition:width .35s; }
+.next{ font-weight:600; }
+
+/* шаги */
+details.step, details.info{ background:var(--card); border-radius:1rem; box-shadow:var(--shadow); overflow:hidden; }
+details.step > summary, details.info > summary{ list-style:none; display:flex; align-items:center; gap:.75rem; padding:.85rem 1rem; cursor:pointer; min-height:4rem; }
+summary::-webkit-details-marker{ display:none; }
+.num{ flex:none; width:2.4rem; height:2.4rem; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; }
+.info .num{ background:var(--red); font-size:1.2rem; }
+.info.blue .num{ background:var(--muted); }
+.st{ flex:1; min-width:0; }
+.kicker{ font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--orange-t); font-weight:700; }
+.st b{ display:block; font-size:1.12rem; line-height:1.2; }
+.chk{ flex:none; width:2.6rem; height:2.6rem; border-radius:50%; border:2.5px solid var(--line); display:flex; align-items:center; justify-content:center; }
+.chk svg{ width:1.4rem; height:1.4rem; opacity:0; }
+.step.done .chk{ background:var(--done); border-color:var(--done); }
+.step.done .chk svg{ opacity:1; }
+.step.done .num{ background:var(--done); }
+.step.done .st b{ color:var(--muted); }
+.chev{ flex:none; width:1.1rem; height:1.1rem; color:var(--muted); transition:transform .2s; }
+details[open] > summary .chev{ transform:rotate(180deg); }
+.body{ padding:0 1rem 1rem; display:flex; flex-direction:column; gap:.75rem; border-top:1px solid var(--line); padding-top:.9rem; }
+.donebtn{ margin-top:.3rem; width:100%; min-height:3.4rem; border-radius:.9rem; background:var(--teal); color:#fff; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center; gap:.5rem; }
+.step.done .donebtn{ background:var(--mint); color:var(--teal-d); }
+
+/* метки */
+.tags{ display:flex; flex-wrap:wrap; gap:.4rem; }
+.tag{ font-size:.72rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; border-radius:.45rem; padding:.22rem .55rem; }
+.tag.must{ background:var(--teal); color:#fff; }
+.tag.sunna{ border:2px solid var(--orange); color:var(--orange-t); }
+.tag i{ font-style:normal; font-weight:500; text-transform:none; letter-spacing:0; }
+
+/* списки */
+ul.do{ list-style:none; display:flex; flex-direction:column; gap:.5rem; }
+ul.do li{ padding-left:1.35rem; position:relative; }
+ul.do li::before{ content:""; position:absolute; left:.2rem; top:.5em; width:.55rem; height:.55rem; border-radius:50%; background:var(--teal); }
+ul.do li.s::before{ background:none; border:2px solid var(--orange); }
+ul.do li.no::before{ background:none; content:"✕"; color:var(--red); font-weight:800; top:0; left:.1rem; width:auto; height:auto; }
+p.lead{ font-size:1.02rem; }
+.small{ font-size:.85rem; color:var(--muted); }
+
+/* дуа */
+.dua{ background:var(--sand); border-radius:.9rem; padding:.85rem .95rem; display:flex; flex-direction:column; gap:.5rem; border-left:4px solid var(--orange); }
+.dua .lbl{ font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--orange-t); font-weight:800; }
+.ar{ font-family:"Amiri","Geeza Pro","Noto Naskh Arabic",serif; direction:rtl; text-align:right; font-size:1.65rem; line-height:2; color:var(--ink); }
+.ar.big{ font-size:1.85rem; }
+.tr{ font-style:italic; font-size:.98rem; }
+.ru{ font-size:.95rem; }
+.src{ font-size:.75rem; color:var(--muted); }
+.saw{ font-family:"Amiri","Geeza Pro",serif; font-size:1.15em; line-height:1; font-weight:400; }
+.dua .ctx{ font-size:.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+
+.flag{ border-left:4px solid var(--red); background:var(--redbg); padding:.6rem .8rem; font-size:.88rem; border-radius:0 .6rem .6rem 0; }
+.flag b{ color:var(--red); }
+.note{ border-left:4px solid var(--teal); background:var(--mint); padding:.6rem .8rem; font-size:.92rem; border-radius:0 .6rem .6rem 0; }
+
+/* таблицы */
+table{ width:100%; border-collapse:collapse; font-size:.95rem; }
+td,th{ padding:.55rem .3rem; vertical-align:top; border-bottom:1px solid var(--line); text-align:left; }
+th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }
+td.d{ white-space:nowrap; font-weight:800; color:var(--teal-d); width:5.2rem; }
+.fly{ font-weight:700; }
+tr.today td{ background:var(--mint); }
+tr.today td.d::after{ content:"сегодня"; display:block; font-size:.66rem; font-weight:800; color:#fff; background:var(--orange); border-radius:.3rem; padding:0 .3rem; width:max-content; margin-top:.2rem; }
+
+/* счётчик */
+.counter{ background:var(--mint); border-radius:1rem; padding:.9rem; display:flex; flex-direction:column; gap:.7rem; align-items:stretch; }
+.counter .ctitle{ font-weight:800; color:var(--teal-d); display:flex; justify-content:space-between; align-items:center; }
+.counter .ctitle span{ font-size:1.5rem; }
+.cells{ display:grid; grid-template-columns:repeat(7,1fr); gap:.35rem; }
+.cells div{ border:2px solid var(--teal); border-radius:.6rem; text-align:center; padding:.35rem 0 .25rem; font-size:.62rem; color:var(--muted); line-height:1.15; background:var(--card); }
+.cells div b{ display:block; font-size:1.15rem; color:var(--teal-d); }
+.cells div.on{ background:var(--teal); }
+.cells div.on, .cells div.on b{ color:#fff; }
+.cells div.cur{ border-color:var(--orange); box-shadow:0 0 0 2px var(--orange); }
+.plus{ min-height:5rem; border-radius:1rem; background:var(--orange); color:#fff; font-weight:800; font-size:1.25rem; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; touch-action:manipulation; }
+.plus small{ font-weight:600; font-size:.8rem; opacity:.95; }
+.plus:active{ transform:scale(.98); }
+.plus.fin{ background:var(--done); }
+.crow{ display:flex; gap:.5rem; }
+.crow button{ flex:1; min-height:2.8rem; border-radius:.7rem; border:2px solid var(--teal); color:var(--teal-d); font-weight:700; font-size:.9rem; background:var(--card); }
+
+/* карта */
+.map svg{ width:100%; height:auto; display:block; background:#fff; border-radius:.7rem; }
+.legend{ display:grid; grid-template-columns:1fr 1fr; gap:.35rem .8rem; font-size:.82rem; line-height:1.25; }
+.legend span{ display:inline-flex; width:1.25rem; height:1.25rem; border-radius:50%; background:var(--orange); color:#fff; font-weight:800; font-size:.7rem; align-items:center; justify-content:center; margin-right:.25rem; vertical-align:-.2rem; }
+
+/* поля */
+label.field{ display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; color:var(--muted); }
+label.field input, textarea{ font:inherit; font-size:1.05rem; color:var(--ink); background:var(--bg); border:1.5px solid var(--line); border-radius:.6rem; padding:.6rem .7rem; width:100%; }
+textarea{ min-height:12rem; resize:vertical; line-height:1.5; }
+label.field input:focus, textarea:focus{ outline:none; border-color:var(--teal); }
+.saved{ font-size:.75rem; color:var(--done); min-height:1em; }
+
+/* контакты */
+.call{ display:inline-flex; align-items:center; gap:.35rem; font-weight:800; text-decoration:none; color:var(--teal-d); white-space:nowrap; }
+.btns{ display:flex; gap:.5rem; flex-wrap:wrap; }
+.btn{ flex:1; min-width:9rem; min-height:3rem; border-radius:.8rem; background:var(--teal); color:#fff; text-decoration:none; font-weight:800; display:flex; align-items:center; justify-content:center; gap:.4rem; padding:0 .8rem; }
+.btn.wa{ background:#1FA855; }
+.btn.ghost{ background:var(--card); color:var(--teal-d); border:2px solid var(--teal); }
+.tbd{ color:var(--muted); font-size:.85rem; font-style:italic; }
+
+/* баннеры */
+.banner{ background:var(--card); border:2px solid var(--orange); border-radius:1rem; padding:.85rem 1rem; display:flex; flex-direction:column; gap:.5rem; }
+.banner b{ color:var(--orange-t); }
+.banner .x{ align-self:flex-end; font-size:.85rem; color:var(--muted); text-decoration:underline; }
+.status{ font-size:.8rem; color:var(--muted); text-align:center; padding:.2rem; }
+.status.ok{ color:var(--done); font-weight:700; }
+.upd{ position:fixed; left:1rem; right:1rem; bottom:calc(5.6rem + env(safe-area-inset-bottom)); z-index:40; background:var(--ink); color:var(--bg); border-radius:.9rem; padding:.8rem 1rem; display:none; align-items:center; gap:.8rem; }
+.upd.on{ display:flex; }
+.upd button{ background:var(--orange); color:#fff; border-radius:.6rem; padding:.45rem .8rem; font-weight:800; }
+
+/* нижнее меню */
+nav.tabs{ position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--card); border-top:1px solid var(--line);
+  display:grid; grid-template-columns:repeat(5,1fr); padding-bottom:env(safe-area-inset-bottom); }
+nav.tabs button{ display:flex; flex-direction:column; align-items:center; gap:.15rem; padding:.5rem 0 .45rem; font-size:.68rem; font-weight:700; color:var(--muted); min-height:4rem; justify-content:center; }
+nav.tabs button svg{ width:1.6rem; height:1.6rem; }
+nav.tabs button.on{ color:var(--teal); }
+nav.tabs button.on svg{ color:var(--orange); }
+.foot{ text-align:center; font-size:.78rem; color:var(--muted); padding:.6rem 0 0; }
+.foot button{ text-decoration:underline; color:var(--muted); font-size:.78rem; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+ <defs>
+  <symbol id="i-drop" viewBox="0 0 48 48"><path d="M24 5C17 15 11 22 11 30a13 13 0 0 0 26 0c0-8-6-15-13-25z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M18 31a6 6 0 0 0 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-cloth" viewBox="0 0 48 48"><path d="M12 8h24l5 12-7 2v20H14V22l-7-2z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M18 8l12 34" stroke="currentColor" stroke-width="2.2"/></symbol>
+  <symbol id="i-pray" viewBox="0 0 48 48"><rect x="10" y="6" width="28" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M16 42V22a8 8 0 0 1 16 0v20" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M24 10v4" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 48 48"><path d="M24 40S7 30 7 18a9 9 0 0 1 17-4 9 9 0 0 1 17 4c0 12-17 22-17 22z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-voice" viewBox="0 0 48 48"><path d="M8 18h7l10-8v28l-10-8H8z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M31 17a9 9 0 0 1 0 14M35 12a16 16 0 0 1 0 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-door" viewBox="0 0 48 48"><path d="M10 42V20a14 14 0 0 1 28 0v22" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M6 42h36M24 6v-1" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M18 42V25a6 6 0 0 1 12 0v17" fill="none" stroke="currentColor" stroke-width="2.6"/></symbol>
+  <symbol id="i-tawaf" viewBox="0 0 48 48"><rect x="18" y="18" width="12" height="12" fill="currentColor"/><path d="M38 24A14 14 0 1 1 24 10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M24 10l-5-4M24 10l-5 4" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-stone" viewBox="0 0 48 48"><path d="M9 18 24 9l15 9v18H9z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><ellipse cx="24" cy="26" rx="5" ry="6" fill="currentColor"/></symbol>
+  <symbol id="i-feet" viewBox="0 0 48 48"><path d="M17 8c4 0 5 5 5 10s-1 9-5 9-5-4-5-9 1-10 5-10zM31 18c4 0 5 5 5 10s-1 9-5 9-5-4-5-9 1-10 5-10z" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 32h10v6H12zM26 41h10" stroke="currentColor" stroke-width="2.4" fill="none"/></symbol>
+  <symbol id="i-cup" viewBox="0 0 48 48"><path d="M12 10h24l-3 30H15z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M13.5 20h21" stroke="currentColor" stroke-width="2.2"/><path d="M24 25c-2 3-3 4-3 6a3 3 0 0 0 6 0c0-2-1-3-3-6z" fill="currentColor"/></symbol>
+  <symbol id="i-walk" viewBox="0 0 48 48"><circle cx="27" cy="8" r="3.5" fill="currentColor"/><path d="M20 44l5-13 5 5 2 8M25 31l-1-11 7 4 6 1M24 20l-7 4-3 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-scis" viewBox="0 0 48 48"><circle cx="13" cy="35" r="6" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="35" cy="35" r="6" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M17 31 34 6M31 31 14 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 48 48"><circle cx="24" cy="24" r="16" fill="none" stroke="currentColor" stroke-width="2.8"/><path d="M13 13l22 22" stroke="currentColor" stroke-width="2.8"/></symbol>
+  <symbol id="i-dome" viewBox="0 0 48 48"><path d="M10 42V30h28v12M14 30a10 10 0 0 1 20 0M24 20v-6M40 42V16M40 16l-2 4h4z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M6 42h36" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M22 13a2.5 2.5 0 1 0 4 0" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-plane" viewBox="0 0 48 48"><path d="M6 28l36-14c3-1 4 2 1 3L31 25l-4 15-4-1 1-11-10 4-3 5-3-1 1-6z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-list" viewBox="0 0 48 48"><rect x="10" y="6" width="28" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M17 16h14M17 24h14M17 32h9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 48 48"><rect x="14" y="5" width="20" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M21 37h6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 48 48"><path d="M10 38l3-10L32 9l7 7-19 19z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M27 14l7 7" stroke="currentColor" stroke-width="2.6"/></symbol>
+  <symbol id="i-star" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="2.2"><rect x="22" y="22" width="56" height="56"/><rect x="22" y="22" width="56" height="56" transform="rotate(45 50 50)"/><circle cx="50" cy="50" r="17"/><circle cx="50" cy="50" r="44" stroke-width="1.2"/></g><rect x="43" y="43" width="14" height="14" fill="currentColor"/></symbol>
+ </defs>
+</svg>
+
+<header class="app">
+ <div class="mark"><img src="icon-mark.png" alt="JURT"></div>
+ <div class="t"><b>Гид паломника</b><span>Умра · JURT · 28.10–06.11.2026</span></div>
+ <button class="fs" id="fsBtn" aria-label="Размер шрифта">Aa</button>
+</header>
+
+<main>
+<!-- ================= УМРА ================= -->
+<section class="view" id="v-umra">
+ <div class="banner" id="installBanner" hidden>
+  <b>Установите гид на телефон</b>
+  <div id="installText"></div>
+  <div class="btns"><button class="btn" id="installBtn" hidden>Установить</button></div>
+  <button class="x" id="installHide">Скрыть</button>
+ </div>
+
+ <div class="card progress">
+  <div class="row"><span class="kicker">Умра · 01.11.2026</span><span class="big" id="progNum">0 из 11</span></div>
+  <div class="bar"><i id="progBar"></i></div>
+  <div class="next" id="progNext"></div>
+ </div>
+
+ <details class="info blue">
+  <summary><div class="num">?</div><div class="st"><div class="kicker">Бисмилляхи-р-рахмани-р-рахим</div><b>Как пользоваться гидом</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+  <div class="body">
+   <p>Нажмите на шаг — откроется, что делать и какие дуа читать. Сделали — нажмите «Сделано». Отметки сохраняются в телефоне и работают без интернета.</p>
+  <h3>Метки по ханафитскому мазхабу</h3>
+ <div class="tags"><span class="tag must">Обязательно</span></div>
+ <p class="small" style="color:var(--ink)"><b>Фард / шарт</b> — без этого умры нет. <b>Ваджиб</b> — нельзя пропускать; если пропущено — нужно искупление (обычно жертва-дам). Сразу скажите Даурену.</p>
+ <div class="tags"><span class="tag sunna">Сунна</span></div>
+ <p class="small" style="color:var(--ink)">Путь Пророка <span class="saw">ﷺ</span>: за неё — награда, без неё умра всё равно действительна.</p>
+ <h3>Как читать дуа</h3>
+ <div class="dua">
+  <div class="lbl">Пример</div>
+  <div class="ar">بِسْمِ اللَّهِ</div>
+  <div class="tr">Бисмилля́х — транслитерация, ударение отмечено</div>
+  <div class="ru">«С именем Аллаха» — смысловой перевод</div>
+  <div class="src">Источник: Коран (аят) или сборник хадисов</div>
+ </div>
+ <div class="flag"><b>⚑ Сверить</b> — пункт, по которому у учёных есть разные мнения. Окончательно решает духовный руководитель группы <b>Даурен Кубжанов</b>.</div>
+  </div>
+ </details>
+
+ <details class="info blue">
+  <summary><div class="num">⌖</div><div class="st"><div class="kicker">Масджид аль-Харам · схема</div><b>Умра за 8 шагов</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+  <div class="body">
+ <div class="map">
+ <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Roboto, Arial" >
+  <defs>
+   <marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#00878A"/></marker>
+   <marker id="ahr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a8402c"/></marker>
+  </defs>
+  <!-- здание мечети -->
+  <path d="M28 40 L200 18 L222 40 L222 282 L60 282 L18 230 Z" fill="#f6f0e2" stroke="#d9d2c0" stroke-width="2"/>
+  <!-- матаф -->
+  <circle cx="118" cy="152" r="86" fill="#fbf8f0" stroke="#e3dac4" stroke-width="1.5"/>
+  <!-- круги тавафа -->
+  <path d="M190 160 A72 72 0 1 0 186 172" fill="none" stroke="#00878A" stroke-width="2.2" stroke-dasharray="5 4" marker-end="url(#ah)" transform="rotate(-8 118 152)"/>
+  <path d="M118 80 A72 72 0 0 0 46 152" fill="none" stroke="#00878A" stroke-width="2.2" marker-end="url(#ah)"/>
+  <path d="M118 224 A72 72 0 0 0 190 152" fill="none" stroke="#00878A" stroke-width="2.2" marker-end="url(#ah)"/>
+  <!-- Хиджр Исмаила (северо-запад) -->
+  <path d="M118 126 A30 30 0 0 0 92 152" fill="none" stroke="#9a9a9a" stroke-width="5" stroke-linecap="round" transform="translate(-9 -9)"/>
+  <!-- Кааба: углы на сторонах света -->
+  <g transform="rotate(45 118 152)"><rect x="100" y="134" width="36" height="36" fill="#1b1b1b"/><rect x="100" y="146" width="36" height="3" fill="#FC7F00"/></g>
+  <!-- Чёрный камень (восточный угол) -->
+  <circle cx="143.5" cy="152" r="3.6" fill="#FC7F00" stroke="#fff" stroke-width="1"/>
+  <!-- линия старта / зелёный свет -->
+  <path d="M147 152 L204 152" stroke="#2fa36b" stroke-width="2" stroke-dasharray="2 2"/>
+  <circle cx="206" cy="152" r="3" fill="#2fa36b"/>
+  <!-- Йеменский угол (южный) -->
+  <circle cx="118" cy="177.5" r="2.6" fill="#fff" stroke="#1b1b1b" stroke-width="1.2"/>
+  <!-- Макам Ибрахима (северо-восток) -->
+  <circle cx="145" cy="122" r="4.2" fill="#FC7F00"/>
+  <!-- Масъа -->
+  <rect x="236" y="30" width="44" height="248" rx="6" fill="#efe7d2" stroke="#d9d2c0" stroke-width="1.5"/>
+  <rect x="236" y="138" width="44" height="26" fill="#cfe8d9"/>
+  <line x1="250" y1="262" x2="250" y2="52" stroke="#a8402c" stroke-width="2" marker-end="url(#ahr)"/>
+  <line x1="266" y1="52" x2="266" y2="262" stroke="#00878A" stroke-width="2" marker-end="url(#ah)"/>
+  <!-- подписи -->
+  <g font-size="9" fill="#1b1b1b" font-weight="600">
+   <text x="258" y="24" text-anchor="middle">Марва</text>
+   <text x="258" y="294" text-anchor="middle">Сафа</text>
+  </g>
+  <g font-size="6.6" fill="#5f625f">
+   <text x="258" y="133" text-anchor="middle" fill="#00878A" font-weight="600">зелёные</text>
+   <text x="258" y="172" text-anchor="middle" fill="#00878A" font-weight="600">огни</text>
+   <text x="40" y="92">Хиджр Исмаила</text><path d="M62 95 L92 128" stroke="#9a9a9a" stroke-width=".8"/>
+   <text x="152" y="113">Макам</text>
+   <text x="152" y="120">Ибрахима</text>
+   <text x="152" y="166">Чёрный</text>
+   <text x="152" y="173">камень</text>
+   <text x="96" y="194">Йеменский угол</text>
+   <text x="38" y="270">Ворота короля Абдулазиза</text>
+   <text x="6" y="150" transform="rotate(-90 12 150)">Ворота короля Фахда</text>
+  </g>
+  <!-- север -->
+  <g transform="translate(205 62)"><path d="M0 -10 L4 4 L0 1 L-4 4 Z" fill="#1b1b1b"/><text y="-13" font-size="7" text-anchor="middle" font-weight="700">С</text></g>
+  <!-- номера шагов -->
+  <g font-size="8" font-weight="800" fill="#fff" text-anchor="middle">
+   <circle cx="58" cy="252" r="7" fill="#FC7F00"/><text x="58" y="255">1</text>
+   <circle cx="88" cy="232" r="7" fill="#FC7F00"/><text x="88" y="235">2</text>
+   <circle cx="212" cy="138" r="7" fill="#FC7F00"/><text x="212" y="141">3</text>
+   <circle cx="34" cy="186" r="7" fill="#FC7F00"/><text x="34" y="189">4</text>
+   <circle cx="146" cy="96" r="7" fill="#FC7F00"/><text x="146" y="99">5</text>
+   <circle cx="210" cy="190" r="7" fill="#FC7F00"/><text x="210" y="193">6</text>
+   <circle cx="236" cy="278" r="7" fill="#FC7F00"/><text x="236" y="281">7</text>
+   <circle cx="285" cy="14" r="7" fill="#FC7F00"/><text x="285" y="17">8</text>
+  </g>
+ </svg>
+ </div>
+ <div class="legend">
+  <div><span>1</span>Вход: правая нога, дуа</div>
+  <div><span>5</span>2 ракаата за Макамом</div>
+  <div><span>2</span>Таваф: Кааба слева</div>
+  <div><span>6</span>Замзам: пить стоя, дуа</div>
+  <div><span>3</span>Старт у Чёрного камня</div>
+  <div><span>7</span>Сай: Сафа → Марва × 7</div>
+  <div><span>4</span>7 кругов, дуа у Йем. угла</div>
+  <div><span>8</span>Бритьё — выход из ихрама</div>
+ </div>
+ <p class="small">Схема упрощённая, не в масштабе. Старт — напротив зелёной лампы на стене.</p>
+  </div>
+ </details>
+
+<details class="step" data-id="ghusl"><summary><div class="num">1</div><div class="st"><div class="kicker">Медина · 01.11 · в отеле</div><b>Гусль</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag sunna">Сунна</span></div>
+ <p class="lead">Полное омовение перед ихрамом — для чистоты, а не для снятия скверны.</p>
+ <ul class="do">
+  <li class="s">Накануне (31.10): подстричь ногти, усы, удалить волосы под мышками и в паху.</li>
+  <li class="s">Сделать гусль: прополоскать рот, промыть нос, омыть всё тело.</li>
+  <li class="s">Нанести благовоние <b>на тело</b> (не на ткань ихрама).</li>
+  <li>Если гусль невозможен — достаточно обычного омовения (вуду).</li>
+ </ul>
+ <div class="note"><b>Мансуру (10 лет)</b> — то же самое, папа помогает. Для ребёнка всё проще: ошибки не страшны.</div>
+ <div class="flag"><b>⚑ Сверить:</b> что делать ребёнку, если он нарушит запрет ихрама. У ханафитов искупление на ребёнка не возлагается — подтвердить у Даурена.</div>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="ihram"><summary><div class="num">2</div><div class="st"><div class="kicker">Медина · 01.11 · до миката</div><b>Одежда ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
+ <p class="lead">Мужчина надевает два белых несшитых полотна. Войти в ихрам нужно <b>до</b> миката Зуль-Хулейфа.</p>
+ <ul class="do">
+  <li><b>Изар</b> — нижнее полотно, вокруг пояса, закрывает от пупка до ниже колен.</li>
+  <li><b>Рида</b> — верхнее полотно, на плечи.</li>
+  <li>Сандалии, открывающие подъём стопы. Пояс-кошелёк можно.</li>
+  <li class="no">Нижнее бельё, носки, кепка, шитая одежда.</li>
+  <li class="s">Перед тавафом — <b>идтиба</b>: правое плечо открыто, рида под правой рукой.</li>
+ </ul>
+ <div class="note">Одежду надеваем в отеле, а <b>намерение</b> и <b>тальбию</b> делаем на микате (шаги 4 и 5). До этого запреты ещё не действуют.</div>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="rakat"><summary><div class="num">3</div><div class="st"><div class="kicker">Микат Зуль-Хулейфа</div><b>2 ракаата ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag sunna">Сунна</span></div>
+ <p class="lead">Два ракаата с намерением «намаз ихрама». Ихрам ещё не начат — голову можно покрыть.</p>
+ <div class="dua">
+  <div class="lbl">1-й ракаат после «Фатихи»</div>
+  <div class="ar">قُلْ يَـٰٓأَيُّهَا ٱلْكَـٰفِرُونَ</div>
+  <div class="tr">Сура «Аль-Кафиру́н» (109)</div>
+ </div>
+ <div class="dua">
+  <div class="lbl">2-й ракаат после «Фатихи»</div>
+  <div class="ar">قُلْ هُوَ ٱللَّهُ أَحَدٌ</div>
+  <div class="tr">Сура «Аль-Ихля́с» (112)</div>
+ </div>
+ <ul class="do">
+  <li>Если время намаза-фарда (зухр) — можно совершить зухр вместо них.</li>
+  <li>Не совершать в запретное время (восход, зенит, закат).</li>
+ </ul>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="niyya"><summary><div class="num">4</div><div class="st"><div class="kicker">Микат · после 2 ракаатов</div><b>Намерение</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag must">Обязательно · <i>шарт (условие)</i></span></div>
+ <p class="lead">Намерение — в сердце. Произнести вслух желательно.</p>
+ <div class="dua">
+  <div class="lbl">Намерение умры</div>
+  <div class="ar big">اللَّهُمَّ إِنِّي أُرِيدُ الْعُمْرَةَ فَيَسِّرْهَا لِي وَتَقَبَّلْهَا مِنِّي</div>
+  <div class="tr">Аллаху́мма инни́ ури́ду-ль-‘у́мрата фа-йассирха́ ли́ ва-такаббальха́ минни́</div>
+  <div class="ru">«О Аллах, я намереваюсь совершить умру — облегчи её мне и прими её от меня»</div>
+  <div class="src">Формула из ханафитских книг по фикху (Хидая и др.)</div>
+ </div>
+ <div class="note">Сразу после намерения — <b>тальбия</b> (шаг 5). С этого момента вы в ихраме и действуют запреты (карточка «Запреты ихрама» ниже).</div>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="talbiya"><summary><div class="num">5</div><div class="st"><div class="kicker">Микат → Мекка · всю дорогу</div><b>Тальбия</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag must">Обязательно · <i>1 раз с намерением</i></span><span class="tag sunna">Сунна · <i>повторять</i></span></div>
+ <div class="dua">
+  <div class="ar big">لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ</div>
+  <div class="tr">Ляббайка-лла́хумма ляббайк. Ляббайка ля́ шари́ка ляка ляббайк. Инна-ль-ха́мда ва-н-ни‘мата ляка ва-ль-мульк. Ля́ шари́ка лак.</div>
+  <div class="ru">«Вот я перед Тобой, о Аллах, вот я! Вот я, нет у Тебя сотоварища, вот я! Поистине, хвала, милость и власть — Твои. Нет у Тебя сотоварища».</div>
+  <div class="src">Аль-Бухари 1549, Муслим 1184</div>
+ </div>
+ <ul class="do">
+  <li>Мужчины — вслух, громко. Повторять в дороге, на подъёмах и спусках.</li>
+  <li>Прекращаем при <b>начале тавафа</b> (у Чёрного камня).</li>
+ </ul>
+<button class="donebtn"></button>
+</div></details>
+<details class="info"><summary><div class="num">!</div><div class="st"><div class="kicker">От намерения до бритья</div><b>Запреты ихрама</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+<div class="body">
+ <ul class="do">
+  <li class="no">Шитая по телу одежда, носки, нижнее бельё</li>
+  <li class="no">Покрывать голову и лицо (зонт над головой — можно)</li>
+  <li class="no">Духи, ароматное мыло, шампунь, крем с запахом</li>
+  <li class="no">Стричь, брить, выщипывать волосы; стричь ногти</li>
+  <li class="no">Охота, убийство животных и насекомых</li>
+  <li class="no">Супружеская близость и всё, что к ней ведёт</li>
+  <li class="no">Ругань, споры, грубость</li>
+ </ul>
+ <h3>Можно</h3>
+ <ul class="do">
+  <li>Душ без мыла с запахом, часы, очки, пояс, кошелёк, рюкзак, лекарства, зубная щётка.</li>
+  <li>Менять и стирать ихрам.</li>
+ </ul>
+ <div class="flag"><b>⚑ Нарушили по ошибке?</b> Не паникуйте и сразу скажите Даурену — он объяснит, нужно ли искупление (садака или жертва).</div>
+</div></details>
+<details class="step" data-id="enter"><summary><div class="num">6</div><div class="st"><div class="kicker">Мекка · Масджид аль-Харам</div><b>Вход в мечеть</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag sunna">Сунна</span></div>
+ <ul class="do">
+  <li><b>Точка сбора</b>: запомните номер ворот, сфотографируйте его.</li>
+  <li>Обувь — в пакет и в рюкзак.</li>
+  <li class="s">Войти <b>правой</b> ногой и прочитать:</li>
+ </ul>
+ <div class="dua">
+  <div class="ar">بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ</div>
+  <div class="tr">Бисмилля́х, ва-с-саля́ту ва-с-саля́му ‘аля́ расу́лилля́х. Аллаху́мма-фтах ли́ абва́ба рахма́тик.</div>
+  <div class="ru">«С именем Аллаха, мир и благословение Посланнику Аллаха. О Аллах, открой мне врата Своей милости».</div>
+  <div class="src">Муслим 713; Абу Дауд 465</div>
+ </div>
+ <div class="note"><b>Первый взгляд на Каабу</b> — поднимите руки, скажите «Аллаху акбар, ля иляха илляллах» и попросите Аллаха о самом важном.</div>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="tawaf"><summary><div class="num">7</div><div class="st"><div class="kicker">Матаф · 7 кругов</div><b>Таваф</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag must">Фард · <i>4 круга</i></span><span class="tag must">Ваджиб · <i>3 круга, вуду</i></span></div>
+ <ul class="do">
+  <li>Обязательно <b>с омовением</b> (вуду).</li>
+  <li>Старт — <b>напротив Чёрного камня</b> (зелёная лампа на стене).</li>
+  <li><b>Кааба — слева</b>, идём против часовой стрелки.</li>
+  <li>Обходить <b>снаружи</b> Хиджра Исмаила (полукруглая стенка).</li>
+  <li class="s">Идтиба — правое плечо открыто все 7 кругов.</li>
+  <li class="s">Рамаль — первые 3 круга быстрый шаг, плечами вперёд (если позволяет толпа).</li>
+ </ul>
+ <div class="counter" data-id="tawaf" data-unit="круг" data-plural="кругов"><div class="ctitle">Счётчик: кругов<span>0 / 7</span></div><div class="cells"><div><b>1</b></div><div><b>2</b></div><div><b>3</b></div><div><b>4</b></div><div><b>5</b></div><div><b>6</b></div><div><b>7</b></div></div><button class="plus"></button><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
+ <p class="small">Сбились со счёта — берите меньшее число. Йеменский угол — коснуться рукой, если свободно (не целовать). В пути — любые дуа, зикр, Коран.</p>
+ <div class="flag"><b>⚑ Сверить:</b> начало тавафа от Чёрного камня — у ханафитов одни считают его ваджибом, другие сунной. Саламату после операции — коляска (можно по уважительной причине).</div>
+<h3>Истилям и дуа</h3>
+ <div class="tags"><span class="tag sunna">Сунна</span></div>
+ <p class="lead">У Чёрного камня встаньте лицом к нему, поднимите правую руку (ладонью к камню), поцелуйте ладонь. <b>Не пробивайтесь</b> к камню.</p>
+ <div class="dua">
+  <div class="lbl">У Чёрного камня · в начале каждого круга</div>
+  <div class="ar big">بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ</div>
+  <div class="tr">Бисмилля́хи ва-Лла́ху а́кбар</div>
+  <div class="ru">«С именем Аллаха, Аллах велик»</div>
+  <div class="src">Аль-Бухари 1613 (такбир); аль-Байхаки — от Ибн Умара</div>
+ </div>
+ <div class="dua sm">
+  <div class="lbl">Между Йеменским углом и Чёрным камнем</div>
+  <div class="ar">رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً وَفِى ٱلْـَٔاخِرَةِ حَسَنَةً وَقِنَا عَذَابَ ٱلنَّارِ</div>
+  <div class="tr">Ра́ббана́ а́тина́ фи-д-дунья́ хаса́на, ва-филь-а́хырати хаса́на, ва-кы́на ‘аза́ба-н-на́р</div>
+  <div class="ru">«Господь наш! Одари нас добром в этом мире и добром в Последней жизни и защити нас от мучений в Огне»</div>
+  <div class="src">Коран 2:201 (пер. Кулиева); Абу Дауд 1892</div>
+ </div>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="maqam"><summary><div class="num">8</div><div class="st"><div class="kicker">После 7-го круга</div><b>2 ракаата у Макама Ибрахима</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
+ <ul class="do">
+  <li>Закрыть правое плечо (идтиба закончена).</li>
+  <li>Идя к Макаму, можно прочитать:</li>
+ </ul>
+ <div class="dua">
+  <div class="ar">وَٱتَّخِذُوا۟ مِن مَّقَامِ إِبْرَٰهِـۧمَ مُصَلًّى</div>
+  <div class="tr">Ваттахы́зу́ мим-мака́ми Ибра́хи́ма мусалля́</div>
+  <div class="ru">«Сделайте же место Ибрахима местом моления»</div>
+  <div class="src">Коран 2:125 (пер. Кулиева)</div>
+ </div>
+ <ul class="do">
+  <li>2 ракаата: «Аль-Кафирун» и «Аль-Ихлас», как в шаге 3.</li>
+  <li><b>Тесно? Молитесь в любом месте мечети</b> — так даже лучше, чем мешать людям, идущим таваф.</li>
+  <li>Не в запретное время — тогда подождать.</li>
+ </ul>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="zamzam"><summary><div class="num">9</div><div class="st"><div class="kicker">Кулеры по краю матафа</div><b>Замзам</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag sunna">Сунна</span></div>
+ <ul class="do">
+  <li class="s">Пить вдоволь, лицом к Каабе, в три глотка, начав с «Бисмиллях».</li>
+  <li class="s">Немного воды — на голову и лицо.</li>
+  <li class="s">Просить о своём: «Вода Замзам — для того, ради чего её пьют» <span class="small">(Ибн Маджа 3062)</span>.</li>
+ </ul>
+ <div class="dua">
+  <div class="ar">اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا وَاسِعًا، وَشِفَاءً مِنْ كُلِّ دَاءٍ</div>
+  <div class="tr">Аллаху́мма инни́ ас’алюка ‘и́льман на́фи‘ан, ва-ри́зкан ва́си‘ан, ва-шифа́’ан мин ку́лли да́’</div>
+  <div class="ru">«О Аллах, прошу у Тебя полезного знания, обильного удела и исцеления от всякой болезни»</div>
+  <div class="src">Слова Ибн Аббаса (ад-Даракутни)</div>
+ </div>
+ <div class="note">Потом — снова к Чёрному камню: истилям рукой издалека и к Сафе (сунна).</div>
+ <div class="flag"><b>⚑ Сверить:</b> дуа Ибн Аббаса — со слабым иснадом; читать как обычное дуа.</div>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="sai"><summary><div class="num">10</div><div class="st"><div class="kicker">Начало на холме Сафа</div><b>Сай: Сафа</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
+ <div class="dua sm">
+  <div class="lbl">Подходя к Сафе (один раз)</div>
+  <div class="ar">إِنَّ ٱلصَّفَا وَٱلْمَرْوَةَ مِن شَعَآئِرِ ٱللَّهِ · أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ</div>
+  <div class="tr">Инна-с-сафа́ ва-ль-ма́рвата мин ша‘а́’ири-лля́х. Абда’у бима́ бада’а-Лла́ху бих.</div>
+  <div class="ru">«Ас-Сафа и аль-Марва — из обрядовых знамений Аллаха». «Начинаю с того, с чего начал Аллах».</div>
+  <div class="src">Коран 2:158 (пер. Кулиева); Муслим 1218</div>
+ </div>
+ <div class="dua sm">
+  <div class="lbl">На Сафе и на Марве · лицом к Каабе, руки подняты</div>
+  <div class="ar">اللَّهُ أَكْبَرُ ×٣ · لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزَابَ وَحْدَهُ</div>
+  <div class="tr">Аллаху а́кбар ×3. Ля иля́ха илля-Лла́ху ва́хдаху ля шари́ка лях, ля́ху-ль-мульку ва-ля́ху-ль-хамд, ва-ху́а ‘аля́ ку́лли шай’ин кади́р. Ля иля́ха илля-Лла́ху ва́хдах, анджа́за ва‘дах, ва-наса́ра ‘абдах, ва-хаза́ма-ль-ахза́ба ва́хдах.</div>
+  <div class="src">Муслим 1218. Потом — своё дуа.</div>
+ </div>
+<h3>Сай: 7 отрезков</h3>
+ <ul class="do">
+  <li><b>Сафа → Марва = 1</b>, Марва → Сафа = 2 … заканчиваем <b>на Марве</b> (7).</li>
+  <li class="s">Между <b>зелёными огнями</b> мужчины идут быстрым шагом.</li>
+  <li class="s">Омовение желательно, но не обязательно.</li>
+  <li>Устали — можно отдохнуть, сесть, попить. Есть коляски.</li>
+ </ul>
+<div class="counter" data-id="sai" data-unit="отрезок" data-plural="отрезков" data-hint-1="от Сафы до Марвы" data-hint-2="от Марвы до Сафы" data-hint-3="от Сафы до Марвы" data-hint-4="от Марвы до Сафы" data-hint-5="от Сафы до Марвы" data-hint-6="от Марвы до Сафы" data-hint-7="от Сафы до Марвы — финиш на Марве"><div class="ctitle">Счётчик: отрезков<span>0 / 7</span></div><div class="cells"><div><b>1</b>С→М</div><div><b>2</b>М→С</div><div><b>3</b>С→М</div><div><b>4</b>М→С</div><div><b>5</b>С→М</div><div><b>6</b>М→С</div><div><b>7</b>С→М</div></div><button class="plus"></button><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
+ <div class="dua">
+  <div class="lbl">Между зелёными огнями</div>
+  <div class="ar">رَبِّ اغْفِرْ وَارْحَمْ، إِنَّكَ أَنْتَ الْأَعَزُّ الْأَكْرَمُ</div>
+  <div class="tr">Рабби-гфир ва-рхам, инна́ка Анта-ль-а‘а́ззу-ль-акрам</div>
+  <div class="ru">«Господи, прости и помилуй, ведь Ты — Самый Могущественный, Самый Щедрый»</div>
+  <div class="src">Слова Ибн Масуда и Ибн Умара (Ибн Аби Шейба)</div>
+ </div>
+ <div class="flag"><b>⚑ Сверить:</b> это дуа передано от сподвижников, а не от Пророка <span class="saw">ﷺ</span>. Можно читать любое дуа.</div>
+<button class="donebtn"></button>
+</div></details>
+<details class="step" data-id="halq"><summary><div class="num">11</div><div class="st"><div class="kicker">После Марвы</div><b>Бритьё головы</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+<div class="body">
+ <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
+ <p class="lead"><b>Халк</b> — побрить голову полностью (лучше). <b>Таксир</b> — укоротить волосы не меньше чем на длину фаланги пальца.</p>
+ <ul class="do">
+  <li>У ханафитов минимум — <b>четверть головы</b>, но лучше вся голова.</li>
+  <li>Только после бритья снимаются запреты ихрама. <b>Умра завершена!</b></li>
+  <li>Цена у Харама ≈ 20–50 SAR. Лучше в салоне с одноразовым лезвием.</li>
+ </ul>
+ <div class="note">Пророк <span class="saw">ﷺ</span> трижды просил о прощении для обривших голову и один раз — для укоротивших <span class="small">(аль-Бухари 1727, Муслим 1302)</span>.</div>
+ <div class="dua">
+  <div class="lbl">После умры</div>
+  <div class="ar">الْحَمْدُ لِلَّهِ</div>
+  <div class="tr">Аль-хамду ли-Лля́х</div>
+  <div class="ru">«Хвала Аллаху». Да примет Аллах нашу умру!</div>
+ </div>
+<button class="donebtn"></button>
+</div></details>
+ <div class="foot"><button id="resetBtn">Сбросить отметки умры</button></div>
+</section>
+
+<!-- ================= ДУА ================= -->
+<section class="view" id="v-dua">
+ <h2 class="sec">Дуа</h2>
+ <p class="sub">Все дуа гида по порядку. Дуа можно читать и на своём языке — главное, сердцем.</p>
+<h2 class="sec" style="font-size:1.15rem">Умра</h2>
+ <div class="dua">
+  <div class="ctx">Намерение</div>
+  <div class="lbl">Намерение умры</div>
+  <div class="ar big">اللَّهُمَّ إِنِّي أُرِيدُ الْعُمْرَةَ فَيَسِّرْهَا لِي وَتَقَبَّلْهَا مِنِّي</div>
+  <div class="tr">Аллаху́мма инни́ ури́ду-ль-‘у́мрата фа-йассирха́ ли́ ва-такаббальха́ минни́</div>
+  <div class="ru">«О Аллах, я намереваюсь совершить умру — облегчи её мне и прими её от меня»</div>
+  <div class="src">Формула из ханафитских книг по фикху (Хидая и др.)</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Тальбия</div>
+  <div class="ar big">لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ</div>
+  <div class="tr">Ляббайка-лла́хумма ляббайк. Ляббайка ля́ шари́ка ляка ляббайк. Инна-ль-ха́мда ва-н-ни‘мата ляка ва-ль-мульк. Ля́ шари́ка лак.</div>
+  <div class="ru">«Вот я перед Тобой, о Аллах, вот я! Вот я, нет у Тебя сотоварища, вот я! Поистине, хвала, милость и власть — Твои. Нет у Тебя сотоварища».</div>
+  <div class="src">Аль-Бухари 1549, Муслим 1184</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Вход в мечеть</div>
+  <div class="ar">بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ</div>
+  <div class="tr">Бисмилля́х, ва-с-саля́ту ва-с-саля́му ‘аля́ расу́лилля́х. Аллаху́мма-фтах ли́ абва́ба рахма́тик.</div>
+  <div class="ru">«С именем Аллаха, мир и благословение Посланнику Аллаха. О Аллах, открой мне врата Своей милости».</div>
+  <div class="src">Муслим 713; Абу Дауд 465</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Истилям и дуа</div>
+  <div class="lbl">У Чёрного камня · в начале каждого круга</div>
+  <div class="ar big">بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ</div>
+  <div class="tr">Бисмилля́хи ва-Лла́ху а́кбар</div>
+  <div class="ru">«С именем Аллаха, Аллах велик»</div>
+  <div class="src">Аль-Бухари 1613 (такбир); аль-Байхаки — от Ибн Умара</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Истилям и дуа</div>
+  <div class="lbl">Между Йеменским углом и Чёрным камнем</div>
+  <div class="ar">رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً وَفِى ٱلْـَٔاخِرَةِ حَسَنَةً وَقِنَا عَذَابَ ٱلنَّارِ</div>
+  <div class="tr">Ра́ббана́ а́тина́ фи-д-дунья́ хаса́на, ва-филь-а́хырати хаса́на, ва-кы́на ‘аза́ба-н-на́р</div>
+  <div class="ru">«Господь наш! Одари нас добром в этом мире и добром в Последней жизни и защити нас от мучений в Огне»</div>
+  <div class="src">Коран 2:201 (пер. Кулиева); Абу Дауд 1892</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">2 ракаата у Макама Ибрахима</div>
+  <div class="ar">وَٱتَّخِذُوا۟ مِن مَّقَامِ إِبْرَٰهِـۧمَ مُصَلًّى</div>
+  <div class="tr">Ваттахы́зу́ мим-мака́ми Ибра́хи́ма мусалля́</div>
+  <div class="ru">«Сделайте же место Ибрахима местом моления»</div>
+  <div class="src">Коран 2:125 (пер. Кулиева)</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Замзам</div>
+  <div class="ar">اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا وَاسِعًا، وَشِفَاءً مِنْ كُلِّ دَاءٍ</div>
+  <div class="tr">Аллаху́мма инни́ ас’алюка ‘и́льман на́фи‘ан, ва-ри́зкан ва́си‘ан, ва-шифа́’ан мин ку́лли да́’</div>
+  <div class="ru">«О Аллах, прошу у Тебя полезного знания, обильного удела и исцеления от всякой болезни»</div>
+  <div class="src">Слова Ибн Аббаса (ад-Даракутни)</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Сай: Сафа</div>
+  <div class="lbl">Подходя к Сафе (один раз)</div>
+  <div class="ar">إِنَّ ٱلصَّفَا وَٱلْمَرْوَةَ مِن شَعَآئِرِ ٱللَّهِ · أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ</div>
+  <div class="tr">Инна-с-сафа́ ва-ль-ма́рвата мин ша‘а́’ири-лля́х. Абда’у бима́ бада’а-Лла́ху бих.</div>
+  <div class="ru">«Ас-Сафа и аль-Марва — из обрядовых знамений Аллаха». «Начинаю с того, с чего начал Аллах».</div>
+  <div class="src">Коран 2:158 (пер. Кулиева); Муслим 1218</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Сай: Сафа</div>
+  <div class="lbl">На Сафе и на Марве · лицом к Каабе, руки подняты</div>
+  <div class="ar">اللَّهُ أَكْبَرُ ×٣ · لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزَابَ وَحْدَهُ</div>
+  <div class="tr">Аллаху а́кбар ×3. Ля иля́ха илля-Лла́ху ва́хдаху ля шари́ка лях, ля́ху-ль-мульку ва-ля́ху-ль-хамд, ва-ху́а ‘аля́ ку́лли шай’ин кади́р. Ля иля́ха илля-Лла́ху ва́хдах, анджа́за ва‘дах, ва-наса́ра ‘абдах, ва-хаза́ма-ль-ахза́ба ва́хдах.</div>
+  <div class="src">Муслим 1218. Потом — своё дуа.</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Сай: 7 отрезков</div>
+  <div class="lbl">Между зелёными огнями</div>
+  <div class="ar">رَبِّ اغْفِرْ وَارْحَمْ، إِنَّكَ أَنْتَ الْأَعَزُّ الْأَكْرَمُ</div>
+  <div class="tr">Рабби-гфир ва-рхам, инна́ка Анта-ль-а‘а́ззу-ль-акрам</div>
+  <div class="ru">«Господи, прости и помилуй, ведь Ты — Самый Могущественный, Самый Щедрый»</div>
+  <div class="src">Слова Ибн Масуда и Ибн Умара (Ибн Аби Шейба)</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Бритьё головы</div>
+  <div class="lbl">После умры</div>
+  <div class="ar">الْحَمْدُ لِلَّهِ</div>
+  <div class="tr">Аль-хамду ли-Лля́х</div>
+  <div class="ru">«Хвала Аллаху». Да примет Аллах нашу умру!</div>
+ </div>
+<h2 class="sec" style="font-size:1.15rem">Медина</h2>
+ <div class="dua">
+  <div class="ctx">Салям Пророку ﷺ</div>
+  <div class="ar">السَّلَامُ عَلَيْكَ يَا رَسُولَ اللَّهِ</div>
+  <div class="tr">Ас-саля́му ‘аляйка йа́ Расу́ля-лла́х</div>
+  <div class="ru">«Мир тебе, о Посланник Аллаха»</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Салям Пророку ﷺ</div>
+  <div class="ar">السَّلَامُ عَلَيْكَ يَا أَبَا بَكْرٍ · السَّلَامُ عَلَيْكَ يَا عُمَرُ</div>
+  <div class="tr">Ас-саля́му ‘аляйка йа́ Аба́ Бакр · Ас-саля́му ‘аляйка йа́ ‘Умар</div>
+  <div class="ru">«Мир тебе, о Абу Бакр» · «Мир тебе, о Умар» (да будет доволен ими Аллах)</div>
+  <div class="src">Так приветствовал Ибн Умар (Малик, «Муватта»). Пророк <span class="saw">ﷺ</span> отвечает на салям — Абу Дауд 2041</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Равда, Куба, Ухуд</div>
+  <div class="ar">السَّلَامُ عَلَيْكُمْ أَهْلَ الدِّيَارِ مِنَ الْمُؤْمِنِينَ وَالْمُسْلِمِينَ، وَإِنَّا إِنْ شَاءَ اللَّهُ لَلَاحِقُونَ، نَسْأَلُ اللَّهَ لَنَا وَلَكُمُ الْعَافِيَةَ</div>
+  <div class="tr">Ас-саля́му ‘аляйкум а́хля-д-дийа́р мина-ль-му’мини́на ва-ль-муслими́н, ва-инна́ ин ша́’а-Лла́ху ля-ля́хику́н, нас’алю-Лла́ха ля́на ва-ля́куму-ль-‘а́фия</div>
+  <div class="ru">«Мир вам, верующие и мусульмане, обитатели этих жилищ! Мы, если пожелает Аллах, присоединимся к вам. Просим у Аллаха благополучия для нас и для вас»</div>
+  <div class="src">Муслим 975 · то же — на кладбище Баки</div>
+ </div>
+<h2 class="sec" style="font-size:1.15rem">В пути и в мечети</h2>
+ <div class="dua">
+  <div class="ctx">Дуа в пути</div>
+  <div class="lbl">Сев в транспорт</div>
+  <div class="ar">اللَّهُ أَكْبَرُ ×٣ · سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَٰذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَىٰ رَبِّنَا لَمُنْقَلِبُونَ، اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَٰذَا الْبِرَّ وَالتَّقْوَىٰ، وَمِنَ الْعَمَلِ مَا تَرْضَىٰ، اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَٰذَا وَاطْوِ عَنَّا بُعْدَهُ</div>
+  <div class="tr">Аллаху а́кбар ×3. Субха́на-лля́зи саххара ля́на ха́за ва-ма́ кунна́ ля́ху мукрини́н, ва-инна́ иля́ Рабби́на ля-мункалибу́н. Аллаху́мма инна́ нас’алюка фи са́фарина ха́за-ль-би́рра ва-т-таква́, ва-мина-ль-‘а́мали ма́ тарда́. Аллаху́мма хаввин ‘аляйна́ са́фарана ха́за ва-тви ‘анна́ бу‘дах.</div>
+  <div class="ru">«Пречист Тот, Кто подчинил нам это, ведь мы сами на такое были неспособны. Воистину, мы вернёмся к нашему Господу (43:13–14). О Аллах, просим у Тебя в этой поездке благочестия, богобоязненности и дел, которыми Ты доволен. О Аллах, облегчи нам эту поездку и сократи её расстояние».</div>
+  <div class="src">Муслим 1342; Коран 43:13–14 (пер. Кулиева)</div>
+ </div>
+ <div class="dua">
+  <div class="ctx">Вход и выход из мечети</div>
+  <div class="lbl">Выход · левой ногой</div>
+  <div class="ar">بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ</div>
+  <div class="tr">Бисмилля́х, ва-с-саля́ту ва-с-саля́му ‘аля́ расу́лилля́х. Аллаху́мма инни́ ас’алюка мин фадлик.</div>
+  <div class="ru">«…О Аллах, прошу у Тебя Твоей щедрости»</div>
+  <div class="src">Муслим 713; Абу Дауд 465</div>
+ </div>
+
+ <div class="card">
+  <h3>Мои дуа</h3>
+  <p class="small">За себя, родителей, семью, умму. Кто просил сделать дуа. Записи хранятся только в вашем телефоне.</p>
+  <textarea data-k="mydua" placeholder="Записать дуа…"></textarea>
+  <div class="saved" data-saved="mydua"></div>
+ </div>
+</section>
+
+<!-- ================= МАРШРУТ ================= -->
+<section class="view" id="v-route">
+ <h2 class="sec">Маршрут тура</h2>
+ <div class="card">
+ <table>
+  <tr><th>Дата</th><th>Что и где</th></tr>
+  <tr data-dates="28.10"><td class="d">28.10 ср</td><td><b>03:15</b> сбор, аэропорт Алматы<br><span class="fly">TK 351</span> 06:15 → 10:35 Стамбул · день в городе</td></tr>
+  <tr data-dates="29.10"><td class="d">29.10 чт</td><td><span class="fly">TK 98</span> 01:40 → 05:05 Медина<br>Отель <b>Worth Peninsula</b></td></tr>
+  <tr data-dates="30.10"><td class="d">30.10 пт</td><td>Джума в мечети Пророка <span class="saw">ﷺ</span> · Равда (Nusuk)</td></tr>
+  <tr data-dates="31.10"><td class="d">31.10 сб</td><td>Зиярат: Куба, Ухуд, Кыблатайн · урок по умре</td></tr>
+  <tr data-dates="01.11"><td class="d">01.11 вс</td><td>Ихрам · микат <b>Зуль-Хулейфа</b> → Мекка<br>Отель <b>Address Jabal Omar</b> · <b>умра</b></td></tr>
+  <tr data-dates="02.11,03.11"><td class="d">02–03.11</td><td>Мекка: ибадат в Харам, зиярат</td></tr>
+  <tr data-dates="04.11"><td class="d">04.11 ср</td><td>Прощальный таваф · переезд в Медину</td></tr>
+  <tr data-dates="05.11"><td class="d">05.11 чт</td><td><span class="fly">FZ 828</span> 01:15 → 04:45 Дубай (T2)<br><span class="fly">FZ 1721</span> 21:10 из Дубая (T3)</td></tr>
+  <tr data-dates="06.11"><td class="d">06.11 пт</td><td><b>03:00</b> Алматы, терминал 2</td></tr>
+ </table>
+ <div class="note">Время везде <b>местное</b>: Алматы +5, Стамбул и Саудовская Аравия +3, Дубай +4.</div>
+ <p class="small">Багаж: туда 23 кг (Turkish), обратно 30 кг + 7 кг ручной клади (flydubai).</p>
+ </div>
+</section>
+
+<!-- ================= МЕДИНА ================= -->
+<section class="view" id="v-medina">
+ <h2 class="sec">Медина</h2>
+ <p class="sub">Масджид ан-Набави · 29.10–01.11, 04.11</p>
+<div class="card"><div><div class="kicker">Медина · Масджид ан-Набави</div><h3 style="font-size:1.25rem">Салям Пророку <span class="saw">ﷺ</span></h3></div>
+ <ul class="do">
+  <li>Войти с дуа входа (раздел «Дуа»), совершить 2 ракаата приветствия мечети.</li>
+  <li>Пройти вдоль Худжры (вход — ворота Ас-Салям), спокойно, не задерживая людей, без громкого голоса.</li>
+ </ul>
+ <div class="dua">
+  <div class="ar">السَّلَامُ عَلَيْكَ يَا رَسُولَ اللَّهِ</div>
+  <div class="tr">Ас-саля́му ‘аляйка йа́ Расу́ля-лла́х</div>
+  <div class="ru">«Мир тебе, о Посланник Аллаха»</div>
+ </div>
+ <div class="dua">
+  <div class="ar">السَّلَامُ عَلَيْكَ يَا أَبَا بَكْرٍ · السَّلَامُ عَلَيْكَ يَا عُمَرُ</div>
+  <div class="tr">Ас-саля́му ‘аляйка йа́ Аба́ Бакр · Ас-саля́му ‘аляйка йа́ ‘Умар</div>
+  <div class="ru">«Мир тебе, о Абу Бакр» · «Мир тебе, о Умар» (да будет доволен ими Аллах)</div>
+  <div class="src">Так приветствовал Ибн Умар (Малик, «Муватта»). Пророк <span class="saw">ﷺ</span> отвечает на салям — Абу Дауд 2041</div>
+ </div>
+ <p class="small">Дуа делаем, повернувшись к кибле. Салават и салям можно говорить из любого места мечети.</p>
+</div>
+<div class="card"><div><div class="kicker">Медина · 29.10–01.11, 04.11</div><h3 style="font-size:1.25rem">Равда, Куба, Ухуд</h3></div>
+ <h3>Равда — «сад из садов Рая»</h3>
+ <p class="small" style="color:var(--ink)">Между домом Пророка <span class="saw">ﷺ</span> и минбаром (аль-Бухари 1196, Муслим 1391). Вход — <b>только по разрешению в Nusuk</b>, у каждого своё, на точное время. Прийти за 15–20 мин, показать QR. Внутри — 2 ракаата и дуа, не задерживаться.</p>
+ <h3>Мечеть Куба · 31.10, суббота</h3>
+ <p class="small" style="color:var(--ink)">Омовение — в отеле. 2 ракаата в Кубе — награда как за умру (Ибн Маджа 1412). Пророк <span class="saw">ﷺ</span> ходил в Кубу по субботам (аль-Бухари 1193).</p>
+ <h3>Ухуд · кладбище шахидов</h3>
+ <div class="dua sm">
+  <div class="ar">السَّلَامُ عَلَيْكُمْ أَهْلَ الدِّيَارِ مِنَ الْمُؤْمِنِينَ وَالْمُسْلِمِينَ، وَإِنَّا إِنْ شَاءَ اللَّهُ لَلَاحِقُونَ، نَسْأَلُ اللَّهَ لَنَا وَلَكُمُ الْعَافِيَةَ</div>
+  <div class="tr">Ас-саля́му ‘аляйкум а́хля-д-дийа́р мина-ль-му’мини́на ва-ль-муслими́н, ва-инна́ ин ша́’а-Лла́ху ля-ля́хику́н, нас’алю-Лла́ха ля́на ва-ля́куму-ль-‘а́фия</div>
+  <div class="ru">«Мир вам, верующие и мусульмане, обитатели этих жилищ! Мы, если пожелает Аллах, присоединимся к вам. Просим у Аллаха благополучия для нас и для вас»</div>
+  <div class="src">Муслим 975 · то же — на кладбище Баки</div>
+ </div>
+</div>
+</section>
+
+<!-- ================= ПАМЯТКА ================= -->
+<section class="view" id="v-info">
+ <h2 class="sec">Памятка</h2>
+ <div class="card">
+  <h3>Мои данные</h3>
+  <label class="field"><span>Имя паломника</span><input data-k="f-name" autocomplete="name"></label>
+  <label class="field"><span>Номер в отеле · Медина</span><input data-k="f-room-med" inputmode="numeric"></label>
+  <label class="field"><span>Номер в отеле · Мекка</span><input data-k="f-room-mak" inputmode="numeric"></label>
+  <p class="small">Сохраняется только в этом телефоне.</p>
+ </div>
+<div class="card"><div><div class="kicker">Памятка</div><h3 style="font-size:1.25rem">Документы и деньги</h3></div>
+ <h3>Документы — всегда при себе</h3>
+ <ul class="do">
+  <li>Загранпаспорт, удостоверение РК.</li>
+  <li>Виза (eVisa) — распечатка + PDF в телефоне.</li>
+  <li>Билеты: туда TK 351 + TK 98; обратно flydubai FZ 828 + FZ 1721.</li>
+  <li>Копии паспорта и визы — отдельно от оригиналов.</li>
+ </ul>
+ <h3>Деньги</h3>
+ <ul class="do">
+  <li>500–1 000 SAR на человека наличными. USD менять у Харама.</li>
+  <li>Карту открыть для оплаты за рубежом. Мелочь — на садака.</li>
+ </ul>
+ <h3>Багаж</h3>
+ <ul class="do">
+  <li>Туда: 23 кг. Обратно: 30 кг + 7 кг ручная кладь.</li>
+  <li>В ручной клади: ихрам, сандалии, документы, лекарства, пауэрбанк.</li>
+  <li>Замзам — только в фирменных запечатанных канистрах 5 л.</li>
+  <li>Бирка на чемодан: имя, телефон, «JURT UMRAH 2026».</li>
+ </ul>
+</div>
+<div class="card"><div><div class="kicker">Памятка</div><h3 style="font-size:1.25rem">Связь и безопасность</h3></div>
+ <h3>SIM-карта</h3>
+ <ul class="do">
+  <li>STC, Mobily, Zain — в аэропорту Медины по паспорту, ≈100–150 SAR. Или eSIM заранее.</li>
+  <li>До покупки SIM — отключить мобильные данные (роуминг дорогой).</li>
+  <li>Общий чат группы в WhatsApp, геолокация — включена для своих.</li>
+ </ul>
+ <h3>Точки сбора</h3>
+ <label class="field"><span>Медина, мечеть Пророка <span class="saw">ﷺ</span>: ворота №</span><input data-k="p2-1"></label>
+ <label class="field"><span>Мекка, Масджид аль-Харам: ворота №</span><input data-k="p2-2"></label>
+ <h3>Если потерялись</h3>
+ <ul class="do">
+  <li><b>Не ищите</b> группу в толпе. Идите к точке сбора или в отель и напишите в чат.</li>
+  <li>Мансур — всегда рядом с папой, на руке браслет с телефоном.</li>
+ </ul>
+ <h3>Здоровье</h3>
+ <ul class="do">
+  <li>Днём +33…+38 °C: вода с собой, тень, зонт.</li>
+  <li>Головокружение, тошнота — сразу в тень и сказать Чингису.</li>
+ </ul>
+</div>
+<div class="card"><div><div class="kicker">Сохраните в телефон</div><h3 style="font-size:1.25rem">Контакты</h3></div>
+<div class="btns"><a class="btn wa" href="https://wa.me/77777825555">WhatsApp Чингису</a><a class="btn" href="tel:+77777825555">Позвонить</a></div>
+ <table>
+  <tr><td><b>Чингис Мадияров</b><br><span class="small">организатор · WhatsApp</span></td><td style="white-space:nowrap"><a class="call" href="tel:+77777825555">+7 777 782 55 55</a></td></tr>
+  <tr><td><b>Даурен Кубжанов</b><br><span class="small">духовный руководитель</span></td><td class="tbd">уточняется</td></tr>
+  <tr><td><b>Worth Peninsula</b><br><span class="small">отель, Медина</span></td><td class="tbd">уточняется</td></tr>
+  <tr><td><b>Address Jabal Omar</b><br><span class="small">отель, Мекка</span></td><td class="tbd">уточняется</td></tr>
+  <tr><td><b>Посольство / консульство РК</b><br><span class="small">Эр-Рияд / Джидда</span></td><td class="tbd">уточняется</td></tr>
+  <tr><td><b>Экстренные службы</b></td><td>Сауд. Аравия <a class="call" href="tel:911">911</a><br>Турция <a class="call" href="tel:112">112</a><br>ОАЭ <a class="call" href="tel:999">999</a> · скорая <a class="call" href="tel:998">998</a></td></tr>
+  <tr><td><b>flydubai</b></td><td><a class="call" href="tel:+971600544445">+971 600 54 44 45</a></td></tr>
+ </table>
+ <label class="field"><span>Мой сосед по номеру · телефон</span><input data-k="ct-1"></label>
+</div>
+
+ <div class="card">
+  <h3>Настройки</h3>
+  <div class="btns">
+   <button class="btn ghost" data-fs="0">Aa обычный</button>
+   <button class="btn ghost" data-fs="1">Aa крупный</button>
+   <button class="btn ghost" data-fs="2">Aa очень крупный</button>
+  </div>
+  <div class="btns">
+   <button class="btn ghost" data-theme-set="">Как в телефоне</button>
+   <button class="btn ghost" data-theme-set="light">Светлая</button>
+   <button class="btn ghost" data-theme-set="dark">Тёмная</button>
+  </div>
+ </div>
+ <div class="status" id="swStatus">Проверяю офлайн-режим…</div>
+ <p class="foot">Пусть Аллах примет нашу умру и облегчит путь. · JURT · 2026<br>Версия 1.0 · 21.10.2026</p>
+</section>
+</main>
+
+<div class="upd" id="updBar"><span style="flex:1">Есть обновление гида</span><button id="updBtn">Обновить</button></div>
+
+<nav class="tabs">
+ <button data-tab="umra"><svg><use href="#i-tawaf"/></svg>Умра</button>
+ <button data-tab="dua"><svg><use href="#i-heart"/></svg>Дуа</button>
+ <button data-tab="route"><svg><use href="#i-plane"/></svg>Маршрут</button>
+ <button data-tab="medina"><svg><use href="#i-dome"/></svg>Медина</button>
+ <button data-tab="info"><svg><use href="#i-list"/></svg>Памятка</button>
+</nav>
+
+<script>
+(function(){
+var P='jurt-umra:';
+function get(k,d){ try{ var v=localStorage.getItem(P+k); return v===null?d:JSON.parse(v); }catch(e){ return d; } }
+function set(k,v){ try{ localStorage.setItem(P+k,JSON.stringify(v)); }catch(e){} }
+var $=function(s,r){ return (r||document).querySelector(s); }, $$=function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+var root=document.documentElement;
+
+/* шрифт и тема */
+function applyFs(v){ root.setAttribute('data-fs',v); set('fs',v); $$('[data-fs]').forEach(function(b){ if(b.tagName==='BUTTON') b.style.background=(String(b.getAttribute('data-fs'))===String(v))?'var(--mint)':''; }); }
+applyFs(get('fs',0));
+$('#fsBtn').onclick=function(){ applyFs((Number(get('fs',0))+1)%3); };
+$$('button[data-fs]').forEach(function(b){ b.onclick=function(){ applyFs(Number(b.getAttribute('data-fs'))); }; });
+function applyTheme(t){ if(t) root.setAttribute('data-theme',t); else root.removeAttribute('data-theme'); set('theme',t); }
+applyTheme(get('theme',''));
+$$('[data-theme-set]').forEach(function(b){ b.onclick=function(){ applyTheme(b.getAttribute('data-theme-set')); }; });
+
+/* вкладки */
+function show(tab){
+  if(!document.getElementById('v-'+tab)) tab='umra';
+  $$('.view').forEach(function(v){ v.classList.toggle('on', v.id==='v-'+tab); });
+  $$('nav.tabs button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===tab); });
+  set('tab',tab);
+}
+$$('nav.tabs button').forEach(function(b){ b.onclick=function(){ show(b.getAttribute('data-tab')); window.scrollTo(0,0); }; });
+show(get('tab','umra'));
+
+/* шаги */
+var steps=$$('details.step'), TOTAL=steps.length;
+function done(){ return get('done',{}); }
+function render(){
+  var d=done(), n=0, nextStep=null;
+  steps.forEach(function(s){ var id=s.getAttribute('data-id'), on=!!d[id]; s.classList.toggle('done',on);
+    var b=$('.donebtn',s); b.innerHTML=on?'✓ Сделано · отменить':'Отметить «Сделано»'; if(on) n++; else if(!nextStep) nextStep=s; });
+  $('#progNum').textContent=n+' из '+TOTAL;
+  $('#progBar').style.width=(100*n/TOTAL)+'%';
+  $('#progNext').innerHTML = nextStep ? 'Следующий шаг: <b>'+$('.st b',nextStep).textContent+'</b>' : 'Умра завершена! Аль-хамду ли-Лляхь. Да примет Аллах.';
+  return nextStep;
+}
+function toggle(s){ var d=done(), id=s.getAttribute('data-id'); if(d[id]) delete d[id]; else d[id]=Date.now(); set('done',d);
+  var nx=render(); if(d[id]){ if(navigator.vibrate) navigator.vibrate(30); s.open=false; if(nx){ nx.open=true; setTimeout(function(){ nx.scrollIntoView({behavior:'smooth',block:'start'}); },60); } } }
+steps.forEach(function(s){
+  $('.chk',s).addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); toggle(s); });
+  $('.donebtn',s).addEventListener('click',function(){ toggle(s); });
+});
+var first=render(); if(first && get('tab','umra')==='umra') first.open=true;
+$('#resetBtn').onclick=function(){ if(confirm('Сбросить все отметки шагов и счётчики?')){ set('done',{}); $$('.counter').forEach(function(c){ set('cnt-'+c.getAttribute('data-id'),0); }); $$('.counter').forEach(paint); render(); } };
+
+/* счётчики */
+function paint(c){
+  var id=c.getAttribute('data-id'), n=get('cnt-'+id,0), cells=$$('.cells div',c);
+  cells.forEach(function(el,i){ el.classList.toggle('on',i<n); el.classList.toggle('cur',i===n); });
+  $('.ctitle span',c).textContent=n+' / 7';
+  var p=$('.plus',c), unit=c.getAttribute('data-unit');
+  if(n>=7){ p.classList.add('fin'); p.innerHTML='✓ Все 7 '+c.getAttribute('data-plural')+'<small>Аль-хамду ли-Лляхь</small>'; }
+  else { p.classList.remove('fin'); p.innerHTML='+ '+unit+' '+(n+1)+' пройден'+'<small>'+(c.getAttribute('data-hint-'+(n+1))||'нажмите в конце '+unit+'а')+'</small>'; }
+}
+$$('.counter').forEach(function(c){
+  var id=c.getAttribute('data-id');
+  $('.plus',c).onclick=function(){ var n=get('cnt-'+id,0); if(n<7){ n++; set('cnt-'+id,n); if(navigator.vibrate) navigator.vibrate(n===7?[60,60,60]:40); paint(c); } };
+  $('.minus',c).onclick=function(){ var n=get('cnt-'+id,0); if(n>0){ set('cnt-'+id,n-1); paint(c); } };
+  $('.zero',c).onclick=function(){ if(confirm('Начать счёт заново?')){ set('cnt-'+id,0); paint(c); } };
+  paint(c);
+});
+
+/* экран не гаснет, пока открыт счётчик */
+var lock=null;
+function wake(){ if('wakeLock' in navigator && !lock){ navigator.wakeLock.request('screen').then(function(l){ lock=l; l.addEventListener('release',function(){ lock=null; }); }).catch(function(){}); } }
+$$('details.step').forEach(function(s){ s.addEventListener('toggle',function(){ if(s.open && $('.counter',s)) wake(); }); });
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && $$('details.step[open] .counter').length) wake(); });
+
+/* поля и заметки */
+$$('[data-k]').forEach(function(el){ var k='in-'+el.getAttribute('data-k'); el.value=get(k,''); var t;
+  el.addEventListener('input',function(){ set(k,el.value); var s=$('[data-saved="'+el.getAttribute('data-k')+'"]'); if(s){ s.textContent='Сохранено в телефоне'; clearTimeout(t); t=setTimeout(function(){ s.textContent=''; },1500); } }); });
+
+/* сегодня в маршруте */
+var now=new Date(), dd=('0'+now.getDate()).slice(-2)+'.'+('0'+(now.getMonth()+1)).slice(-2);
+if(now.getFullYear()===2026) $$('tr[data-dates]').forEach(function(tr){ if(tr.getAttribute('data-dates').split(',').indexOf(dd)>=0) tr.classList.add('today'); });
+
+/* установка */
+var ua=navigator.userAgent, isIOS=/iPhone|iPad|iPod/.test(ua) || (ua.indexOf('Mac')>=0 && 'ontouchend' in document);
+var standalone=window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+var deferred=null;
+function banner(){ if(standalone || get('installHidden',false)) return; $('#installBanner').hidden=false;
+  $('#installText').innerHTML = isIOS
+    ? 'В Safari нажмите <b>«Поделиться»</b> (квадрат со стрелкой) → <b>«На экран „Домой“»</b> → «Добавить». Затем откройте гид <b>с иконки</b> один раз при интернете — после этого он работает в режиме самолёта.'
+    : 'Нажмите «Установить» или в меню браузера (⋮) выберите <b>«Добавить на главный экран»</b>. Откройте гид с иконки один раз при интернете.'; }
+window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; $('#installBtn').hidden=false; });
+$('#installBtn').onclick=function(){ if(deferred){ deferred.prompt(); deferred=null; $('#installBtn').hidden=true; } };
+$('#installHide').onclick=function(){ set('installHidden',true); $('#installBanner').hidden=true; };
+banner();
+
+/* офлайн */
+var st=$('#swStatus');
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(function(reg){
+    function waiting(w){ $('#updBar').classList.add('on'); $('#updBtn').onclick=function(){ w.postMessage('skip'); }; }
+    if(reg.waiting && navigator.serviceWorker.controller) waiting(reg.waiting);
+    reg.addEventListener('updatefound',function(){ var w=reg.installing; w.addEventListener('statechange',function(){ if(w.state==='installed' && navigator.serviceWorker.controller) waiting(w); }); });
+    if(navigator.onLine) reg.update().catch(function(){});
+  }).catch(function(){ st.textContent='Офлайн-режим недоступен в этом браузере'; });
+  navigator.serviceWorker.ready.then(function(){ st.textContent='✓ Гид сохранён в телефоне и работает без интернета'; st.className='status ok'; });
+  var reloaded=false; navigator.serviceWorker.addEventListener('controllerchange',function(){ if(!reloaded && navigator.serviceWorker.controller){ reloaded=true; if($('#updBar').classList.contains('on')) location.reload(); } });
+} else st.textContent='Офлайн-режим недоступен в этом браузере';
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function(){});
+})();
+</script>
+</body>
+</html>
