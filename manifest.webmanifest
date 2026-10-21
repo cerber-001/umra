@@ -1,9 +1,9 @@
 {
   "name": "Гид паломника JURT",
   "short_name": "Умра JURT",
-  "description": "Офлайн-гид умры: шаги, дуа, маршрут, Медина, памятка. Группа JURT 28.10–06.11.2026.",
+  "description": "Офлайн-гид умры: шаги, дуа, путь, Медина, памятка. Группа JURT 28.10–06.11.2026.",
   "lang": "ru",
-  "start_url": "./",
+  "id": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

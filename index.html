@@ -26,95 +26,232 @@
 <style>
 @font-face{ font-family:"Amiri"; src:url("amiri-400.woff2") format("woff2"); font-weight:400; font-display:swap; }
 :root{
-  --teal:#00878A; --teal-d:#006669; --orange:#FC7F00; --orange-t:#B35A00;
-  --bg:#F3F6F6; --card:#FFFFFF; --ink:#172021; --muted:#59676A; --line:#DCE3E3;
+  --teal:#00878A; --teal-d:#006669; --teal-l:#14A3A6; --orange:#FC7F00; --orange-t:#B35A00;
+  --bg:#F2F5F5; --card:#FFFFFF; --ink:#172021; --muted:#59676A; --line:#DCE3E3;
   --sand:#FFF5EA; --mint:#E5F3F3; --red:#B3261E; --redbg:#FCEDEB; --done:#1E8E5A;
-  --shadow:0 1px 2px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.05);
+  --shadow:0 1px 2px rgba(10,40,40,.06), 0 6px 20px rgba(10,40,40,.06);
+  --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --teal:#2DB4B6; --teal-d:#7FD6D7; --orange:#FF9A33; --orange-t:#FFB466;
-    --bg:#0E1415; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
+    --teal:#2DB4B6; --teal-d:#7FD6D7; --teal-l:#45C6C8; --orange:#FF9A33; --orange-t:#FFB466;
+    --bg:#0D1314; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
     --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A;
-    --shadow:none; color-scheme:dark;
+    --shadow:0 1px 0 rgba(255,255,255,.03); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --teal:#2DB4B6; --teal-d:#7FD6D7; --orange:#FF9A33; --orange-t:#FFB466;
-  --bg:#0E1415; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
+  --teal:#2DB4B6; --teal-d:#7FD6D7; --teal-l:#45C6C8; --orange:#FF9A33; --orange-t:#FFB466;
+  --bg:#0D1314; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
   --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A;
-  --shadow:none; color-scheme:dark;
+  --shadow:0 1px 0 rgba(255,255,255,.03); color-scheme:dark;
 }
 html{ font-size:18px; -webkit-text-size-adjust:100%; }
 html[data-fs="1"]{ font-size:20.5px; }
 html[data-fs="2"]{ font-size:23px; }
 *{ box-sizing:border-box; margin:0; padding:0; }
+[hidden]{ display:none !important; }
+.stack{ display:flex; flex-direction:column; gap:.55rem; }
+.linkbtn{ align-self:flex-start; font-size:.88rem; font-weight:700; color:var(--teal-d); text-decoration:underline; padding:.2rem 0; }
 body{ font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background:var(--bg); color:var(--ink); line-height:1.45; min-height:100vh;
-  padding-bottom:calc(5.2rem + env(safe-area-inset-bottom)); -webkit-tap-highlight-color:transparent; }
+  padding-bottom:calc(5.4rem + env(safe-area-inset-bottom)); -webkit-tap-highlight-color:transparent; }
 button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
 a{ color:var(--teal-d); }
 b{ font-weight:700; }
 
-/* шапка */
-header.app{ position:sticky; top:0; z-index:20; background:var(--teal); color:#fff;
+/* ---------- шапка ---------- */
+header.app{ position:sticky; top:0; z-index:20; color:#fff; overflow:hidden;
+  background:linear-gradient(120deg,#006E71 0%,#00878A 55%,#0A9EA1 100%);
   padding:calc(.55rem + env(safe-area-inset-top)) 1rem .55rem; display:flex; align-items:center; gap:.7rem; }
-header.app .mark{ width:2rem; height:2rem; flex:none; background:#fff; border-radius:.5rem; padding:.22rem; }
+header.app::after{ content:""; position:absolute; inset:0; pointer-events:none; opacity:.13;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23fff' stroke-width='3'%3E%3Crect x='25' y='25' width='50' height='50'/%3E%3Crect x='25' y='25' width='50' height='50' transform='rotate(45 50 50)'/%3E%3C/g%3E%3C/svg%3E");
+  animation:drift 60s linear infinite; }
+@keyframes drift{ from{ background-position:0 0 } to{ background-position:560px 280px } }
+header.app > *{ position:relative; z-index:1; }
+header.app .mark{ width:2.1rem; height:2.1rem; flex:none; background:#fff; border-radius:.6rem; padding:.24rem; box-shadow:0 2px 8px rgba(0,0,0,.15); }
 header.app .mark img{ width:100%; height:100%; display:block; }
 header.app .t{ flex:1; min-width:0; line-height:1.15; }
 header.app .t b{ display:block; font-size:1.02rem; }
-header.app .t span{ font-size:.72rem; opacity:.9; }
-header.app .fs{ font-weight:700; border:1.5px solid rgba(255,255,255,.7); border-radius:.6rem; padding:.2rem .55rem; font-size:.85rem; }
+header.app .t span{ font-size:.72rem; opacity:.92; }
+header.app .fs{ font-weight:800; border:1.5px solid rgba(255,255,255,.7); border-radius:.6rem; padding:.2rem .55rem; font-size:.85rem; }
 
 main{ max-width:40rem; margin:0 auto; padding:.9rem 1rem 1rem; }
-.view{ display:none; flex-direction:column; gap:.8rem; }
-.view.on{ display:flex; }
+.view{ display:none; flex-direction:column; gap:.85rem; }
+.view.on{ display:flex; animation:viewIn .38s var(--ease); }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
 h2.sec{ font-size:1.45rem; line-height:1.15; color:var(--teal-d); margin:.4rem .1rem 0; }
+h2.grp{ font-size:1.1rem; color:var(--teal-d); margin:.6rem .1rem -.2rem; }
 .sub{ color:var(--muted); font-size:.85rem; margin:0 .1rem; }
-
-.card{ background:var(--card); border-radius:1rem; box-shadow:var(--shadow); padding:1rem; display:flex; flex-direction:column; gap:.7rem; }
-.card > h3, .body h3{ font-size:1.05rem; color:var(--teal-d); margin-top:.2rem; }
+.card{ background:var(--card); border-radius:1.1rem; box-shadow:var(--shadow); padding:1rem; display:flex; flex-direction:column; gap:.7rem; }
+.card > h3, .acc-in h3{ font-size:1.05rem; color:var(--teal-d); margin-top:.2rem; }
 .card > h3:first-child{ margin-top:0; }
+.reveal{ opacity:0; transform:translateY(14px); transition:opacity .5s var(--ease), transform .5s var(--ease); }
+.reveal.in{ opacity:1; transform:none; }
 
-/* прогресс */
-.progress{ display:flex; flex-direction:column; gap:.45rem; }
-.progress .row{ display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; }
-.progress .big{ font-size:1.25rem; font-weight:800; color:var(--teal-d); }
-.bar{ height:.6rem; background:var(--line); border-radius:1rem; overflow:hidden; }
-.bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--teal),var(--orange)); border-radius:1rem; transition:width .35s; }
-.next{ font-weight:600; }
+/* ---------- главная ---------- */
+.hero{ border-radius:1.3rem; padding:1.15rem 1.1rem 1.05rem; color:#fff; position:relative; overflow:hidden;
+  background:radial-gradient(120% 140% at 100% 0%, #FC7F00 0%, rgba(252,127,0,0) 45%), linear-gradient(140deg,#00676A,#00878A 60%,#11A0A3);
+  box-shadow:0 10px 30px rgba(0,110,113,.28); display:flex; flex-direction:column; gap:.55rem; }
+.hero .star{ position:absolute; right:-2.2rem; bottom:-2.6rem; width:10rem; height:10rem; color:rgba(255,255,255,.16); animation:spin 80s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg) } }
+.hero .hi{ font-size:.85rem; opacity:.95; letter-spacing:.02em; }
+.hero .nm{ font-size:1.6rem; font-weight:800; line-height:1.1; }
+.hero .phase{ display:inline-flex; align-self:flex-start; gap:.4rem; align-items:center; background:rgba(255,255,255,.18); border-radius:2rem; padding:.28rem .7rem; font-weight:700; font-size:.85rem; backdrop-filter:blur(4px); }
+.hero .phase i{ width:.5rem; height:.5rem; border-radius:50%; background:#FFD08A; box-shadow:0 0 0 0 rgba(255,208,138,.7); animation:pulse 2s infinite; }
+@keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(255,208,138,.7) } 70%{ box-shadow:0 0 0 .55rem rgba(255,208,138,0) } 100%{ box-shadow:0 0 0 0 rgba(255,208,138,0) } }
+.chips{ display:flex; flex-wrap:wrap; gap:.45rem; position:relative; z-index:1; }
+.chip{ background:rgba(255,255,255,.95); color:var(--teal-d); border-radius:.75rem; padding:.42rem .65rem; font-size:.82rem; line-height:1.2; }
+.chip b{ display:block; font-size:1.05rem; color:#0F2A2B; }
+:root[data-theme="dark"] .chip b{ color:#0F2A2B; }
+.ann{ background:linear-gradient(135deg,var(--orange),#FF9A33); color:#fff; border-radius:1.1rem; padding:.9rem 1rem; display:flex; gap:.7rem; align-items:flex-start; box-shadow:0 8px 22px rgba(252,127,0,.28); animation:annIn .6s var(--ease); }
+@keyframes annIn{ from{ opacity:0; transform:scale(.96) } to{ opacity:1; transform:none } }
+.ann .ic{ font-size:1.4rem; line-height:1; animation:ring 2.4s ease-in-out 1s 2; }
+@keyframes ring{ 0%,100%{ transform:rotate(0) } 10%,30%{ transform:rotate(-14deg) } 20%,40%{ transform:rotate(14deg) } 50%{ transform:rotate(0) } }
+.ann small{ display:block; opacity:.9; font-size:.75rem; margin-top:.2rem; }
+.tiles{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+.tile{ background:var(--card); border-radius:1.1rem; box-shadow:var(--shadow); padding:.9rem; display:flex; flex-direction:column; gap:.35rem; text-align:left; min-height:6.4rem; transition:transform .15s var(--ease); text-decoration:none; color:var(--ink); }
+.tile:active{ transform:scale(.97); }
+.tile svg{ width:1.8rem; height:1.8rem; color:var(--teal); }
+.tile b{ font-size:1rem; }
+.tile span{ font-size:.78rem; color:var(--muted); }
+.tile.sos{ background:var(--redbg); }
+.tile.sos svg{ color:var(--red); }
+.ringp{ position:relative; width:2.6rem; height:2.6rem; }
+.ringp svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.ringp circle{ fill:none; stroke-width:5; }
+.ringp .bg{ stroke:var(--line); }
+.ringp .fg{ stroke:var(--orange); stroke-linecap:round; transition:stroke-dashoffset .8s var(--ease); }
+.ringp em{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-style:normal; font-weight:800; font-size:.7rem; color:var(--teal-d); }
 
-/* шаги */
-details.step, details.info{ background:var(--card); border-radius:1rem; box-shadow:var(--shadow); overflow:hidden; }
-details.step > summary, details.info > summary{ list-style:none; display:flex; align-items:center; gap:.75rem; padding:.85rem 1rem; cursor:pointer; min-height:4rem; }
-summary::-webkit-details-marker{ display:none; }
-.num{ flex:none; width:2.4rem; height:2.4rem; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; }
-.info .num{ background:var(--red); font-size:1.2rem; }
-.info.blue .num{ background:var(--muted); }
+/* «сейчас и далее» и программа */
+.tl{ display:flex; flex-direction:column; position:relative; }
+.tl .it{ display:grid; grid-template-columns:4.3rem 1fr; gap:.6rem; padding:.55rem 0; position:relative; }
+.tl .it::before{ content:""; position:absolute; left:4.95rem; top:0; bottom:0; width:2px; background:var(--line); }
+.tl .it:first-child::before{ top:1.1rem; } .tl .it:last-child::before{ bottom:calc(100% - 1.1rem); }
+.tl .tm{ font-weight:800; color:var(--teal-d); font-size:.85rem; text-align:right; padding-top:.1rem; line-height:1.25; }
+.tl .tx{ padding-left:1.25rem; position:relative; }
+.tl .tx::before{ content:""; position:absolute; left:-.2rem; top:.42rem; width:.7rem; height:.7rem; border-radius:50%; background:var(--card); border:2.5px solid var(--teal); }
+.tl .it.past{ opacity:.55; }
+.tl .it.past .tx::before{ background:var(--teal); }
+.tl .it.now .tx::before{ background:var(--orange); border-color:var(--orange); animation:pulseO 1.8s infinite; }
+@keyframes pulseO{ 0%{ box-shadow:0 0 0 0 rgba(252,127,0,.55) } 70%{ box-shadow:0 0 0 .6rem rgba(252,127,0,0) } 100%{ box-shadow:0 0 0 0 rgba(252,127,0,0) } }
+.tl .it.now .what{ color:var(--orange-t); }
+.tl .what{ font-weight:700; line-height:1.3; }
+.tl .meta{ font-size:.8rem; color:var(--muted); margin-top:.15rem; }
+.tl .badge{ display:inline-block; font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; background:var(--orange); color:#fff; border-radius:.3rem; padding:.05rem .35rem; margin-left:.3rem; vertical-align:.1rem; }
+/* лента «Путь» и трек на главной */
+.trip{ text-align:left; width:100%; transition:transform .15s var(--ease); }
+.trip:active{ transform:scale(.985); }
+.trow{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:.1rem .5rem; }
+.trow .kicker{ white-space:nowrap; }
+.track{ position:relative; display:grid; grid-template-columns:repeat(var(--n),1fr); margin:0 -.4rem; --p:0; }
+.track::before,.track::after{ content:""; position:absolute; top:calc(1.1rem - 1.5px); height:3px; border-radius:2px; left:calc(50% / var(--n)); }
+.track::before{ right:calc(50% / var(--n)); background:var(--line); }
+.track::after{ width:calc((100% - 100% / var(--n)) * var(--p)); background:linear-gradient(90deg,var(--teal),var(--orange)); transition:width .9s var(--ease); }
+.tk{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:.2rem; text-align:center; }
+.tk i{ width:2.2rem; height:2.2rem; border-radius:50%; background:var(--card); border:2px solid var(--line); color:var(--muted); display:flex; align-items:center; justify-content:center; transition:background .4s, border-color .4s, color .4s, transform .4s var(--ease); }
+.tk i svg{ width:1.25rem; height:1.25rem; }
+.tk small{ font-size:min(.72rem,15px); font-weight:700; line-height:1.15; margin-top:.1rem; }
+.tk em{ font-style:normal; font-size:min(.66rem,13.5px); color:var(--muted); }
+.tk.past i{ background:var(--teal); border-color:var(--teal); color:#fff; }
+.tk.now i{ background:var(--orange); border-color:var(--orange); color:#fff; transform:scale(1.12); animation:pulseO 1.8s infinite; }
+.tk.now small{ color:var(--orange-t); }
+.path{ display:flex; flex-direction:column; }
+.stop{ position:relative; padding:0 0 .8rem 3.4rem; }
+.stop::before{ content:""; position:absolute; left:calc(1.375rem - 1.5px); top:1.4rem; bottom:-.5rem; width:3px; border-radius:2px; background:var(--line); }
+.stop:last-child::before{ display:none; }
+.stop.past::before{ background:var(--teal); }
+.stop .dot{ position:absolute; left:0; top:.42rem; width:2.75rem; height:2.75rem; border-radius:50%; background:var(--card); border:2px solid var(--line); color:var(--muted); display:flex; align-items:center; justify-content:center; z-index:1; }
+.stop .dot svg{ width:1.45rem; height:1.45rem; }
+.stop.past .dot{ background:var(--teal); border-color:var(--teal); color:#fff; }
+.stop.now .dot{ background:var(--orange); border-color:var(--orange); color:#fff; animation:pulseO 1.8s infinite; }
+.sc{ background:var(--card); border-radius:1.1rem; box-shadow:var(--shadow); overflow:hidden; }
+.stop.now .sc{ box-shadow:0 0 0 2px var(--orange),var(--shadow); }
+.sh{ width:100%; display:flex; align-items:center; gap:.6rem; padding:.8rem 1rem; text-align:left; min-height:3.6rem; }
+.stt{ flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:.1rem .5rem; }
+.stt b{ font-size:1.08rem; line-height:1.2; }
+.stop.past .stt b{ color:var(--muted); }
+.sd{ font-size:.82rem; font-weight:700; color:var(--teal-d); }
+.here{ font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; border-radius:.3rem; padding:.08rem .4rem; background:var(--orange); color:#fff; }
+.here:empty{ display:none; }
+.here.soon{ background:var(--mint); color:var(--teal-d); }
+.stop.open .chev{ transform:rotate(180deg); }
+.sx{ display:flex; flex-wrap:wrap; gap:.35rem; padding:0 1rem .8rem; margin-top:-.3rem; }
+.sx:empty{ display:none; }
+.sx span{ font-size:.75rem; font-weight:700; border-radius:2rem; padding:.18rem .6rem; background:var(--mint); color:var(--teal-d); }
+.sx span.fl{ background:var(--sand); color:var(--orange-t); }
+.sb{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .42s var(--ease); }
+.stop.open .sb{ grid-template-rows:1fr; }
+.sb > div{ overflow:hidden; min-height:0; }
+.dl{ display:flex; flex-direction:column; }
+.dy{ padding:.7rem 1rem; border-top:1px solid var(--line); }
+.dyh{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2rem .5rem; font-size:.85rem; color:var(--muted); }
+.dyh b{ color:var(--teal-d); font-size:.92rem; }
+.dy.today{ background:var(--mint); }
+.dy.today .dyh::after{ content:"сегодня"; font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; background:var(--orange); color:#fff; border-radius:.3rem; padding:.05rem .35rem; }
+.dyb{ margin-top:.25rem; font-size:.95rem; line-height:1.45; }
+.dy .tl{ margin-top:.2rem; }
+.dy .tl .it{ grid-template-columns:1fr; gap:.05rem; padding:.45rem 0 .45rem 1.4rem; }
+.dy .tl .it::before{ left:.3rem; }
+.dy .tl .it:first-child::before{ top:.95rem; } .dy .tl .it:last-child::before{ bottom:calc(100% - .95rem); }
+.dy .tl .tm{ text-align:left; padding-top:0; font-size:.8rem; }
+.dy .tl .tx{ position:static; padding-left:0; }
+.dy .tl .tx::before{ left:0; top:.62rem; }
+/* прокрутка к остановке или шагу не прячет их под шапкой (её высота растёт с крупным шрифтом) */
+html{ scroll-padding-top:calc(var(--hdr,3.6rem) + .6rem); }
+.upd-note{ font-size:.75rem; color:var(--muted); text-align:center; }
+
+/* ---------- аккордеон шагов ---------- */
+.acc{ background:var(--card); border-radius:1.1rem; box-shadow:var(--shadow); overflow:hidden; transition:box-shadow .3s; }
+.acc-h{ display:flex; align-items:center; gap:.75rem; padding:.85rem 1rem; cursor:pointer; min-height:4.1rem; user-select:none; -webkit-user-select:none; }
+.acc-b{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .42s var(--ease); }
+.acc.open .acc-b{ grid-template-rows:1fr; }
+.acc-b > .acc-wrap{ overflow:hidden; min-height:0; }
+.acc-in{ padding:.9rem 1rem 1rem; display:flex; flex-direction:column; gap:.75rem; border-top:1px solid var(--line); opacity:0; transform:translateY(-6px); transition:opacity .3s, transform .35s var(--ease); }
+.acc.open .acc-in{ opacity:1; transform:none; transition-delay:.08s; }
+.num{ flex:none; width:2.45rem; height:2.45rem; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; transition:background .4s, transform .4s var(--ease); }
+.acc.info .num{ background:var(--red); font-size:1.2rem; }
+.acc.info.blue .num{ background:var(--muted); }
+.acc.next:not(.done) .num{ background:var(--orange); box-shadow:0 0 0 .3rem rgba(252,127,0,.18); }
 .st{ flex:1; min-width:0; }
 .kicker{ font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--orange-t); font-weight:700; }
-.st b{ display:block; font-size:1.12rem; line-height:1.2; }
-.chk{ flex:none; width:2.6rem; height:2.6rem; border-radius:50%; border:2.5px solid var(--line); display:flex; align-items:center; justify-content:center; }
-.chk svg{ width:1.4rem; height:1.4rem; opacity:0; }
-.step.done .chk{ background:var(--done); border-color:var(--done); }
-.step.done .chk svg{ opacity:1; }
-.step.done .num{ background:var(--done); }
-.step.done .st b{ color:var(--muted); }
-.chev{ flex:none; width:1.1rem; height:1.1rem; color:var(--muted); transition:transform .2s; }
-details[open] > summary .chev{ transform:rotate(180deg); }
-.body{ padding:0 1rem 1rem; display:flex; flex-direction:column; gap:.75rem; border-top:1px solid var(--line); padding-top:.9rem; }
-.donebtn{ margin-top:.3rem; width:100%; min-height:3.4rem; border-radius:.9rem; background:var(--teal); color:#fff; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center; gap:.5rem; }
-.step.done .donebtn{ background:var(--mint); color:var(--teal-d); }
+.st b{ display:block; font-size:1.12rem; line-height:1.2; transition:color .3s; }
+.chk{ flex:none; position:relative; width:2.7rem; height:2.7rem; border-radius:50%; border:2.5px solid var(--line); display:flex; align-items:center; justify-content:center; transition:background .35s var(--ease), border-color .35s, transform .35s var(--ease); }
+.chk svg{ width:1.45rem; height:1.45rem; }
+.chk path{ stroke-dasharray:24; stroke-dashoffset:24; transition:stroke-dashoffset .45s var(--ease) .05s; }
+.done .chk{ background:var(--done); border-color:var(--done); }
+.done .chk path{ stroke-dashoffset:0; }
+.done .num{ background:var(--done); }
+.done .st b{ color:var(--muted); }
+.chk.pop{ animation:pop .5s var(--ease); }
+@keyframes pop{ 0%{ transform:scale(1) } 35%{ transform:scale(1.25) } 100%{ transform:scale(1) } }
+.burst{ position:absolute; left:50%; top:50%; width:0; height:0; pointer-events:none; }
+.burst i{ position:absolute; width:.42rem; height:.42rem; border-radius:50%; left:-.21rem; top:-.21rem; animation:fly .7s var(--ease) forwards; }
+@keyframes fly{ from{ transform:translate(0,0) scale(1); opacity:1 } to{ transform:translate(var(--x),var(--y)) scale(.3); opacity:0 } }
+.chev{ flex:none; width:1.1rem; height:1.1rem; color:var(--muted); transition:transform .35s var(--ease); }
+.acc.open .chev{ transform:rotate(180deg); }
+.donebtn{ margin-top:.3rem; width:100%; min-height:3.5rem; border-radius:1rem; background:linear-gradient(135deg,var(--teal),var(--teal-l)); color:#fff; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center; gap:.5rem; box-shadow:0 6px 16px rgba(0,135,138,.25); transition:transform .15s var(--ease); }
+.donebtn:active{ transform:scale(.98); }
+.done .donebtn{ background:var(--mint); color:var(--teal-d); box-shadow:none; }
 
-/* метки */
+/* прогресс умры */
+.progress{ display:flex; flex-direction:column; gap:.5rem; }
+.progress .row{ display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; }
+.progress .big{ font-size:1.3rem; font-weight:800; color:var(--teal-d); }
+.bar{ height:.65rem; background:var(--line); border-radius:1rem; overflow:hidden; }
+.bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--teal),var(--orange)); border-radius:1rem; transition:width .8s var(--ease); position:relative; }
+.bar i::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent); animation:shine 2.6s infinite; }
+@keyframes shine{ from{ transform:translateX(-100%) } to{ transform:translateX(100%) } }
+.next-l{ font-weight:600; }
+
+/* метки, списки, дуа */
 .tags{ display:flex; flex-wrap:wrap; gap:.4rem; }
 .tag{ font-size:.72rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; border-radius:.45rem; padding:.22rem .55rem; }
 .tag.must{ background:var(--teal); color:#fff; }
 .tag.sunna{ border:2px solid var(--orange); color:var(--orange-t); }
 .tag i{ font-style:normal; font-weight:500; text-transform:none; letter-spacing:0; }
-
-/* списки */
 ul.do{ list-style:none; display:flex; flex-direction:column; gap:.5rem; }
 ul.do li{ padding-left:1.35rem; position:relative; }
 ul.do li::before{ content:""; position:absolute; left:.2rem; top:.5em; width:.55rem; height:.55rem; border-radius:50%; background:var(--teal); }
@@ -122,9 +259,7 @@ ul.do li.s::before{ background:none; border:2px solid var(--orange); }
 ul.do li.no::before{ background:none; content:"✕"; color:var(--red); font-weight:800; top:0; left:.1rem; width:auto; height:auto; }
 p.lead{ font-size:1.02rem; }
 .small{ font-size:.85rem; color:var(--muted); }
-
-/* дуа */
-.dua{ background:var(--sand); border-radius:.9rem; padding:.85rem .95rem; display:flex; flex-direction:column; gap:.5rem; border-left:4px solid var(--orange); }
+.dua{ background:var(--sand); border-radius:1rem; padding:.9rem 1rem; display:flex; flex-direction:column; gap:.5rem; border-left:4px solid var(--orange); }
 .dua .lbl{ font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--orange-t); font-weight:800; }
 .ar{ font-family:"Amiri","Geeza Pro","Noto Naskh Arabic",serif; direction:rtl; text-align:right; font-size:1.65rem; line-height:2; color:var(--ink); }
 .ar.big{ font-size:1.85rem; }
@@ -133,76 +268,137 @@ p.lead{ font-size:1.02rem; }
 .src{ font-size:.75rem; color:var(--muted); }
 .saw{ font-family:"Amiri","Geeza Pro",serif; font-size:1.15em; line-height:1; font-weight:400; }
 .dua .ctx{ font-size:.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
-
-.flag{ border-left:4px solid var(--red); background:var(--redbg); padding:.6rem .8rem; font-size:.88rem; border-radius:0 .6rem .6rem 0; }
+.flag{ border-left:4px solid var(--red); background:var(--redbg); padding:.6rem .8rem; font-size:.88rem; border-radius:0 .7rem .7rem 0; }
 .flag b{ color:var(--red); }
-.note{ border-left:4px solid var(--teal); background:var(--mint); padding:.6rem .8rem; font-size:.92rem; border-radius:0 .6rem .6rem 0; }
-
-/* таблицы */
+.note{ border-left:4px solid var(--teal); background:var(--mint); padding:.6rem .8rem; font-size:.92rem; border-radius:0 .7rem .7rem 0; }
 table{ width:100%; border-collapse:collapse; font-size:.95rem; }
 td,th{ padding:.55rem .3rem; vertical-align:top; border-bottom:1px solid var(--line); text-align:left; }
 th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }
-td.d{ white-space:nowrap; font-weight:800; color:var(--teal-d); width:5.2rem; }
 .fly{ font-weight:700; }
-tr.today td{ background:var(--mint); }
-tr.today td.d::after{ content:"сегодня"; display:block; font-size:.66rem; font-weight:800; color:#fff; background:var(--orange); border-radius:.3rem; padding:0 .3rem; width:max-content; margin-top:.2rem; }
 
-/* счётчик */
-.counter{ background:var(--mint); border-radius:1rem; padding:.9rem; display:flex; flex-direction:column; gap:.7rem; align-items:stretch; }
-.counter .ctitle{ font-weight:800; color:var(--teal-d); display:flex; justify-content:space-between; align-items:center; }
-.counter .ctitle span{ font-size:1.5rem; }
-.cells{ display:grid; grid-template-columns:repeat(7,1fr); gap:.35rem; }
-.cells div{ border:2px solid var(--teal); border-radius:.6rem; text-align:center; padding:.35rem 0 .25rem; font-size:.62rem; color:var(--muted); line-height:1.15; background:var(--card); }
-.cells div b{ display:block; font-size:1.15rem; color:var(--teal-d); }
-.cells div.on{ background:var(--teal); }
-.cells div.on, .cells div.on b{ color:#fff; }
-.cells div.cur{ border-color:var(--orange); box-shadow:0 0 0 2px var(--orange); }
-.plus{ min-height:5rem; border-radius:1rem; background:var(--orange); color:#fff; font-weight:800; font-size:1.25rem; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; touch-action:manipulation; }
-.plus small{ font-weight:600; font-size:.8rem; opacity:.95; }
-.plus:active{ transform:scale(.98); }
-.plus.fin{ background:var(--done); }
-.crow{ display:flex; gap:.5rem; }
-.crow button{ flex:1; min-height:2.8rem; border-radius:.7rem; border:2px solid var(--teal); color:var(--teal-d); font-weight:700; font-size:.9rem; background:var(--card); }
+/* ---------- вкладка «Дуа»: переключатель, список дуа гида, мои дуа ---------- */
+.dseg{ position:relative; display:grid; grid-template-columns:1fr 1fr; background:var(--card); border-radius:1rem; padding:.25rem; box-shadow:var(--shadow); }
+.dseg .sp{ position:absolute; top:.25rem; bottom:.25rem; left:.25rem; width:calc(50% - .25rem); border-radius:.8rem; background:#00878A; transition:transform .35s var(--ease); }
+.dseg.r .sp{ transform:translateX(100%); }
+.dseg button{ position:relative; z-index:1; min-height:2.9rem; font-weight:800; font-size:.95rem; color:var(--teal-d); display:flex; align-items:center; justify-content:center; gap:.4rem; transition:color .3s; }
+.dseg button.on{ color:#fff; }
+.dseg em{ font-style:normal; font-size:.72rem; min-width:1.35rem; height:1.35rem; padding:0 .3rem; border-radius:1rem; background:var(--orange); color:#fff; display:inline-flex; align-items:center; justify-content:center; }
+.dseg em:empty{ display:none; }
+.view-p{ animation:viewIn .35s var(--ease); }
+.acc.dq .dua{ background:none; border:0; border-radius:0; padding:0; }
+.ico{ flex:none; width:2.45rem; height:2.45rem; border-radius:50%; background:var(--sand); color:var(--orange-t); display:flex; align-items:center; justify-content:center; }
+.ico svg{ width:1.5rem; height:1.5rem; }
+.acc.dq .acc-h{ min-height:3.6rem; padding:.7rem 1rem; }
+.acc.dq .st b{ font-size:1rem; }
+.acc.open .st .pv{ display:none; }
+.st .pv{ display:block; font-size:.8rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:.1rem; }
+.qchips{ display:flex; flex-wrap:wrap; gap:.4rem; }
+.qchips button{ border:1.5px solid var(--teal); color:var(--teal-d); background:var(--card); border-radius:2rem; padding:.38rem .75rem; font-size:.85rem; font-weight:700; transition:transform .15s var(--ease); }
+.qchips button:active{ transform:scale(.95); background:var(--mint); }
+.mine{ background:var(--card); border-radius:1rem; box-shadow:var(--shadow); display:flex; gap:.7rem; align-items:flex-start; padding:.75rem .9rem; transition:opacity .3s; }
+.mine.new{ animation:viewIn .4s var(--ease); }
+.mine .mchk{ flex:none; position:relative; width:2.5rem; height:2.5rem; border-radius:50%; border:2.5px solid var(--line); display:flex; align-items:center; justify-content:center; transition:background .35s var(--ease), border-color .35s; }
+.mine .mchk svg{ width:1.3rem; height:1.3rem; }
+.mine .mchk path{ stroke-dasharray:24; stroke-dashoffset:24; transition:stroke-dashoffset .45s var(--ease) .05s; }
+.mine.done .mchk{ background:var(--done); border-color:var(--done); }
+.mine.done .mchk path{ stroke-dashoffset:0; }
+.mine .mchk.pop{ animation:pop .5s var(--ease); }
+.mine .mb{ flex:1; min-width:0; text-align:left; display:flex; flex-direction:column; gap:.15rem; padding-top:.4rem; }
+.mine .mb b{ font-size:1.02rem; line-height:1.25; overflow-wrap:anywhere; }
+.mine .mb span{ font-size:.92rem; color:var(--muted); white-space:pre-wrap; overflow-wrap:anywhere; }
+.mine.done .mb{ opacity:.6; }
+.mine.edit{ flex-direction:column; align-items:stretch; }
+.mstat{ font-size:.85rem; font-weight:700; color:var(--teal-d); margin:0 .1rem; }
+.empty{ text-align:center; color:var(--muted); font-size:.9rem; padding:1.2rem .5rem; display:flex; flex-direction:column; align-items:center; gap:.5rem; }
+.empty svg{ width:3rem; height:3rem; color:var(--orange); opacity:.55; }
+#extraBox{ display:flex; flex-direction:column; gap:.55rem; margin-top:.6rem; }
+#extraBox:empty{ display:none; }
+.xrow{ display:flex; align-items:center; gap:.75rem; width:100%; text-align:left; padding:.75rem 1rem; border:1.5px dashed var(--line); border-radius:1rem; color:var(--muted); }
+.xrow .xi{ flex:none; width:1.5rem; height:1.5rem; color:var(--orange-t); opacity:.75; }
+.xrow span{ flex:1; display:flex; flex-direction:column; gap:.1rem; }
+.xrow b{ color:var(--ink); font-size:.95rem; }
+.xrow small{ font-size:.78rem; }
+.xrow[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+.xlist{ display:flex; flex-direction:column; gap:.55rem; animation:viewIn .35s var(--ease); }
 
-/* карта */
-.map svg{ width:100%; height:auto; display:block; background:#fff; border-radius:.7rem; }
+/* ---------- счётчик-кольцо ---------- */
+.counter{ background:var(--mint); border-radius:1.2rem; padding:1rem; display:flex; flex-direction:column; gap:.8rem; align-items:center; }
+.counter .ctitle{ font-weight:800; color:var(--teal-d); align-self:stretch; display:flex; justify-content:space-between; }
+.ringbtn{ position:relative; width:13rem; height:13rem; border-radius:50%; touch-action:manipulation; }
+.ringbtn svg{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+.ringbtn circle{ fill:none; stroke-width:9; }
+.ringbtn .bg{ stroke:rgba(0,135,138,.15); }
+.ringbtn .fg{ stroke:url(#gr); stroke-linecap:round; transition:stroke-dashoffset .7s var(--ease); }
+.ringbtn .seg{ stroke:var(--mint); stroke-width:10; }
+.ringbtn .core{ position:absolute; inset:1.25rem; border-radius:50%; background:var(--card); box-shadow:0 8px 24px rgba(0,100,100,.15); display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.1; transition:transform .15s var(--ease); overflow:hidden; }
+.ringbtn:active .core{ transform:scale(.96); }
+.ringbtn .n{ font-size:3.4rem; font-weight:800; color:var(--teal-d); font-variant-numeric:tabular-nums; }
+.ringbtn .n small{ font-size:1.2rem; color:var(--muted); font-weight:700; }
+.ringbtn .lab{ font-size:.82rem; color:var(--muted); font-weight:700; text-align:center; padding:0 .8rem; }
+.ringbtn .tap{ margin-top:.3rem; font-size:.75rem; font-weight:800; color:#fff; background:var(--orange); border-radius:2rem; padding:.22rem .7rem; }
+.ringbtn.fin .tap{ background:var(--done); }
+.ringbtn .rip{ position:absolute; border-radius:50%; background:rgba(252,127,0,.25); transform:scale(0); animation:rip .6s ease-out forwards; pointer-events:none; }
+@keyframes rip{ to{ transform:scale(4); opacity:0 } }
+.ringbtn .n.bump{ animation:bump .45s var(--ease); }
+@keyframes bump{ 0%{ transform:scale(.6); opacity:.3 } 60%{ transform:scale(1.15) } 100%{ transform:scale(1); opacity:1 } }
+.dots7{ display:grid; grid-template-columns:repeat(7,1fr); gap:.25rem; align-self:stretch; }
+.dots7 span{ font-size:.6rem; font-weight:700; color:var(--muted); border:2px solid var(--teal); border-radius:.5rem; padding:.2rem 0; white-space:nowrap; text-align:center; background:var(--card); transition:all .3s; }
+.dots7 span.on{ background:var(--teal); color:#fff; }
+.crow{ display:flex; gap:.5rem; align-self:stretch; }
+.crow button{ flex:1; min-height:2.8rem; border-radius:.8rem; border:2px solid var(--teal); color:var(--teal-d); font-weight:700; font-size:.9rem; background:var(--card); }
+
+/* карта, поля, кнопки */
+.map svg{ width:100%; height:auto; display:block; background:#fff; border-radius:.8rem; }
 .legend{ display:grid; grid-template-columns:1fr 1fr; gap:.35rem .8rem; font-size:.82rem; line-height:1.25; }
 .legend span{ display:inline-flex; width:1.25rem; height:1.25rem; border-radius:50%; background:var(--orange); color:#fff; font-weight:800; font-size:.7rem; align-items:center; justify-content:center; margin-right:.25rem; vertical-align:-.2rem; }
-
-/* поля */
 label.field{ display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; color:var(--muted); }
-label.field input, textarea{ font:inherit; font-size:1.05rem; color:var(--ink); background:var(--bg); border:1.5px solid var(--line); border-radius:.6rem; padding:.6rem .7rem; width:100%; }
+label.field input, textarea, .inp{ font:inherit; font-size:1.05rem; color:var(--ink); background:var(--bg); border:1.5px solid var(--line); border-radius:.7rem; padding:.6rem .7rem; width:100%; }
 textarea{ min-height:12rem; resize:vertical; line-height:1.5; }
-label.field input:focus, textarea:focus{ outline:none; border-color:var(--teal); }
+textarea.sm{ min-height:4.8rem; }
+label.field input:focus, textarea:focus, .inp:focus{ outline:none; border-color:var(--teal); }
 .saved{ font-size:.75rem; color:var(--done); min-height:1em; }
-
-/* контакты */
 .call{ display:inline-flex; align-items:center; gap:.35rem; font-weight:800; text-decoration:none; color:var(--teal-d); white-space:nowrap; }
 .btns{ display:flex; gap:.5rem; flex-wrap:wrap; }
-.btn{ flex:1; min-width:9rem; min-height:3rem; border-radius:.8rem; background:var(--teal); color:#fff; text-decoration:none; font-weight:800; display:flex; align-items:center; justify-content:center; gap:.4rem; padding:0 .8rem; }
+.btn{ flex:1; min-width:8.5rem; min-height:3rem; border-radius:.9rem; background:var(--teal); color:#fff; text-decoration:none; font-weight:800; display:flex; align-items:center; justify-content:center; gap:.4rem; padding:0 .8rem; transition:transform .15s var(--ease); }
+.btn:active{ transform:scale(.97); }
 .btn.wa{ background:#1FA855; }
 .btn.ghost{ background:var(--card); color:var(--teal-d); border:2px solid var(--teal); }
+.btn.ghost.sel{ background:var(--mint); }
 .tbd{ color:var(--muted); font-size:.85rem; font-style:italic; }
-
-/* баннеры */
-.banner{ background:var(--card); border:2px solid var(--orange); border-radius:1rem; padding:.85rem 1rem; display:flex; flex-direction:column; gap:.5rem; }
+.banner{ background:var(--card); border:2px solid var(--orange); border-radius:1.1rem; padding:.85rem 1rem; display:flex; flex-direction:column; gap:.5rem; }
 .banner b{ color:var(--orange-t); }
 .banner .x{ align-self:flex-end; font-size:.85rem; color:var(--muted); text-decoration:underline; }
 .status{ font-size:.8rem; color:var(--muted); text-align:center; padding:.2rem; }
 .status.ok{ color:var(--done); font-weight:700; }
-.upd{ position:fixed; left:1rem; right:1rem; bottom:calc(5.6rem + env(safe-area-inset-bottom)); z-index:40; background:var(--ink); color:var(--bg); border-radius:.9rem; padding:.8rem 1rem; display:none; align-items:center; gap:.8rem; }
-.upd.on{ display:flex; }
-.upd button{ background:var(--orange); color:#fff; border-radius:.6rem; padding:.45rem .8rem; font-weight:800; }
-
-/* нижнее меню */
-nav.tabs{ position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--card); border-top:1px solid var(--line);
-  display:grid; grid-template-columns:repeat(5,1fr); padding-bottom:env(safe-area-inset-bottom); }
-nav.tabs button{ display:flex; flex-direction:column; align-items:center; gap:.15rem; padding:.5rem 0 .45rem; font-size:.68rem; font-weight:700; color:var(--muted); min-height:4rem; justify-content:center; }
-nav.tabs button svg{ width:1.6rem; height:1.6rem; }
-nav.tabs button.on{ color:var(--teal); }
-nav.tabs button.on svg{ color:var(--orange); }
+.upd{ position:fixed; left:1rem; right:1rem; bottom:calc(5.8rem + env(safe-area-inset-bottom)); z-index:40; background:var(--ink); color:var(--bg); border-radius:1rem; padding:.8rem 1rem; display:flex; align-items:center; gap:.8rem; visibility:hidden; transform:translateY(calc(100% + 9rem)); transition:transform .45s var(--ease), visibility 0s .45s; }
+.upd.on{ visibility:visible; transform:none; transition:transform .45s var(--ease); }
+.upd button{ background:var(--orange); color:#fff; border-radius:.7rem; padding:.45rem .8rem; font-weight:800; }
 .foot{ text-align:center; font-size:.78rem; color:var(--muted); padding:.6rem 0 0; }
 .foot button{ text-decoration:underline; color:var(--muted); font-size:.78rem; }
+
+/* ---------- нижнее меню ---------- */
+nav.tabs{ position:fixed; left:.6rem; right:.6rem; bottom:calc(.5rem + env(safe-area-inset-bottom)); z-index:30; background:color-mix(in srgb, var(--card) 88%, transparent);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:1.4rem; box-shadow:0 10px 30px rgba(0,0,0,.12);
+  display:grid; grid-template-columns:repeat(5,1fr); padding:.3rem; max-width:39rem; margin:0 auto; }
+nav.tabs .pill{ position:absolute; top:.3rem; bottom:.3rem; left:.3rem; width:calc((100% - .6rem)/5); border-radius:1.1rem; background:var(--mint); transition:transform .4s var(--ease); z-index:0; }
+nav.tabs button{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:.1rem; padding:.35rem 0; font-size:.66rem; font-weight:700; color:var(--muted); min-height:3.4rem; justify-content:center; transition:color .3s; }
+nav.tabs button svg{ width:1.55rem; height:1.55rem; transition:transform .4s var(--ease); }
+nav.tabs button.on{ color:var(--teal-d); }
+nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.08); }
+
+/* ---------- праздник ---------- */
+.cele{ position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center; padding:1.5rem; background:rgba(0,40,42,.72); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+.cele.on{ display:flex; animation:fade .4s; }
+@keyframes fade{ from{ opacity:0 } }
+.cele .box{ background:var(--card); border-radius:1.5rem; padding:1.6rem 1.3rem 1.2rem; text-align:center; max-width:24rem; width:100%; position:relative; overflow:hidden; animation:rise .6s var(--ease); display:flex; flex-direction:column; gap:.6rem; }
+@keyframes rise{ from{ transform:translateY(30px) scale(.95); opacity:0 } }
+.cele .st8{ width:6.5rem; height:6.5rem; margin:0 auto; color:var(--orange); animation:spin 16s linear infinite; }
+.cele h3{ font-size:1.5rem; color:var(--teal-d); }
+.cele .ar{ text-align:center; font-size:2.1rem; }
+.conf{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+.conf i{ position:absolute; top:-1rem; width:.5rem; height:.8rem; border-radius:.15rem; animation:fall linear forwards; }
+@keyframes fall{ to{ transform:translateY(32rem) rotate(540deg); opacity:.2 } }
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{ animation:none !important; transition:none !important; } .reveal{ opacity:1; transform:none; } }
 </style>
 </head>
 <body>
@@ -230,31 +426,57 @@ nav.tabs button.on svg{ color:var(--orange); }
  </defs>
 </svg>
 
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00878A"/><stop offset="1" stop-color="#FC7F00"/></linearGradient></defs></svg>
 <header class="app">
  <div class="mark"><img src="icon-mark.png" alt="JURT"></div>
- <div class="t"><b>Гид паломника</b><span>Умра · JURT · 28.10–06.11.2026</span></div>
+ <div class="t"><b>Гид паломника</b><span>Умра · JURT · 28.10–&#8288;06.11.2026</span></div>
  <button class="fs" id="fsBtn" aria-label="Размер шрифта">Aa</button>
 </header>
 
 <main>
-<!-- ================= УМРА ================= -->
-<section class="view" id="v-umra">
+<!-- ================= ГЛАВНАЯ ================= -->
+<section class="view" id="v-home">
+ <div class="hero">
+  <svg class="star"><use href="#i-star"/></svg>
+  <div class="hi">Ассаляму алейкум</div>
+  <div class="nm" id="heroName">Дорогой паломник</div>
+  <div class="phase"><i></i><span id="heroPhase"></span></div>
+  <div class="chips" id="heroChips"></div>
+ </div>
+ <div id="annBox"></div>
  <div class="banner" id="installBanner" hidden>
   <b>Установите гид на телефон</b>
   <div id="installText"></div>
   <div class="btns"><button class="btn" id="installBtn" hidden>Установить</button></div>
   <button class="x" id="installHide">Скрыть</button>
  </div>
+ <button class="card trip reveal" id="tripCard" data-go="prog">
+  <span class="trow"><span class="kicker">Наш путь</span><span class="small" id="tripNext"></span></span>
+<span class="track" id="tripTrack" style="--n:4"><span class="tk"><i><svg><use href="#i-plane"/></svg></i><small>Стамбул</small><em>28.10</em></span><span class="tk"><i><svg><use href="#i-dome"/></svg></i><small>Медина</small><em>29–⁠31.10</em></span><span class="tk"><i><svg><use href="#i-tawaf"/></svg></i><small>Мекка</small><em>01–⁠04.11</em></span><span class="tk"><i><svg><use href="#i-plane"/></svg></i><small>Домой</small><em>05–⁠06.11</em></span></span>
+ </button>
+ <div class="card reveal" id="nowCard">
+  <div class="row" style="display:flex;justify-content:space-between;align-items:baseline"><h3 id="nowTitle">Сегодня</h3><button class="small" id="nowMore" data-go="prog" style="color:var(--teal-d);font-weight:700">Весь путь →</button></div>
+  <div class="tl" id="nowList"></div>
+ </div>
+ <div class="tiles reveal">
+  <button class="tile" data-go="umra"><div class="ringp"><svg viewBox="0 0 60 60"><circle class="bg" cx="30" cy="30" r="25"/><circle class="fg" id="tileRing" cx="30" cy="30" r="25" stroke-dasharray="157" stroke-dashoffset="157"/></svg><em id="tileNum">0/11</em></div><b>Умра</b><span id="tileNext">шаг за шагом</span></button>
+  <button class="tile" data-go="dua"><svg><use href="#i-heart"/></svg><b>Дуа</b><span>дуа гида и свой список</span></button>
+  <button class="tile" data-go="more" data-anchor="medina"><svg><use href="#i-dome"/></svg><b>Медина</b><span>салям, Равда, Куба, Ухуд</span></button>
+  <a class="tile sos" href="tel:+77777825555"><svg><use href="#i-phone"/></svg><b>Позвонить Чингису</b><span>потерялись или нужна помощь</span></a>
+ </div>
+ <div class="status" id="swStatus">Проверяю офлайн-режим…</div>
+</section>
 
+<!-- ================= УМРА ================= -->
+<section class="view" id="v-umra">
  <div class="card progress">
   <div class="row"><span class="kicker">Умра · 01.11.2026</span><span class="big" id="progNum">0 из 11</span></div>
   <div class="bar"><i id="progBar"></i></div>
-  <div class="next" id="progNext"></div>
+  <div class="next-l" id="progNext"></div>
  </div>
-
- <details class="info blue">
-  <summary><div class="num">?</div><div class="st"><div class="kicker">Бисмилляхи-р-рахмани-р-рахим</div><b>Как пользоваться гидом</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
-  <div class="body">
+ <section class="acc info blue">
+  <div class="acc-h"><div class="num">?</div><div class="st"><div class="kicker">Бисмилляхи-р-рахмани-р-рахим</div><b>Как пользоваться гидом</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
    <p>Нажмите на шаг — откроется, что делать и какие дуа читать. Сделали — нажмите «Сделано». Отметки сохраняются в телефоне и работают без интернета.</p>
   <h3>Метки по ханафитскому мазхабу</h3>
  <div class="tags"><span class="tag must">Обязательно</span></div>
@@ -270,12 +492,11 @@ nav.tabs button.on svg{ color:var(--orange); }
   <div class="src">Источник: Коран (аят) или сборник хадисов</div>
  </div>
  <div class="flag"><b>⚑ Сверить</b> — пункт, по которому у учёных есть разные мнения. Окончательно решает духовный руководитель группы <b>Даурен Кубжанов</b>.</div>
-  </div>
- </details>
-
- <details class="info blue">
-  <summary><div class="num">⌖</div><div class="st"><div class="kicker">Масджид аль-Харам · схема</div><b>Умра за 8 шагов</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
-  <div class="body">
+  </div></div></div>
+ </section>
+ <section class="acc info blue">
+  <div class="acc-h"><div class="num">⌖</div><div class="st"><div class="kicker">Масджид аль-Харам · схема</div><b>Умра за 8 шагов</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="map">
  <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Roboto, Arial" >
   <defs>
@@ -351,11 +572,10 @@ nav.tabs button.on svg{ color:var(--orange); }
   <div><span>8</span>Бритьё — выход из ихрама</div>
  </div>
  <p class="small">Схема упрощённая, не в масштабе. Старт — напротив зелёной лампы на стене.</p>
-  </div>
- </details>
-
-<details class="step" data-id="ghusl"><summary><div class="num">1</div><div class="st"><div class="kicker">Медина · 01.11 · в отеле</div><b>Гусль</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+  </div></div></div>
+ </section>
+<section class="acc step" data-id="ghusl"><div class="acc-h"><div class="num">1</div><div class="st"><div class="kicker">Медина · 01.11 · в отеле</div><b>Гусль</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <p class="lead">Полное омовение перед ихрамом — для чистоты, а не для снятия скверны.</p>
  <ul class="do">
@@ -367,9 +587,9 @@ nav.tabs button.on svg{ color:var(--orange); }
  <div class="note"><b>Мансуру (10 лет)</b> — то же самое, папа помогает. Для ребёнка всё проще: ошибки не страшны.</div>
  <div class="flag"><b>⚑ Сверить:</b> что делать ребёнку, если он нарушит запрет ихрама. У ханафитов искупление на ребёнка не возлагается — подтвердить у Даурена.</div>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="ihram"><summary><div class="num">2</div><div class="st"><div class="kicker">Медина · 01.11 · до миката</div><b>Одежда ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="ihram"><div class="acc-h"><div class="num">2</div><div class="st"><div class="kicker">Медина · 01.11 · до миката</div><b>Одежда ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
  <p class="lead">Мужчина надевает два белых несшитых полотна. Войти в ихрам нужно <b>до</b> миката Зуль-Хулейфа.</p>
  <ul class="do">
@@ -381,9 +601,9 @@ nav.tabs button.on svg{ color:var(--orange); }
  </ul>
  <div class="note">Одежду надеваем в отеле, а <b>намерение</b> и <b>тальбию</b> делаем на микате (шаги 4 и 5). До этого запреты ещё не действуют.</div>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="rakat"><summary><div class="num">3</div><div class="st"><div class="kicker">Микат Зуль-Хулейфа</div><b>2 ракаата ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="rakat"><div class="acc-h"><div class="num">3</div><div class="st"><div class="kicker">Микат Зуль-Хулейфа</div><b>2 ракаата ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <p class="lead">Два ракаата с намерением «намаз ихрама». Ихрам ещё не начат — голову можно покрыть.</p>
  <div class="dua">
@@ -401,9 +621,9 @@ nav.tabs button.on svg{ color:var(--orange); }
   <li>Не совершать в запретное время (восход, зенит, закат).</li>
  </ul>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="niyya"><summary><div class="num">4</div><div class="st"><div class="kicker">Микат · после 2 ракаатов</div><b>Намерение</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="niyya"><div class="acc-h"><div class="num">4</div><div class="st"><div class="kicker">Микат · после 2 ракаатов</div><b>Намерение</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>шарт (условие)</i></span></div>
  <p class="lead">Намерение — в сердце. Произнести вслух желательно.</p>
  <div class="dua">
@@ -415,9 +635,9 @@ nav.tabs button.on svg{ color:var(--orange); }
  </div>
  <div class="note">Сразу после намерения — <b>тальбия</b> (шаг 5). С этого момента вы в ихраме и действуют запреты (карточка «Запреты ихрама» ниже).</div>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="talbiya"><summary><div class="num">5</div><div class="st"><div class="kicker">Микат → Мекка · всю дорогу</div><b>Тальбия</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="talbiya"><div class="acc-h"><div class="num">5</div><div class="st"><div class="kicker">Микат → Мекка · всю дорогу</div><b>Тальбия</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>1 раз с намерением</i></span><span class="tag sunna">Сунна · <i>повторять</i></span></div>
  <div class="dua">
   <div class="ar big">لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ</div>
@@ -430,9 +650,9 @@ nav.tabs button.on svg{ color:var(--orange); }
   <li>Прекращаем при <b>начале тавафа</b> (у Чёрного камня).</li>
  </ul>
 <button class="donebtn"></button>
-</div></details>
-<details class="info"><summary><div class="num">!</div><div class="st"><div class="kicker">От намерения до бритья</div><b>Запреты ихрама</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc info"><div class="acc-h"><div class="num">!</div><div class="st"><div class="kicker">От намерения до бритья</div><b>Запреты ихрама</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <ul class="do">
   <li class="no">Шитая по телу одежда, носки, нижнее бельё</li>
   <li class="no">Покрывать голову и лицо (зонт над головой — можно)</li>
@@ -448,9 +668,9 @@ nav.tabs button.on svg{ color:var(--orange); }
   <li>Менять и стирать ихрам.</li>
  </ul>
  <div class="flag"><b>⚑ Нарушили по ошибке?</b> Не паникуйте и сразу скажите Даурену — он объяснит, нужно ли искупление (садака или жертва).</div>
-</div></details>
-<details class="step" data-id="enter"><summary><div class="num">6</div><div class="st"><div class="kicker">Мекка · Масджид аль-Харам</div><b>Вход в мечеть</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="enter"><div class="acc-h"><div class="num">6</div><div class="st"><div class="kicker">Мекка · Масджид аль-Харам</div><b>Вход в мечеть</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <ul class="do">
   <li><b>Точка сбора</b>: запомните номер ворот, сфотографируйте его.</li>
@@ -465,9 +685,9 @@ nav.tabs button.on svg{ color:var(--orange); }
  </div>
  <div class="note"><b>Первый взгляд на Каабу</b> — поднимите руки, скажите «Аллаху акбар, ля иляха илляллах» и попросите Аллаха о самом важном.</div>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="tawaf"><summary><div class="num">7</div><div class="st"><div class="kicker">Матаф · 7 кругов</div><b>Таваф</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="tawaf"><div class="acc-h"><div class="num">7</div><div class="st"><div class="kicker">Матаф · 7 кругов</div><b>Таваф</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Фард · <i>4 круга</i></span><span class="tag must">Ваджиб · <i>3 круга, вуду</i></span></div>
  <ul class="do">
   <li>Обязательно <b>с омовением</b> (вуду).</li>
@@ -477,7 +697,7 @@ nav.tabs button.on svg{ color:var(--orange); }
   <li class="s">Идтиба — правое плечо открыто все 7 кругов.</li>
   <li class="s">Рамаль — первые 3 круга быстрый шаг, плечами вперёд (если позволяет толпа).</li>
  </ul>
- <div class="counter" data-id="tawaf" data-unit="круг" data-plural="кругов"><div class="ctitle">Счётчик: кругов<span>0 / 7</span></div><div class="cells"><div><b>1</b></div><div><b>2</b></div><div><b>3</b></div><div><b>4</b></div><div><b>5</b></div><div><b>6</b></div><div><b>7</b></div></div><button class="plus"></button><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
+ <div class="counter" data-id="tawaf" data-unit="круг" data-plural="кругов" data-hint-1="круг 1 · от Чёрного камня" data-hint-2="круг 2" data-hint-3="круг 3 · последний с рамалем" data-hint-4="круг 4" data-hint-5="круг 5" data-hint-6="круг 6" data-hint-7="круг 7 · последний"><div class="ctitle"><span>Счётчик кругов</span></div><button class="ringbtn" aria-label="Отметить круг"><svg viewBox="0 0 128 128"><circle class="bg" cx="64" cy="64" r="58"/><circle class="fg" cx="64" cy="64" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/><line class="seg" x1="116.0" y1="64.0" x2="130.0" y2="64.0"/><line class="seg" x1="96.4" y1="104.7" x2="105.2" y2="115.6"/><line class="seg" x1="52.4" y1="114.7" x2="49.3" y2="128.3"/><line class="seg" x1="17.1" y1="86.6" x2="4.5" y2="92.6"/><line class="seg" x1="17.1" y1="41.4" x2="4.5" y2="35.4"/><line class="seg" x1="52.4" y1="13.3" x2="49.3" y2="-0.3"/><line class="seg" x1="96.4" y1="23.3" x2="105.2" y2="12.4"/></svg><span class="core"><span class="n">0<small>/7</small></span><span class="lab"></span><span class="tap"></span></span></button><div class="dots7"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
  <p class="small">Сбились со счёта — берите меньшее число. Йеменский угол — коснуться рукой, если свободно (не целовать). В пути — любые дуа, зикр, Коран.</p>
  <div class="flag"><b>⚑ Сверить:</b> начало тавафа от Чёрного камня — у ханафитов одни считают его ваджибом, другие сунной. Саламату после операции — коляска (можно по уважительной причине).</div>
 <h3>Истилям и дуа</h3>
@@ -498,9 +718,9 @@ nav.tabs button.on svg{ color:var(--orange); }
   <div class="src">Коран 2:201 (пер. Кулиева); Абу Дауд 1892</div>
  </div>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="maqam"><summary><div class="num">8</div><div class="st"><div class="kicker">После 7-го круга</div><b>2 ракаата у Макама Ибрахима</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="maqam"><div class="acc-h"><div class="num">8</div><div class="st"><div class="kicker">После 7-го круга</div><b>2 ракаата у Макама Ибрахима</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
  <ul class="do">
   <li>Закрыть правое плечо (идтиба закончена).</li>
@@ -518,9 +738,9 @@ nav.tabs button.on svg{ color:var(--orange); }
   <li>Не в запретное время — тогда подождать.</li>
  </ul>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="zamzam"><summary><div class="num">9</div><div class="st"><div class="kicker">Кулеры по краю матафа</div><b>Замзам</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="zamzam"><div class="acc-h"><div class="num">9</div><div class="st"><div class="kicker">Кулеры по краю матафа</div><b>Замзам</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <ul class="do">
   <li class="s">Пить вдоволь, лицом к Каабе, в три глотка, начав с «Бисмиллях».</li>
@@ -536,9 +756,9 @@ nav.tabs button.on svg{ color:var(--orange); }
  <div class="note">Потом — снова к Чёрному камню: истилям рукой издалека и к Сафе (сунна).</div>
  <div class="flag"><b>⚑ Сверить:</b> дуа Ибн Аббаса — со слабым иснадом; читать как обычное дуа.</div>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="sai"><summary><div class="num">10</div><div class="st"><div class="kicker">Начало на холме Сафа</div><b>Сай: Сафа</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="sai"><div class="acc-h"><div class="num">10</div><div class="st"><div class="kicker">Начало на холме Сафа</div><b>Сай: Сафа</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
  <div class="dua sm">
   <div class="lbl">Подходя к Сафе (один раз)</div>
@@ -560,7 +780,7 @@ nav.tabs button.on svg{ color:var(--orange); }
   <li class="s">Омовение желательно, но не обязательно.</li>
   <li>Устали — можно отдохнуть, сесть, попить. Есть коляски.</li>
  </ul>
-<div class="counter" data-id="sai" data-unit="отрезок" data-plural="отрезков" data-hint-1="от Сафы до Марвы" data-hint-2="от Марвы до Сафы" data-hint-3="от Сафы до Марвы" data-hint-4="от Марвы до Сафы" data-hint-5="от Сафы до Марвы" data-hint-6="от Марвы до Сафы" data-hint-7="от Сафы до Марвы — финиш на Марве"><div class="ctitle">Счётчик: отрезков<span>0 / 7</span></div><div class="cells"><div><b>1</b>С→М</div><div><b>2</b>М→С</div><div><b>3</b>С→М</div><div><b>4</b>М→С</div><div><b>5</b>С→М</div><div><b>6</b>М→С</div><div><b>7</b>С→М</div></div><button class="plus"></button><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
+<div class="counter" data-id="sai" data-unit="отрезок" data-plural="отрезков" data-hint-1="от Сафы до Марвы" data-hint-2="от Марвы до Сафы" data-hint-3="от Сафы до Марвы" data-hint-4="от Марвы до Сафы" data-hint-5="от Сафы до Марвы" data-hint-6="от Марвы до Сафы" data-hint-7="от Сафы до Марвы — финиш на Марве"><div class="ctitle"><span>Счётчик отрезков</span></div><button class="ringbtn" aria-label="Отметить отрезок"><svg viewBox="0 0 128 128"><circle class="bg" cx="64" cy="64" r="58"/><circle class="fg" cx="64" cy="64" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/><line class="seg" x1="116.0" y1="64.0" x2="130.0" y2="64.0"/><line class="seg" x1="96.4" y1="104.7" x2="105.2" y2="115.6"/><line class="seg" x1="52.4" y1="114.7" x2="49.3" y2="128.3"/><line class="seg" x1="17.1" y1="86.6" x2="4.5" y2="92.6"/><line class="seg" x1="17.1" y1="41.4" x2="4.5" y2="35.4"/><line class="seg" x1="52.4" y1="13.3" x2="49.3" y2="-0.3"/><line class="seg" x1="96.4" y1="23.3" x2="105.2" y2="12.4"/></svg><span class="core"><span class="n">0<small>/7</small></span><span class="lab"></span><span class="tap"></span></span></button><div class="dots7"><span>С→М</span><span>М→С</span><span>С→М</span><span>М→С</span><span>С→М</span><span>М→С</span><span>С→М</span></div><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
  <div class="dua">
   <div class="lbl">Между зелёными огнями</div>
   <div class="ar">رَبِّ اغْفِرْ وَارْحَمْ، إِنَّكَ أَنْتَ الْأَعَزُّ الْأَكْرَمُ</div>
@@ -570,9 +790,9 @@ nav.tabs button.on svg{ color:var(--orange); }
  </div>
  <div class="flag"><b>⚑ Сверить:</b> это дуа передано от сподвижников, а не от Пророка <span class="saw">ﷺ</span>. Можно читать любое дуа.</div>
 <button class="donebtn"></button>
-</div></details>
-<details class="step" data-id="halq"><summary><div class="num">11</div><div class="st"><div class="kicker">После Марвы</div><b>Бритьё головы</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
-<div class="body">
+</div></div></div></section>
+<section class="acc step" data-id="halq"><div class="acc-h"><div class="num">11</div><div class="st"><div class="kicker">После Марвы</div><b>Бритьё головы</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
  <p class="lead"><b>Халк</b> — побрить голову полностью (лучше). <b>Таксир</b> — укоротить волосы не меньше чем на длину фаланги пальца.</p>
  <ul class="do">
@@ -588,168 +808,199 @@ nav.tabs button.on svg{ color:var(--orange); }
   <div class="ru">«Хвала Аллаху». Да примет Аллах нашу умру!</div>
  </div>
 <button class="donebtn"></button>
-</div></details>
+</div></div></div></section>
  <div class="foot"><button id="resetBtn">Сбросить отметки умры</button></div>
 </section>
 
 <!-- ================= ДУА ================= -->
 <section class="view" id="v-dua">
  <h2 class="sec">Дуа</h2>
- <p class="sub">Все дуа гида по порядку. Дуа можно читать и на своём языке — главное, сердцем.</p>
-<h2 class="sec" style="font-size:1.15rem">Умра</h2>
+ <div class="dseg" id="duaSeg"><span class="sp"></span><button data-dseg="guide">Дуа гида</button><button data-dseg="mine">Мои дуа<em id="myCount"></em></button></div>
+ <div class="view-p stack" id="duaGuide">
+  <p class="sub">Нажмите на дуа — откроется арабский текст, транскрипция и перевод. Дуа можно читать и на своём языке — главное, сердцем.</p>
+<h2 class="grp">Умра</h2>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-heart"/></svg></div><div class="st"><b>Намерение умры</b><span class="pv">«О Аллах, я намереваюсь совершить умру — облегчи её мне и прими её от меня»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Намерение</div>
-  <div class="lbl">Намерение умры</div>
   <div class="ar big">اللَّهُمَّ إِنِّي أُرِيدُ الْعُمْرَةَ فَيَسِّرْهَا لِي وَتَقَبَّلْهَا مِنِّي</div>
   <div class="tr">Аллаху́мма инни́ ури́ду-ль-‘у́мрата фа-йассирха́ ли́ ва-такаббальха́ минни́</div>
   <div class="ru">«О Аллах, я намереваюсь совершить умру — облегчи её мне и прими её от меня»</div>
   <div class="src">Формула из ханафитских книг по фикху (Хидая и др.)</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-voice"/></svg></div><div class="st"><b>Тальбия</b><span class="pv">«Вот я перед Тобой, о Аллах, вот я! Вот я, нет у Тебя сотоварища, вот я! Поистине, хвала, милость и власть — Твои. Нет у Тебя сотоварища».</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Тальбия</div>
   <div class="ar big">لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ</div>
   <div class="tr">Ляббайка-лла́хумма ляббайк. Ляббайка ля́ шари́ка ляка ляббайк. Инна-ль-ха́мда ва-н-ни‘мата ляка ва-ль-мульк. Ля́ шари́ка лак.</div>
   <div class="ru">«Вот я перед Тобой, о Аллах, вот я! Вот я, нет у Тебя сотоварища, вот я! Поистине, хвала, милость и власть — Твои. Нет у Тебя сотоварища».</div>
   <div class="src">Аль-Бухари 1549, Муслим 1184</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-door"/></svg></div><div class="st"><b>Вход в мечеть</b><span class="pv">«С именем Аллаха, мир и благословение Посланнику Аллаха. О Аллах, открой мне врата Своей милости».</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Вход в мечеть</div>
   <div class="ar">بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ</div>
   <div class="tr">Бисмилля́х, ва-с-саля́ту ва-с-саля́му ‘аля́ расу́лилля́х. Аллаху́мма-фтах ли́ абва́ба рахма́тик.</div>
   <div class="ru">«С именем Аллаха, мир и благословение Посланнику Аллаха. О Аллах, открой мне врата Своей милости».</div>
   <div class="src">Муслим 713; Абу Дауд 465</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-stone"/></svg></div><div class="st"><b>У Чёрного камня · в начале каждого круга</b><span class="pv">«С именем Аллаха, Аллах велик»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Истилям и дуа</div>
-  <div class="lbl">У Чёрного камня · в начале каждого круга</div>
   <div class="ar big">بِسْمِ اللَّهِ وَاللَّهُ أَكْبَرُ</div>
   <div class="tr">Бисмилля́хи ва-Лла́ху а́кбар</div>
   <div class="ru">«С именем Аллаха, Аллах велик»</div>
   <div class="src">Аль-Бухари 1613 (такбир); аль-Байхаки — от Ибн Умара</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-tawaf"/></svg></div><div class="st"><b>Между Йеменским углом и Чёрным камнем</b><span class="pv">«Господь наш! Одари нас добром в этом мире и добром в Последней жизни и защити нас от мучений в Огне»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Истилям и дуа</div>
-  <div class="lbl">Между Йеменским углом и Чёрным камнем</div>
   <div class="ar">رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً وَفِى ٱلْـَٔاخِرَةِ حَسَنَةً وَقِنَا عَذَابَ ٱلنَّارِ</div>
   <div class="tr">Ра́ббана́ а́тина́ фи-д-дунья́ хаса́на, ва-филь-а́хырати хаса́на, ва-кы́на ‘аза́ба-н-на́р</div>
   <div class="ru">«Господь наш! Одари нас добром в этом мире и добром в Последней жизни и защити нас от мучений в Огне»</div>
   <div class="src">Коран 2:201 (пер. Кулиева); Абу Дауд 1892</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-pray"/></svg></div><div class="st"><b>2 ракаата у Макама Ибрахима</b><span class="pv">«Сделайте же место Ибрахима местом моления»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">2 ракаата у Макама Ибрахима</div>
   <div class="ar">وَٱتَّخِذُوا۟ مِن مَّقَامِ إِبْرَٰهِـۧمَ مُصَلًّى</div>
   <div class="tr">Ваттахы́зу́ мим-мака́ми Ибра́хи́ма мусалля́</div>
   <div class="ru">«Сделайте же место Ибрахима местом моления»</div>
   <div class="src">Коран 2:125 (пер. Кулиева)</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-cup"/></svg></div><div class="st"><b>Замзам</b><span class="pv">«О Аллах, прошу у Тебя полезного знания, обильного удела и исцеления от всякой болезни»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Замзам</div>
   <div class="ar">اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا وَاسِعًا، وَشِفَاءً مِنْ كُلِّ دَاءٍ</div>
   <div class="tr">Аллаху́мма инни́ ас’алюка ‘и́льман на́фи‘ан, ва-ри́зкан ва́си‘ан, ва-шифа́’ан мин ку́лли да́’</div>
   <div class="ru">«О Аллах, прошу у Тебя полезного знания, обильного удела и исцеления от всякой болезни»</div>
   <div class="src">Слова Ибн Аббаса (ад-Даракутни)</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-walk"/></svg></div><div class="st"><b>Подходя к Сафе (один раз)</b><span class="pv">«Ас-Сафа и аль-Марва — из обрядовых знамений Аллаха». «Начинаю с того, с чего начал Аллах».</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Сай: Сафа</div>
-  <div class="lbl">Подходя к Сафе (один раз)</div>
   <div class="ar">إِنَّ ٱلصَّفَا وَٱلْمَرْوَةَ مِن شَعَآئِرِ ٱللَّهِ · أَبْدَأُ بِمَا بَدَأَ اللَّهُ بِهِ</div>
   <div class="tr">Инна-с-сафа́ ва-ль-ма́рвата мин ша‘а́’ири-лля́х. Абда’у бима́ бада’а-Лла́ху бих.</div>
   <div class="ru">«Ас-Сафа и аль-Марва — из обрядовых знамений Аллаха». «Начинаю с того, с чего начал Аллах».</div>
   <div class="src">Коран 2:158 (пер. Кулиева); Муслим 1218</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-walk"/></svg></div><div class="st"><b>На Сафе и на Марве · лицом к Каабе, руки подняты</b><span class="pv">Аллаху а́кбар ×3. Ля иля́ха илля-Лла́ху ва́хдаху ля шари́ка лях, ля́ху-ль-мульку ва-ля́ху-ль-хамд, ва-ху́а ‘аля́ ку́лли шай’ин кади́р. Ля иля́ха илля-Лла́ху ва́хдах, анджа́за ва‘дах, ва-наса́ра ‘абдах, ва-хаза́ма-ль-ахза́ба ва́хдах.</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Сай: Сафа</div>
-  <div class="lbl">На Сафе и на Марве · лицом к Каабе, руки подняты</div>
   <div class="ar">اللَّهُ أَكْبَرُ ×٣ · لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ، لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ، أَنْجَزَ وَعْدَهُ، وَنَصَرَ عَبْدَهُ، وَهَزَمَ الْأَحْزَابَ وَحْدَهُ</div>
   <div class="tr">Аллаху а́кбар ×3. Ля иля́ха илля-Лла́ху ва́хдаху ля шари́ка лях, ля́ху-ль-мульку ва-ля́ху-ль-хамд, ва-ху́а ‘аля́ ку́лли шай’ин кади́р. Ля иля́ха илля-Лла́ху ва́хдах, анджа́за ва‘дах, ва-наса́ра ‘абдах, ва-хаза́ма-ль-ахза́ба ва́хдах.</div>
   <div class="src">Муслим 1218. Потом — своё дуа.</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-walk"/></svg></div><div class="st"><b>Между зелёными огнями</b><span class="pv">«Господи, прости и помилуй, ведь Ты — Самый Могущественный, Самый Щедрый»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Сай: 7 отрезков</div>
-  <div class="lbl">Между зелёными огнями</div>
   <div class="ar">رَبِّ اغْفِرْ وَارْحَمْ، إِنَّكَ أَنْتَ الْأَعَزُّ الْأَكْرَمُ</div>
   <div class="tr">Рабби-гфир ва-рхам, инна́ка Анта-ль-а‘а́ззу-ль-акрам</div>
   <div class="ru">«Господи, прости и помилуй, ведь Ты — Самый Могущественный, Самый Щедрый»</div>
   <div class="src">Слова Ибн Масуда и Ибн Умара (Ибн Аби Шейба)</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-scis"/></svg></div><div class="st"><b>Бритьё головы · после умры</b><span class="pv">«Хвала Аллаху». Да примет Аллах нашу умру!</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Бритьё головы</div>
-  <div class="lbl">После умры</div>
   <div class="ar">الْحَمْدُ لِلَّهِ</div>
   <div class="tr">Аль-хамду ли-Лля́х</div>
   <div class="ru">«Хвала Аллаху». Да примет Аллах нашу умру!</div>
  </div>
-<h2 class="sec" style="font-size:1.15rem">Медина</h2>
+</div></div></div></section>
+<h2 class="grp">Медина</h2>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-dome"/></svg></div><div class="st"><b>Салям Пророку <span class="saw">ﷺ</span></b><span class="pv">«Мир тебе, о Посланник Аллаха»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Салям Пророку ﷺ</div>
   <div class="ar">السَّلَامُ عَلَيْكَ يَا رَسُولَ اللَّهِ</div>
   <div class="tr">Ас-саля́му ‘аляйка йа́ Расу́ля-лла́х</div>
   <div class="ru">«Мир тебе, о Посланник Аллаха»</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-dome"/></svg></div><div class="st"><b>Салям Абу Бакру и Умару</b><span class="pv">«Мир тебе, о Абу Бакр» · «Мир тебе, о Умар» (да будет доволен ими Аллах)</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Салям Пророку ﷺ</div>
   <div class="ar">السَّلَامُ عَلَيْكَ يَا أَبَا بَكْرٍ · السَّلَامُ عَلَيْكَ يَا عُمَرُ</div>
   <div class="tr">Ас-саля́му ‘аляйка йа́ Аба́ Бакр · Ас-саля́му ‘аляйка йа́ ‘Умар</div>
   <div class="ru">«Мир тебе, о Абу Бакр» · «Мир тебе, о Умар» (да будет доволен ими Аллах)</div>
   <div class="src">Так приветствовал Ибн Умар (Малик, «Муватта»). Пророк <span class="saw">ﷺ</span> отвечает на салям — Абу Дауд 2041</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-dome"/></svg></div><div class="st"><b>Салям обитателям могил · Ухуд, Баки</b><span class="pv">«Мир вам, верующие и мусульмане, обитатели этих жилищ! Мы, если пожелает Аллах, присоединимся к вам. Просим у Аллаха благополучия для нас и для вас»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Равда, Куба, Ухуд</div>
   <div class="ar">السَّلَامُ عَلَيْكُمْ أَهْلَ الدِّيَارِ مِنَ الْمُؤْمِنِينَ وَالْمُسْلِمِينَ، وَإِنَّا إِنْ شَاءَ اللَّهُ لَلَاحِقُونَ، نَسْأَلُ اللَّهَ لَنَا وَلَكُمُ الْعَافِيَةَ</div>
   <div class="tr">Ас-саля́му ‘аляйкум а́хля-д-дийа́р мина-ль-му’мини́на ва-ль-муслими́н, ва-инна́ ин ша́’а-Лла́ху ля-ля́хику́н, нас’алю-Лла́ха ля́на ва-ля́куму-ль-‘а́фия</div>
   <div class="ru">«Мир вам, верующие и мусульмане, обитатели этих жилищ! Мы, если пожелает Аллах, присоединимся к вам. Просим у Аллаха благополучия для нас и для вас»</div>
   <div class="src">Муслим 975 · то же — на кладбище Баки</div>
  </div>
-<h2 class="sec" style="font-size:1.15rem">В пути и в мечети</h2>
+</div></div></div></section>
+<h2 class="grp">В пути и в мечети</h2>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-plane"/></svg></div><div class="st"><b>Сев в транспорт</b><span class="pv">«Пречист Тот, Кто подчинил нам это, ведь мы сами на такое были неспособны. Воистину, мы вернёмся к нашему Господу (43:13–14). О Аллах, просим у Тебя в этой поездке благочестия, богобоязненности и дел, которыми Ты доволен. О Аллах, облегчи нам эту поездку и сократи её расстояние».</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Дуа в пути</div>
-  <div class="lbl">Сев в транспорт</div>
   <div class="ar">اللَّهُ أَكْبَرُ ×٣ · سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَٰذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ، وَإِنَّا إِلَىٰ رَبِّنَا لَمُنْقَلِبُونَ، اللَّهُمَّ إِنَّا نَسْأَلُكَ فِي سَفَرِنَا هَٰذَا الْبِرَّ وَالتَّقْوَىٰ، وَمِنَ الْعَمَلِ مَا تَرْضَىٰ، اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَٰذَا وَاطْوِ عَنَّا بُعْدَهُ</div>
   <div class="tr">Аллаху а́кбар ×3. Субха́на-лля́зи саххара ля́на ха́за ва-ма́ кунна́ ля́ху мукрини́н, ва-инна́ иля́ Рабби́на ля-мункалибу́н. Аллаху́мма инна́ нас’алюка фи са́фарина ха́за-ль-би́рра ва-т-таква́, ва-мина-ль-‘а́мали ма́ тарда́. Аллаху́мма хаввин ‘аляйна́ са́фарана ха́за ва-тви ‘анна́ бу‘дах.</div>
   <div class="ru">«Пречист Тот, Кто подчинил нам это, ведь мы сами на такое были неспособны. Воистину, мы вернёмся к нашему Господу (43:13–14). О Аллах, просим у Тебя в этой поездке благочестия, богобоязненности и дел, которыми Ты доволен. О Аллах, облегчи нам эту поездку и сократи её расстояние».</div>
   <div class="src">Муслим 1342; Коран 43:13–14 (пер. Кулиева)</div>
  </div>
+</div></div></div></section>
+<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-door"/></svg></div><div class="st"><b>Выход из мечети · левой ногой</b><span class="pv">«…О Аллах, прошу у Тебя Твоей щедрости»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="dua">
-  <div class="ctx">Вход и выход из мечети</div>
-  <div class="lbl">Выход · левой ногой</div>
   <div class="ar">بِسْمِ اللَّهِ، وَالصَّلَاةُ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ</div>
   <div class="tr">Бисмилля́х, ва-с-саля́ту ва-с-саля́му ‘аля́ расу́лилля́х. Аллаху́мма инни́ ас’алюка мин фадлик.</div>
   <div class="ru">«…О Аллах, прошу у Тебя Твоей щедрости»</div>
   <div class="src">Муслим 713; Абу Дауд 465</div>
  </div>
+</div></div></div></section>
 
- <div class="card">
-  <h3>Мои дуа</h3>
-  <p class="small">За себя, родителей, семью, умму. Кто просил сделать дуа. Записи хранятся только в вашем телефоне.</p>
-  <textarea data-k="mydua" placeholder="Записать дуа…"></textarea>
-  <div class="saved" data-saved="mydua"></div>
+  <div id="extraBox"></div>
+ </div>
+ <div class="view-p stack" id="duaMine" hidden>
+  <p class="sub">Запишите, за кого и о чём попросить. В Хараме отмечайте ✓ — так ничего не забудете.</p>
+  <div class="card">
+   <div class="qchips">
+    <button data-q="За себя">За себя</button><button data-q="За родителей">За родителей</button><button data-q="За семью">За семью</button><button data-q="За детей">За детей</button><button data-q="За умму">За умму</button><button data-q="Просили: ">Меня просили…</button>
+   </div>
+   <input class="inp" id="myT" placeholder="За кого или о чём" enterkeyhint="done" autocomplete="off">
+   <textarea class="sm" id="myX" placeholder="Слова дуа или подробности — по желанию"></textarea>
+   <div class="btns"><button class="btn" id="myAdd">Добавить</button></div>
+  </div>
+  <p class="mstat" id="myStat" hidden></p>
+  <div class="stack" id="myList"></div>
+  <div class="empty" id="myEmpty"><svg><use href="#i-heart"/></svg>Пока пусто. Добавьте первое дуа — например, за родителей.</div>
+  <p class="small" style="text-align:center">Записи хранятся только в этом телефоне.</p>
+  <div class="foot"><button id="myUncheck" hidden>Снять все отметки ✓</button></div>
  </div>
 </section>
 
-<!-- ================= МАРШРУТ ================= -->
-<section class="view" id="v-route">
- <h2 class="sec">Маршрут тура</h2>
- <div class="card">
- <table>
-  <tr><th>Дата</th><th>Что и где</th></tr>
-  <tr data-dates="28.10"><td class="d">28.10 ср</td><td><b>03:15</b> сбор, аэропорт Алматы<br><span class="fly">TK 351</span> 06:15 → 10:35 Стамбул · день в городе</td></tr>
-  <tr data-dates="29.10"><td class="d">29.10 чт</td><td><span class="fly">TK 98</span> 01:40 → 05:05 Медина<br>Отель <b>Worth Peninsula</b></td></tr>
-  <tr data-dates="30.10"><td class="d">30.10 пт</td><td>Джума в мечети Пророка <span class="saw">ﷺ</span> · Равда (Nusuk)</td></tr>
-  <tr data-dates="31.10"><td class="d">31.10 сб</td><td>Зиярат: Куба, Ухуд, Кыблатайн · урок по умре</td></tr>
-  <tr data-dates="01.11"><td class="d">01.11 вс</td><td>Ихрам · микат <b>Зуль-Хулейфа</b> → Мекка<br>Отель <b>Address Jabal Omar</b> · <b>умра</b></td></tr>
-  <tr data-dates="02.11,03.11"><td class="d">02–03.11</td><td>Мекка: ибадат в Харам, зиярат</td></tr>
-  <tr data-dates="04.11"><td class="d">04.11 ср</td><td>Прощальный таваф · переезд в Медину</td></tr>
-  <tr data-dates="05.11"><td class="d">05.11 чт</td><td><span class="fly">FZ 828</span> 01:15 → 04:45 Дубай (T2)<br><span class="fly">FZ 1721</span> 21:10 из Дубая (T3)</td></tr>
-  <tr data-dates="06.11"><td class="d">06.11 пт</td><td><b>03:00</b> Алматы, терминал 2</td></tr>
- </table>
- <div class="note">Время везде <b>местное</b>: Алматы +5, Стамбул и Саудовская Аравия +3, Дубай +4.</div>
- <p class="small">Багаж: туда 23 кг (Turkish), обратно 30 кг + 7 кг ручной клади (flydubai).</p>
- </div>
+<!-- ================= ПУТЬ ================= -->
+<section class="view" id="v-prog">
+ <h2 class="sec">Путь</h2>
+ <p class="sub">Нажмите на остановку — откроются дни. Программу обновляет Чингис.</p>
+<div class="path" id="pathList">
+<div class="stop" id="stop-0" data-dates="28.10" data-short="Стамбул"><span class="dot"><svg><use href="#i-plane"/></svg></span><div class="sc"><button class="sh" aria-expanded="false"><span class="stt"><b>Алматы → Стамбул</b><span class="sd">28.10</span><span class="here"></span></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="sx"><span class="fl">TK 351</span></div><div class="sb"><div><div class="dl"><div class="dy bro" data-dates="28.10" style="order:0"><div class="dyh"><b>28.10 ср</b></div><div class="dyb"><b>03:15</b> сбор, аэропорт Алматы<br><span class="fly">TK 351</span> 06:15 → 10:35 Стамбул · день в городе</div></div></div></div></div></div></div>
+<div class="stop" id="stop-1" data-dates="29.10,30.10,31.10" data-short="Медина"><span class="dot"><svg><use href="#i-dome"/></svg></span><div class="sc"><button class="sh" aria-expanded="false"><span class="stt"><b>Медина</b><span class="sd">29–⁠31.10</span><span class="here"></span></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="sx"><span class="fl">TK 98</span><span>Отель Worth Peninsula</span></div><div class="sb"><div><div class="dl"><div class="dy bro" data-dates="29.10" style="order:1"><div class="dyh"><b>29.10 чт</b></div><div class="dyb"><span class="fly">TK 98</span> 01:40 → 05:05 Медина<br>Отель <b>Worth Peninsula</b></div></div><div class="dy bro" data-dates="30.10" style="order:2"><div class="dyh"><b>30.10 пт</b></div><div class="dyb">Джума в мечети Пророка <span class="saw">ﷺ</span> · Равда (Nusuk)</div></div><div class="dy bro" data-dates="31.10" style="order:3"><div class="dyh"><b>31.10 сб</b></div><div class="dyb">Зиярат: Куба, Ухуд, Кыблатайн · урок по умре</div></div></div></div></div></div></div>
+<div class="stop" id="stop-2" data-dates="01.11,02.11,03.11,04.11" data-short="Мекка"><span class="dot"><svg><use href="#i-tawaf"/></svg></span><div class="sc"><button class="sh" aria-expanded="false"><span class="stt"><b>Мекка · умра</b><span class="sd">01–⁠04.11</span><span class="here"></span></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="sx"><span>Отель Address Jabal Omar</span></div><div class="sb"><div><div class="dl"><div class="dy bro" data-dates="01.11" style="order:4"><div class="dyh"><b>01.11 вс</b></div><div class="dyb">Ихрам · микат <b>Зуль-Хулейфа</b> → Мекка<br>Отель <b>Address Jabal Omar</b> · <b>умра</b></div></div><div class="dy bro" data-dates="02.11,03.11" style="order:5"><div class="dyh"><b>02–03.11</b></div><div class="dyb">Мекка: ибадат в Харам, зиярат</div></div><div class="dy bro" data-dates="04.11" style="order:7"><div class="dyh"><b>04.11 ср</b></div><div class="dyb">Прощальный таваф · переезд в Медину</div></div></div></div></div></div></div>
+<div class="stop" id="stop-3" data-dates="05.11,06.11" data-short="Домой"><span class="dot"><svg><use href="#i-plane"/></svg></span><div class="sc"><button class="sh" aria-expanded="false"><span class="stt"><b>Домой через Дубай</b><span class="sd">05–⁠06.11</span><span class="here"></span></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="sx"><span class="fl">FZ 828</span><span class="fl">FZ 1721</span></div><div class="sb"><div><div class="dl"><div class="dy bro" data-dates="05.11" style="order:8"><div class="dyh"><b>05.11 чт</b></div><div class="dyb"><span class="fly">FZ 828</span> 01:15 → 04:45 Дубай (T2)<br><span class="fly">FZ 1721</span> 21:10 из Дубая (T3)</div></div><div class="dy bro" data-dates="06.11" style="order:9"><div class="dyh"><b>06.11 пт</b></div><div class="dyb"><b>03:00</b> Алматы, терминал 2</div></div></div></div></div></div></div>
+</div>
+<div class="note">Время везде <b>местное</b>: Алматы +5, Стамбул и Саудовская Аравия +3, Дубай +4.</div>
+<p class="small">Багаж: туда 23 кг (Turkish), обратно 30 кг + 7 кг ручной клади (flydubai).</p>
+ <p class="upd-note" id="dataNote"></p>
 </section>
 
-<!-- ================= МЕДИНА ================= -->
-<section class="view" id="v-medina">
- <h2 class="sec">Медина</h2>
+<!-- ================= ЕЩЁ ================= -->
+<section class="view" id="v-more">
+ <h2 class="sec" id="medina">Медина</h2>
  <p class="sub">Масджид ан-Набави · 29.10–01.11, 04.11</p>
 <div class="card"><div><div class="kicker">Медина · Масджид ан-Набави</div><h3 style="font-size:1.25rem">Салям Пророку <span class="saw">ﷺ</span></h3></div>
  <ul class="do">
@@ -782,17 +1033,25 @@ nav.tabs button.on svg{ color:var(--orange); }
   <div class="src">Муслим 975 · то же — на кладбище Баки</div>
  </div>
 </div>
-</section>
-
-<!-- ================= ПАМЯТКА ================= -->
-<section class="view" id="v-info">
  <h2 class="sec">Памятка</h2>
- <div class="card">
+ <div class="card" id="myCard">
   <h3>Мои данные</h3>
-  <label class="field"><span>Имя паломника</span><input data-k="f-name" autocomplete="name"></label>
-  <label class="field"><span>Номер в отеле · Медина</span><input data-k="f-room-med" inputmode="numeric"></label>
-  <label class="field"><span>Номер в отеле · Мекка</span><input data-k="f-room-mak" inputmode="numeric"></label>
-  <p class="small">Сохраняется только в этом телефоне.</p>
+  <p class="small" id="myAuto" hidden></p>
+  <div class="stack" id="codeBox" hidden>
+   <div class="stack" id="codeForm">
+    <label class="field"><span>Личная ссылка от Чингиса</span><input id="codeIn" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="вставьте ссылку или код"></label>
+    <p class="small">Вставьте ссылку из сообщения Чингиса — имя и номера комнат подставятся сами.</p>
+    <div class="btns"><button class="btn" id="codeSave">Сохранить</button></div>
+   </div>
+   <p class="small" id="codeMsg"></p>
+   <button class="linkbtn" id="codeReset" hidden>Это не я · сменить</button>
+  </div>
+  <div class="stack" id="manual">
+   <label class="field"><span>Имя паломника</span><input data-k="f-name" autocomplete="name"></label>
+   <label class="field"><span>Номер в отеле · Медина</span><input data-k="f-room-med" inputmode="numeric"></label>
+   <label class="field"><span>Номер в отеле · Мекка</span><input data-k="f-room-mak" inputmode="numeric"></label>
+   <p class="small">Эти записи хранятся только в этом телефоне.</p>
+  </div>
  </div>
 <div class="card"><div><div class="kicker">Памятка</div><h3 style="font-size:1.25rem">Документы и деньги</h3></div>
  <h3>Документы — всегда при себе</h3>
@@ -863,81 +1122,147 @@ nav.tabs button.on svg{ color:var(--orange); }
    <button class="btn ghost" data-theme-set="dark">Тёмная</button>
   </div>
  </div>
- <div class="status" id="swStatus">Проверяю офлайн-режим…</div>
- <p class="foot">Пусть Аллах примет нашу умру и облегчит путь. · JURT · 2026<br>Версия 1.0 · 21.10.2026</p>
+ <p class="foot">Пусть Аллах примет нашу умру и облегчит путь. · JURT · 2026<br>Версия 2.1 · 21.10.2026</p>
 </section>
 </main>
 
 <div class="upd" id="updBar"><span style="flex:1">Есть обновление гида</span><button id="updBtn">Обновить</button></div>
+<div class="upd" id="toast"><span style="flex:1" id="toastT"></span><button id="toastBtn">Отменить</button></div>
+
+<div class="cele" id="cele">
+ <div class="box">
+  <div class="conf" id="conf"></div>
+  <svg class="st8"><use href="#i-star"/></svg>
+  <h3>Умра завершена!</h3>
+<div class="ar">الْحَمْدُ لِلَّهِ</div>
+  <p>Да примет Аллах вашу умру, <b id="celeName">паломник</b>.</p>
+  <div class="btns"><button class="btn" id="shareBtn">Поделиться радостью</button></div>
+  <button class="foot" id="celeClose" style="text-decoration:underline">Закрыть</button>
+ </div>
+</div>
 
 <nav class="tabs">
+ <span class="pill" id="pill"></span>
+ <button data-tab="home"><svg><use href="#i-star"/></svg>Главная</button>
  <button data-tab="umra"><svg><use href="#i-tawaf"/></svg>Умра</button>
  <button data-tab="dua"><svg><use href="#i-heart"/></svg>Дуа</button>
- <button data-tab="route"><svg><use href="#i-plane"/></svg>Маршрут</button>
- <button data-tab="medina"><svg><use href="#i-dome"/></svg>Медина</button>
- <button data-tab="info"><svg><use href="#i-list"/></svg>Памятка</button>
+ <button data-tab="prog"><svg><use href="#i-plane"/></svg>Путь</button>
+ <button data-tab="more"><svg><use href="#i-dome"/></svg>Ещё</button>
 </nav>
 
 <script>
 (function(){
+var API='';
 var P='jurt-umra:';
 function get(k,d){ try{ var v=localStorage.getItem(P+k); return v===null?d:JSON.parse(v); }catch(e){ return d; } }
 function set(k,v){ try{ localStorage.setItem(P+k,JSON.stringify(v)); }catch(e){} }
 var $=function(s,r){ return (r||document).querySelector(s); }, $$=function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 var root=document.documentElement;
+var buzz=function(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
+
+/* личная ссылка: ?p=код запоминаем и оставляем в адресе — на iPhone иконка «Домой» откроет этот же адрес (её хранилище отдельно от Safari) */
+var lastFetch=0;
+function useCode(c){ c=String(c||'').toLowerCase(); if(c===get('code','')) return; set('code',c); var D=get('data',null); if(D){ D.me=null; D.code=''; set('data',D); } lastFetch=0; }
+(function(){ var m=location.search.match(/[?&]p=([a-z0-9]{6,12})/i); if(m){ var c=m[1].toLowerCase(); if(c!==get('codeUrl','')){ set('codeUrl',c); useCode(c); } } })();
 
 /* шрифт и тема */
-function applyFs(v){ root.setAttribute('data-fs',v); set('fs',v); $$('[data-fs]').forEach(function(b){ if(b.tagName==='BUTTON') b.style.background=(String(b.getAttribute('data-fs'))===String(v))?'var(--mint)':''; }); }
+function applyFs(v){ root.setAttribute('data-fs',v); set('fs',v); $$('button[data-fs]').forEach(function(b){ b.classList.toggle('sel', String(b.getAttribute('data-fs'))===String(v)); }); }
 applyFs(get('fs',0));
 $('#fsBtn').onclick=function(){ applyFs((Number(get('fs',0))+1)%3); };
 $$('button[data-fs]').forEach(function(b){ b.onclick=function(){ applyFs(Number(b.getAttribute('data-fs'))); }; });
-function applyTheme(t){ if(t) root.setAttribute('data-theme',t); else root.removeAttribute('data-theme'); set('theme',t); }
+function applyTheme(t){ if(t) root.setAttribute('data-theme',t); else root.removeAttribute('data-theme'); set('theme',t); $$('[data-theme-set]').forEach(function(b){ b.classList.toggle('sel', b.getAttribute('data-theme-set')===(t||'')); }); }
 applyTheme(get('theme',''));
 $$('[data-theme-set]').forEach(function(b){ b.onclick=function(){ applyTheme(b.getAttribute('data-theme-set')); }; });
 
 /* вкладки */
-function show(tab){
-  if(!document.getElementById('v-'+tab)) tab='umra';
+var TABS=['home','umra','dua','prog','more'];
+function show(tab, anchor){
+  if(TABS.indexOf(tab)<0) tab='home';
   $$('.view').forEach(function(v){ v.classList.toggle('on', v.id==='v-'+tab); });
   $$('nav.tabs button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===tab); });
+  $('#pill').style.transform='translateX('+(TABS.indexOf(tab)*100)+'%)';
   set('tab',tab);
+  if(anchor){ var a=document.getElementById(anchor); if(a) setTimeout(function(){ a.scrollIntoView({behavior:'smooth'}); },50); } else window.scrollTo(0,0);
+  reveal();
 }
-$$('nav.tabs button').forEach(function(b){ b.onclick=function(){ show(b.getAttribute('data-tab')); window.scrollTo(0,0); }; });
-show(get('tab','umra'));
+$$('nav.tabs button').forEach(function(b){ b.onclick=function(){ buzz(8); show(b.getAttribute('data-tab')); }; });
+$$('[data-go]').forEach(function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-go'), b.getAttribute('data-anchor')); if(b.getAttribute('data-seg')) segTo(b.getAttribute('data-seg')); }); });
 
-/* шаги */
-var steps=$$('details.step'), TOTAL=steps.length;
-function done(){ return get('done',{}); }
+/* плавное появление */
+var io=('IntersectionObserver' in window)? new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); },{threshold:.08}) : null;
+function reveal(){ $$('.reveal:not(.in)').forEach(function(el){ if(io) io.observe(el); else el.classList.add('in'); }); }
+
+/* аккордеон */
+function openAcc(a, on){ a.classList.toggle('open', on); }
+$$('.acc').forEach(function(a){ $('.acc-h',a).addEventListener('click',function(){ openAcc(a, !a.classList.contains('open')); if(a.classList.contains('open') && $('.counter',a)) wake(); }); });
+
+/* шаги умры */
+var steps=$$('.acc.step'), TOTAL=steps.length;
+function doneMap(){ return get('done',{}); }
 function render(){
-  var d=done(), n=0, nextStep=null;
-  steps.forEach(function(s){ var id=s.getAttribute('data-id'), on=!!d[id]; s.classList.toggle('done',on);
-    var b=$('.donebtn',s); b.innerHTML=on?'✓ Сделано · отменить':'Отметить «Сделано»'; if(on) n++; else if(!nextStep) nextStep=s; });
+  var d=doneMap(), n=0, nx=null;
+  steps.forEach(function(s){ var on=!!d[s.getAttribute('data-id')]; s.classList.toggle('done',on);
+    $('.donebtn',s).innerHTML=on?'✓ Сделано · отменить':'Отметить «Сделано»'; if(on) n++; else if(!nx) nx=s; s.classList.remove('next'); });
+  if(nx) nx.classList.add('next');
   $('#progNum').textContent=n+' из '+TOTAL;
   $('#progBar').style.width=(100*n/TOTAL)+'%';
-  $('#progNext').innerHTML = nextStep ? 'Следующий шаг: <b>'+$('.st b',nextStep).textContent+'</b>' : 'Умра завершена! Аль-хамду ли-Лляхь. Да примет Аллах.';
-  return nextStep;
+  $('#progNext').innerHTML = nx ? 'Следующий шаг: <b>'+esc($('.st b',nx).textContent)+'</b>' : 'Умра завершена! Да примет Аллах.';
+  $('#tileNum').textContent=n+'/'+TOTAL;
+  $('#tileRing').style.strokeDashoffset=157*(1-n/TOTAL);
+  $('#tileNext').textContent = nx ? 'дальше: '+$('.st b',nx).textContent : 'завершена ✓';
+  return {next:nx, n:n};
 }
-function toggle(s){ var d=done(), id=s.getAttribute('data-id'); if(d[id]) delete d[id]; else d[id]=Date.now(); set('done',d);
-  var nx=render(); if(d[id]){ if(navigator.vibrate) navigator.vibrate(30); s.open=false; if(nx){ nx.open=true; setTimeout(function(){ nx.scrollIntoView({behavior:'smooth',block:'start'}); },60); } } }
+function burst(el){
+  var b=document.createElement('span'); b.className='burst'; var cols=['#FC7F00','#00878A','#FFC46B','#1E8E5A'];
+  for(var i=0;i<10;i++){ var t=document.createElement('i'), a=i/10*Math.PI*2, r=28+Math.random()*10;
+    t.style.setProperty('--x',Math.cos(a)*r+'px'); t.style.setProperty('--y',Math.sin(a)*r+'px'); t.style.background=cols[i%4]; b.appendChild(t); }
+  el.appendChild(b); setTimeout(function(){ b.remove(); },800);
+}
+function toggle(s){
+  var d=doneMap(), id=s.getAttribute('data-id'); if(d[id]) delete d[id]; else d[id]=Date.now(); set('done',d);
+  var r=render();
+  if(d[id]){ var c=$('.chk',s); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); burst(c); buzz(30);
+    setTimeout(function(){ openAcc(s,false); if(r.next){ openAcc(r.next,true); setTimeout(function(){ r.next.scrollIntoView({behavior:'smooth',block:'start'}); },250); } },450);
+    if(r.n===TOTAL) setTimeout(celebrate,700); }
+}
 steps.forEach(function(s){
-  $('.chk',s).addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); toggle(s); });
+  $('.chk',s).addEventListener('click',function(e){ e.stopPropagation(); toggle(s); });
   $('.donebtn',s).addEventListener('click',function(){ toggle(s); });
 });
-var first=render(); if(first && get('tab','umra')==='umra') first.open=true;
-$('#resetBtn').onclick=function(){ if(confirm('Сбросить все отметки шагов и счётчики?')){ set('done',{}); $$('.counter').forEach(function(c){ set('cnt-'+c.getAttribute('data-id'),0); }); $$('.counter').forEach(paint); render(); } };
+var first=render().next; if(first) openAcc(first,true);
+$('#resetBtn').onclick=function(){ if(confirm('Сбросить все отметки шагов и счётчики?')){ set('done',{}); $$('.counter').forEach(function(c){ set('cnt-'+c.getAttribute('data-id'),0); paint(c); }); render(); } };
 
-/* счётчики */
+/* праздник */
+function celebrate(){
+  var c=$('#cele'), f=$('#conf'); f.innerHTML=''; var cols=['#FC7F00','#00878A','#FFC46B','#14A3A6','#ffffff'];
+  for(var i=0;i<46;i++){ var p=document.createElement('i'); p.style.left=Math.random()*100+'%'; p.style.background=cols[i%5];
+    p.style.animationDuration=(2.2+Math.random()*2)+'s'; p.style.animationDelay=(Math.random()*.8)+'s'; f.appendChild(p); }
+  c.classList.add('on'); buzz([80,60,80,60,160]);
+}
+$('#celeClose').onclick=function(){ $('#cele').classList.remove('on'); };
+$('#shareBtn').onclick=function(){ var t='Аль-хамду ли-Лляхь! Я совершил умру с JURT. Гид паломника: https://umra.jurt.kz';
+  if(navigator.share) navigator.share({text:t}).catch(function(){}); else location.href='https://wa.me/?text='+encodeURIComponent(t); };
+
+/* счётчики-кольца */
+var C=2*Math.PI*58;
 function paint(c){
-  var id=c.getAttribute('data-id'), n=get('cnt-'+id,0), cells=$$('.cells div',c);
-  cells.forEach(function(el,i){ el.classList.toggle('on',i<n); el.classList.toggle('cur',i===n); });
-  $('.ctitle span',c).textContent=n+' / 7';
-  var p=$('.plus',c), unit=c.getAttribute('data-unit');
-  if(n>=7){ p.classList.add('fin'); p.innerHTML='✓ Все 7 '+c.getAttribute('data-plural')+'<small>Аль-хамду ли-Лляхь</small>'; }
-  else { p.classList.remove('fin'); p.innerHTML='+ '+unit+' '+(n+1)+' пройден'+'<small>'+(c.getAttribute('data-hint-'+(n+1))||'нажмите в конце '+unit+'а')+'</small>'; }
+  var id=c.getAttribute('data-id'), n=get('cnt-'+id,0), btn=$('.ringbtn',c), unit=c.getAttribute('data-unit');
+  $('.fg',c).style.strokeDashoffset=C*(1-n/7);
+  $('.n',c).innerHTML=n+'<small>/7</small>';
+  $$('.dots7 span',c).forEach(function(el,i){ el.classList.toggle('on',i<n); });
+  btn.classList.toggle('fin', n>=7);
+  $('.lab',c).textContent = n>=7 ? 'Все 7 '+c.getAttribute('data-plural')+' · аль-хамду ли-Лляхь' : (c.getAttribute('data-hint-'+(n+1))||(unit+' '+(n+1)));
+  $('.tap',c).textContent = n>=7 ? '✓ готово' : 'в конце '+unit+'а';
 }
 $$('.counter').forEach(function(c){
-  var id=c.getAttribute('data-id');
-  $('.plus',c).onclick=function(){ var n=get('cnt-'+id,0); if(n<7){ n++; set('cnt-'+id,n); if(navigator.vibrate) navigator.vibrate(n===7?[60,60,60]:40); paint(c); } };
+  var id=c.getAttribute('data-id'), btn=$('.ringbtn',c);
+  btn.addEventListener('click',function(e){ var n=get('cnt-'+id,0); if(n>=7) return; n++; set('cnt-'+id,n);
+    var r=btn.getBoundingClientRect(), k=document.createElement('span'); k.className='rip'; var s=r.width/3;
+    k.style.width=k.style.height=s+'px'; k.style.left=((e.clientX||r.left+r.width/2)-r.left-s/2)+'px'; k.style.top=((e.clientY||r.top+r.height/2)-r.top-s/2)+'px';
+    $('.core',c).appendChild(k); setTimeout(function(){ k.remove(); },650);
+    var nn=$('.n',c); nn.classList.remove('bump'); void nn.offsetWidth; nn.classList.add('bump');
+    buzz(n===7?[70,50,70,50,140]:40); paint(c); });
   $('.minus',c).onclick=function(){ var n=get('cnt-'+id,0); if(n>0){ set('cnt-'+id,n-1); paint(c); } };
   $('.zero',c).onclick=function(){ if(confirm('Начать счёт заново?')){ set('cnt-'+id,0); paint(c); } };
   paint(c);
@@ -946,16 +1271,178 @@ $$('.counter').forEach(function(c){
 /* экран не гаснет, пока открыт счётчик */
 var lock=null;
 function wake(){ if('wakeLock' in navigator && !lock){ navigator.wakeLock.request('screen').then(function(l){ lock=l; l.addEventListener('release',function(){ lock=null; }); }).catch(function(){}); } }
-$$('details.step').forEach(function(s){ s.addEventListener('toggle',function(){ if(s.open && $('.counter',s)) wake(); }); });
-document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && $$('details.step[open] .counter').length) wake(); });
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && $$('.acc.open .counter').length) wake(); });
 
-/* поля и заметки */
+/* ручные поля и заметки */
 $$('[data-k]').forEach(function(el){ var k='in-'+el.getAttribute('data-k'); el.value=get(k,''); var t;
   el.addEventListener('input',function(){ set(k,el.value); var s=$('[data-saved="'+el.getAttribute('data-k')+'"]'); if(s){ s.textContent='Сохранено в телефоне'; clearTimeout(t); t=setTimeout(function(){ s.textContent=''; },1500); } }); });
 
-/* сегодня в маршруте */
-var now=new Date(), dd=('0'+now.getDate()).slice(-2)+'.'+('0'+(now.getMonth()+1)).slice(-2);
-if(now.getFullYear()===2026) $$('tr[data-dates]').forEach(function(tr){ if(tr.getAttribute('data-dates').split(',').indexOf(dd)>=0) tr.classList.add('today'); });
+/* ---------- мои дуа: свой список, отметки ✓, правка и удаление с отменой ---------- */
+function mid(){ return 'm'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+var MY=get('mydua',null), editId=null, undo=null, toastT;
+if(!Array.isArray(MY)) MY=[];
+if(!get('mydua-mig',false)){ var old=String(get('in-mydua','')||'').trim(); if(old) MY.push({id:mid(),t:'Мои записи',x:old,d:0,at:Date.now()}); set('mydua',MY); set('mydua-mig',true); }
+function saveMy(){ set('mydua',MY); }
+function idxMy(id){ for(var i=0;i<MY.length;i++) if(MY[i].id===id) return i; return -1; }
+function mineStat(){ var n=MY.length, d=0; MY.forEach(function(m){ if(m.d) d++; });
+  $('#myEmpty').hidden=n>0; $('#myStat').hidden=!n; $('#myStat').textContent='Сделано '+d+' из '+n+(n&&d===n?' · аль-хамду ли-Лляхь':'');
+  $('#myCount').textContent=n-d?String(n-d):''; $('#myUncheck').hidden=!d; }
+function renderMine(){ $('#myList').innerHTML=MY.map(function(m){
+    if(m.id===editId) return '<div class="mine edit" data-id="'+m.id+'"><input class="inp" value="'+esc(m.t)+'" placeholder="За кого или о чём" enterkeyhint="done"><textarea class="sm" placeholder="Слова дуа или подробности — по желанию">'+esc(m.x)+'</textarea><div class="btns"><button class="btn" data-a="save">Сохранить</button><button class="btn ghost" data-a="del">Удалить</button></div></div>';
+    return '<div class="mine'+(m.d?' done':'')+'" data-id="'+m.id+'"><button class="mchk" data-a="chk" aria-label="Отметить"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="mb" data-a="edit"><b>'+esc(m.t)+'</b>'+(m.x?'<span>'+esc(m.x)+'</span>':'')+'</button></div>';
+  }).join(''); mineStat(); }
+function toast(text, fn){ var t=$('#toast'); $('#toastT').textContent=text; t.classList.add('on'); clearTimeout(toastT);
+  $('#toastBtn').onclick=function(){ t.classList.remove('on'); clearTimeout(toastT); fn(); };
+  toastT=setTimeout(function(){ t.classList.remove('on'); undo=null; },6000); }
+function removeMy(i){ var m=MY.splice(i,1)[0]; saveMy(); renderMine(); undo={m:m,i:i};
+  toast('Удалено: «'+m.t+'»', function(){ if(!undo) return; MY.splice(Math.min(undo.i,MY.length),0,undo.m); undo=null; saveMy(); renderMine(); }); }
+function addMy(){ var t=$('#myT').value.trim(), x=$('#myX').value.trim(); if(!t&&!x){ $('#myT').focus(); return; } if(!t){ t=x; x=''; }
+  var m={id:mid(),t:t,x:x,d:0,at:Date.now()}; MY.push(m); saveMy(); $('#myT').value=''; $('#myX').value=''; renderMine();
+  var c=$('.mine[data-id="'+m.id+'"]'); if(c){ c.classList.add('new'); c.scrollIntoView({behavior:'smooth',block:'nearest'}); } buzz(15); }
+$('#myAdd').onclick=addMy;
+$('#myT').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); addMy(); } });
+$$('.qchips button').forEach(function(b){ b.onclick=function(){ var q=b.getAttribute('data-q'), i=$('#myT'); i.value=q; if(/: $/.test(q)){ i.focus(); try{ i.setSelectionRange(q.length,q.length); }catch(e){} } }; });
+$('#myList').addEventListener('click',function(e){ var b=e.target.closest('[data-a]'); if(!b) return; var card=b.closest('.mine'), id=card.getAttribute('data-id'), i=idxMy(id); if(i<0) return; var a=b.getAttribute('data-a');
+  if(a==='chk'){ MY[i].d=MY[i].d?0:Date.now(); saveMy(); var on=!!MY[i].d; card.classList.toggle('done',on); if(on){ b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); burst(b); buzz(30); } mineStat(); }
+  else if(a==='edit'){ editId=id; renderMine(); var inp=$('.mine.edit .inp'); if(inp) inp.focus(); }
+  else if(a==='save'){ var t=$('.inp',card).value.trim(), x=$('textarea',card).value.trim(); editId=null; if(!t&&!x){ removeMy(i); return; } if(!t){ t=x; x=''; } MY[i].t=t; MY[i].x=x; saveMy(); renderMine(); }
+  else if(a==='del'){ editId=null; removeMy(i); } });
+$('#myList').addEventListener('keydown',function(e){ if(e.key==='Enter' && e.target.classList.contains('inp')){ e.preventDefault(); var s=$('[data-a="save"]',e.target.closest('.mine')); if(s) s.click(); } });
+$('#myUncheck').onclick=function(){ if(confirm('Снять все отметки ✓ в «Моих дуа»?')){ MY.forEach(function(m){ m.d=0; }); saveMy(); renderMine(); } };
+function segTo(w){ w=w==='mine'?'mine':'guide'; set('duaSeg',w); $('#duaSeg').classList.toggle('r',w==='mine'); $$('#duaSeg button').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-dseg')===w); }); $('#duaGuide').hidden=w!=='guide'; $('#duaMine').hidden=w!=='mine'; }
+$$('#duaSeg button').forEach(function(b){ b.onclick=function(){ buzz(8); segTo(b.getAttribute('data-dseg')); }; });
+segTo(get('duaSeg','guide')); renderMine();
+
+/* ---------- данные из таблицы Чингиса ---------- */
+function pad(n){ return ('0'+n).slice(-2); }
+function today(){ var d=new Date(); return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear(); }
+function mins(t){ var m=String(t||'').match(/(\d{1,2}):(\d{2})/); return m? (+m[1])*60+(+m[2]) : null; }
+function nowMin(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }
+var START=new Date(2026,9,28), END=new Date(2026,10,6);
+function dayIdx(){ var d=new Date(); d.setHours(0,0,0,0); return Math.round((d-START)/864e5); }
+function cityOf(dt, prog){ var c=''; (prog||[]).forEach(function(r){ if(r.date===dt && r.city) c=r.city; }); return c; }
+
+function itemsHtml(list, dt){
+  var isToday = dt===today(), nm=nowMin(), cur=-1;
+  if(isToday) list.forEach(function(r,i){ var m=mins(r.time); if(m!==null && m<=nm) cur=i; });
+  return list.map(function(r,i){
+    var cls = isToday ? (i<cur?'past':(i===cur?'now':'')) : '';
+    var meta=[r.place, r.transport && r.transport!=='—' ? r.transport : '', r.who && r.who!=='—' ? 'отв.: '+r.who : ''].filter(Boolean).join(' · ');
+    return '<div class="it '+cls+'"><div class="tm">'+esc(r.time||'')+'</div><div class="tx"><div class="what">'+esc(r.what)+(cls==='now'?'<span class="badge">сейчас</span>':'')+'</div><div class="meta">'+esc(meta)+'</div></div></div>';
+  }).join('');
+}
+function renderData(){
+  var D=get('data',null), me=D&&D.me, prog=(D&&D.program)||[];
+  /* герой */
+  var name = (me&&me.first) || get('in-f-name','') || '';
+  $('#heroName').textContent = name ? name : 'Дорогой паломник';
+  $('#celeName').textContent = name || 'паломник';
+  var di=dayIdx(), ph;
+  if(di<0){ ph='До вылета '+nDays(-di); }
+  else if(di<=9){ var c=cityOf(today(),prog); ph='День '+(di+1)+' из 10'+(c?' · '+c:''); }
+  else ph='С возвращением! Умра мабрур';
+  $('#heroPhase').textContent=ph;
+  var chips=[];
+  var med=(me&&me.medina)||get('in-f-room-med',''), mak=(me&&me.mecca)||get('in-f-room-mak','');
+  if(med) chips.push('<div class="chip">Медина · номер<b>'+esc(med)+'</b></div>');
+  if(mak) chips.push('<div class="chip">Мекка · номер<b>'+esc(mak)+'</b></div>');
+  var mates=(me&&((di>=4&&di<=7)?me.matesMecca:me.matesMedina))||[];
+  if(me && mates.length) chips.push('<div class="chip">Соседи<b>'+esc(mates.join(', '))+'</b></div>');
+  $('#heroChips').innerHTML=chips.join('');
+  if(me){ $('#myAuto').hidden=false; $('#myAuto').innerHTML='Из таблицы Чингиса: <b>'+esc(me.name)+'</b>'+(me.medina?' · Медина <b>'+esc(me.medina)+'</b>':'')+(me.mecca?' · Мекка <b>'+esc(me.mecca)+'</b>':''); }
+  else $('#myAuto').hidden=true;
+  renderCode(D);
+  renderExtra(D);
+  /* объявление */
+  var a=D&&D.announcement;
+  $('#annBox').innerHTML = a ? '<div class="ann"><div class="ic">📣</div><div><b>Объявление</b><br>'+esc(a.text)+'<small>'+esc(a.at||'')+' · Чингис</small></div></div>' : '';
+  /* сейчас и далее */
+  var t=today(), dates=[], by={};
+  prog.forEach(function(r){ if(!by[r.date]){ by[r.date]=[]; dates.push(r.date); } by[r.date].push(r); });
+  var showDate = by[t] ? t : (di<0 ? dates[0] : null);
+  if(prog.length && showDate){
+    $('#nowCard').hidden=false;
+    $('#nowTitle').textContent = showDate===t ? 'Сегодня' : 'Первый день · '+showDate.slice(0,5);
+    $('#nowList').innerHTML=itemsHtml(by[showDate], showDate);
+  } else $('#nowCard').hidden=true;
+  renderPath(by, dates, t, di);
+  $('#dataNote').textContent = D&&D.updated ? 'Данные от Чингиса обновлены '+D.updated+(navigator.onLine?'':' · сейчас без интернета') : 'Подробная программа загрузится при первом подключении к интернету.';
+}
+/* дополнительные дуа (лист «Доп. дуа», только проверенные Дауреном) — спрятаны за одной строкой */
+function renderExtra(D){
+  var box=$('#extraBox'), ex=((D&&D.extra)||[]).filter(function(x){ return x&&x.title; });
+  var sig=JSON.stringify(ex); if(box.getAttribute('data-sig')===sig) return; box.setAttribute('data-sig',sig);
+  if(!ex.length){ box.innerHTML=''; return; }
+  var open=!!get('extraOpen',false), groups=[], by={};
+  ex.forEach(function(x){ var w=x.when||'Другие'; if(!by[w]){ by[w]=[]; groups.push(w); } by[w].push(x); });
+  box.innerHTML='<button class="xrow" id="xTog" aria-expanded="'+open+'"><svg class="xi"><use href="#i-star"/></svg><span><b>Для желающих: ещё '+ex.length+' дуа</b><small>необязательные — умра действительна и без них</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+    '<div class="xlist" id="xList"'+(open?'':' hidden')+'>'+groups.map(function(w){ return '<h2 class="grp">'+esc(w)+'</h2>'+by[w].map(function(x){
+      return '<section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-star"/></svg></div><div class="st"><b>'+esc(x.title)+'</b>'+(x.ru||x.tr?'<span class="pv">'+esc(x.ru||x.tr)+'</span>':'')+'</div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'+
+        '<div class="acc-b"><div class="acc-wrap"><div class="acc-in"><div class="dua">'+(x.ar?'<div dir="rtl" class="ar">'+esc(x.ar)+'</div>':'')+(x.tr?'<div class="tr">'+esc(x.tr)+'</div>':'')+(x.ru?'<div class="ru">'+esc(x.ru)+'</div>':'')+(x.src?'<div class="src">'+esc(x.src)+'</div>':'')+'</div></div></div></div></section>'; }).join(''); }).join('')+'</div>';
+  $('#xTog').onclick=function(){ var on=$('#xList').hidden; $('#xList').hidden=!on; this.setAttribute('aria-expanded',on); set('extraOpen',on); };
+  $$('.acc',box).forEach(function(a){ $('.acc-h',a).addEventListener('click',function(){ openAcc(a,!a.classList.contains('open')); }); });
+}
+/* высота шапки → отступ прокрутки к якорям */
+var hdr=$('header.app'); function setHdr(){ root.style.setProperty('--hdr',hdr.offsetHeight+'px'); }
+setHdr(); if('ResizeObserver' in window) new ResizeObserver(setHdr).observe(hdr); else addEventListener('resize',setHdr);
+
+/* ---------- путь: остановки по датам (работает и без интернета), дни — из таблицы Чингиса ---------- */
+function dIdx(s){ var p=String(s).split('.'); return Math.round((new Date(p[2]?+p[2]:2026,(+p[1])-1,+p[0])-START)/864e5); }
+function nDays(n){ return n+' '+(n%10===1&&n%100!==11?'день':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?'дня':'дней')); }
+var STOPS=$$('#pathList .stop').map(function(el){ var d=el.getAttribute('data-dates').split(',').map(dIdx);
+  return {el:el, min:Math.min.apply(null,d), max:Math.max.apply(null,d), short:el.getAttribute('data-short'), dates:$('.sd',el).textContent}; });
+var curStop=null, dayCache={};
+function openStop(s,on){ s.el.classList.toggle('open',on); $('.sh',s.el).setAttribute('aria-expanded',on); }
+STOPS.forEach(function(s){ $('.sh',s.el).addEventListener('click',function(){ buzz(8); openStop(s,!s.el.classList.contains('open')); }); });
+function renderPath(by, dates, t, di){
+  var N=STOPS.length, cur=-1, after=di>STOPS[N-1].max, have={}, per=STOPS.map(function(){ return []; });
+  STOPS.forEach(function(s,i){ if(di>=s.min && di<=s.max) cur=i; });
+  dates.forEach(function(dt){ have[dt.slice(0,5)]=1; var k=dIdx(dt), j=0; STOPS.forEach(function(s,i){ if(s.min<=k) j=i; }); per[j].push(dt); });
+  STOPS.forEach(function(s,i){
+    s.el.classList.toggle('past',di>s.max); s.el.classList.toggle('now',i===cur);
+    var h=$('.here',s.el); h.className='here'+(di<0&&i===0?' soon':''); h.textContent = i===cur ? 'Вы здесь' : (di<0&&i===0 ? 'через '+nDays(-di) : '');
+    $$('.dy.bro',s.el).forEach(function(r){ var ds=r.getAttribute('data-dates').split(',');
+      r.hidden=ds.every(function(x){ return have[x]; }); r.classList.toggle('today', ds.indexOf(t.slice(0,5))>=0); });
+    var html=per[i].map(function(dt){ var l=by[dt], c=[];
+      l.forEach(function(r){ String(r.city||'').split('→').forEach(function(x){ x=x.trim(); if(x && c[c.length-1]!==x) c.push(x); }); });
+      return '<div class="dy dyn'+(dt===t?' today':'')+'" style="order:'+dIdx(dt)+'"><div class="dyh"><b>'+dt.slice(0,5)+(l[0].day?' '+esc(l[0].day):'')+'</b>'+(c.length?'<span>'+esc(c.join(' → '))+'</span>':'')+'</div><div class="tl">'+itemsHtml(l,dt)+'</div></div>'; }).join('');
+    if(dayCache[i]!==html){ dayCache[i]=html; var box=$('.dl',s.el); $$('.dyn',box).forEach(function(x){ x.remove(); }); box.insertAdjacentHTML('beforeend',html); }
+  });
+  /* при первом показе и при переезде раскрываем текущую остановку; в остальное время не трогаем то, что открыл паломник */
+  if(cur!==curStop){ var o=cur>=0?cur:(di<0?0:-1); if(curStop===null||o>=0) STOPS.forEach(function(s,i){ openStop(s,i===o); }); curStop=cur; }
+  $$('#tripTrack .tk').forEach(function(k,i){ k.classList.toggle('past',di>STOPS[i].max); k.classList.toggle('now',i===cur); });
+  $('#tripTrack').style.setProperty('--p', after?1:(cur>0?cur/(N-1):0));
+  var nx=cur>=0?STOPS[cur+1]:null;
+  $('#tripNext').textContent = after ? 'Путь пройден ✓' : (di<0 ? 'Старт '+STOPS[0].dates : (nx ? 'Дальше: '+nx.short+' · '+nx.dates : 'Последний этап — домой'));
+  $$('#tripCard,#nowMore').forEach(function(b){ if(cur>=0) b.setAttribute('data-anchor','stop-'+cur); else b.removeAttribute('data-anchor'); });
+}
+function load(){
+  if(!API || !navigator.onLine || Date.now()-lastFetch<60000) return;
+  lastFetch=Date.now();
+  var code=get('code',''); var url=API+(API.indexOf('?')<0?'?':'&')+'t='+Date.now()+(code?'&p='+encodeURIComponent(code):'');
+  fetch(url,{cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){ if(j&&j.ok&&code===get('code','')){ j.code=code; var old=JSON.stringify(get('data',{})); set('data',j); if(old!==JSON.stringify(j)) renderData(); } }).catch(function(){});
+}
+/* личный код вручную — если гид поставили на экран «Домой» без личной ссылки */
+function renderCode(D){
+  var code=get('code',''), me=D&&D.me;
+  $('#manual').hidden=!!me;
+  if(!API){ $('#codeBox').hidden=true; return; }
+  $('#codeBox').hidden=false;
+  $('#codeForm').hidden=!!(code&&me);
+  $('#codeReset').hidden=!code;
+  $('#codeMsg').textContent = code&&!me ? (D&&D.code===code ? 'Код не найден. Проверьте ссылку от Чингиса или напишите ему.' : 'Код сохранён. Имя и номера комнат появятся при подключении к интернету.') : '';
+}
+function parseCode(s){ s=String(s||'').trim(); var m=s.match(/[?&]p=([a-z0-9]{6,12})/i) || s.match(/^([a-z0-9]{6,12})$/i); return m?m[1].toLowerCase():''; }
+$('#codeSave').onclick=function(){ var c=parseCode($('#codeIn').value);
+  if(!c){ $('#codeMsg').textContent='Не похоже на код. Вставьте ссылку из сообщения Чингиса целиком.'; return; }
+  useCode(c); $('#codeIn').value=''; lastFetch=0; renderData(); load(); };
+$('#codeReset').onclick=function(){ if(confirm('Убрать имя и номера комнат с этого телефона?')){ useCode(''); renderData(); } };
+renderData(); load();
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible'){ renderData(); load(); } });
+window.addEventListener('online',load);
+setInterval(function(){ if(document.visibilityState==='visible') renderData(); },60000);
+
+show(get('tab','home'));
 
 /* установка */
 var ua=navigator.userAgent, isIOS=/iPhone|iPad|iPod/.test(ua) || (ua.indexOf('Mac')>=0 && 'ontouchend' in document);
@@ -980,7 +1467,7 @@ if('serviceWorker' in navigator){
     if(navigator.onLine) reg.update().catch(function(){});
   }).catch(function(){ st.textContent='Офлайн-режим недоступен в этом браузере'; });
   navigator.serviceWorker.ready.then(function(){ st.textContent='✓ Гид сохранён в телефоне и работает без интернета'; st.className='status ok'; });
-  var reloaded=false; navigator.serviceWorker.addEventListener('controllerchange',function(){ if(!reloaded && navigator.serviceWorker.controller){ reloaded=true; if($('#updBar').classList.contains('on')) location.reload(); } });
+  var reloaded=false; navigator.serviceWorker.addEventListener('controllerchange',function(){ if(!reloaded && $('#updBar').classList.contains('on')){ reloaded=true; location.reload(); } });
 } else st.textContent='Офлайн-режим недоступен в этом браузере';
 if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function(){});
 })();
