@@ -28,7 +28,7 @@
 :root{
   --teal:#00878A; --teal-d:#006669; --teal-l:#14A3A6; --orange:#FC7F00; --orange-t:#B35A00;
   --bg:#F2F5F5; --card:#FFFFFF; --ink:#172021; --muted:#59676A; --line:#DCE3E3;
-  --sand:#FFF5EA; --mint:#E5F3F3; --red:#B3261E; --redbg:#FCEDEB; --done:#1E8E5A;
+  --sand:#FFF5EA; --mint:#E5F3F3; --red:#B3261E; --redbg:#FCEDEB; --done:#1E8E5A; --gz:#CFEBDD; --hill:#EADFC8; --kb:#1B1B1B;
   --shadow:0 1px 2px rgba(10,40,40,.06), 0 6px 20px rgba(10,40,40,.06);
   --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:light;
@@ -37,14 +37,14 @@
   :root:not([data-theme="light"]){
     --teal:#2DB4B6; --teal-d:#7FD6D7; --teal-l:#45C6C8; --orange:#FF9A33; --orange-t:#FFB466;
     --bg:#0D1314; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
-    --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A;
+    --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A; --gz:#1E3B2E; --hill:#3A3122; --kb:#8A9A9C;
     --shadow:0 1px 0 rgba(255,255,255,.03); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --teal:#2DB4B6; --teal-d:#7FD6D7; --teal-l:#45C6C8; --orange:#FF9A33; --orange-t:#FFB466;
   --bg:#0D1314; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
-  --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A;
+  --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A; --gz:#1E3B2E; --hill:#3A3122; --kb:#8A9A9C;
   --shadow:0 1px 0 rgba(255,255,255,.03); color-scheme:dark;
 }
 html{ font-size:18px; -webkit-text-size-adjust:100%; }
@@ -351,6 +351,73 @@ th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(
 .map svg{ width:100%; height:auto; display:block; background:#fff; border-radius:.8rem; }
 .legend{ display:grid; grid-template-columns:1fr 1fr; gap:.35rem .8rem; font-size:.82rem; line-height:1.25; }
 .legend span{ display:inline-flex; width:1.25rem; height:1.25rem; border-radius:50%; background:var(--orange); color:#fff; font-weight:800; font-size:.7rem; align-items:center; justify-content:center; margin-right:.25rem; vertical-align:-.2rem; }
+/* ---------- визуал шагов: значок на номере, «Подробнее», «Мои дуа», схемы тавафа и саи ---------- */
+.num{ position:relative; }
+.num .pic{ width:1.45rem; height:1.45rem; }
+.num i{ position:absolute; right:-.3rem; bottom:-.3rem; min-width:1.15rem; height:1.15rem; padding:0 .2rem; border-radius:.6rem; background:var(--card); color:var(--teal-d); font-style:normal; font-size:.68rem; font-weight:800; line-height:1.15rem; text-align:center; box-shadow:0 0 0 2px var(--teal); transition:color .4s, box-shadow .4s; }
+.acc.next:not(.done) .num i{ color:var(--orange-t); box-shadow:0 0 0 2px var(--orange); }
+.done .num i{ color:var(--done); box-shadow:0 0 0 2px var(--done); }
+.det{ border-top:1px dashed var(--line); }
+.det summary{ list-style:none; display:flex; align-items:center; gap:.5rem; min-height:2.8rem; cursor:pointer; color:var(--teal-d); font-weight:700; }
+.det summary::-webkit-details-marker{ display:none; }
+.det summary small{ flex:1; min-width:0; color:var(--muted); font-weight:400; font-size:.8rem; }
+.mchev{ flex:none; width:1rem; height:1rem; color:var(--muted); transition:transform .3s var(--ease); }
+.det[open] .mchev{ transform:rotate(180deg); }
+.det-in{ display:flex; flex-direction:column; gap:.75rem; padding-bottom:.25rem; }
+.det[open] .det-in{ animation:detIn .35s var(--ease); }
+@keyframes detIn{ from{ opacity:0; transform:translateY(-4px) } to{ opacity:1; transform:none } }
+.mygo{ display:flex; align-items:center; gap:.75rem; width:100%; padding:.75rem 1rem; border:0; border-radius:1rem; background:var(--mint); color:var(--ink); font:inherit; text-align:left; cursor:pointer; }
+.mygo svg{ flex:none; width:1.6rem; height:1.6rem; color:var(--orange); }
+.mygo b{ display:block; color:var(--teal-d); }
+.mygo small{ display:block; color:var(--muted); font-size:.82rem; }
+.mygo > span{ flex:1; min-width:0; }
+.mygo .mchev{ width:1rem; height:1rem; color:var(--muted); transform:rotate(-90deg); }
+.tw-sch, .sai-sch{ display:flex; flex-direction:column; gap:.6rem; }
+.tw-sch svg{ display:block; width:100%; max-width:20rem; height:auto; margin:0 auto; }
+.sai-sch svg{ display:block; width:100%; height:auto; }
+.tw-sch .cap, .sai-sch .cap{ font-size:.78rem; color:var(--muted); text-align:center; }
+.tw-mataf{ fill:var(--sand); stroke:var(--line); stroke-width:1.5; }
+.tw-kb{ fill:#1B1B1B; stroke:var(--kb); stroke-width:1; }
+.tw-mko, .tw-trail, .tw-n circle{ fill:var(--orange); }
+.tw-stone{ fill:var(--orange); stroke:#fff; stroke-width:1.4; }
+.tw-yem{ fill:#fff; stroke:#1B1B1B; stroke-width:1.2; }
+.tw-hijr{ fill:none; stroke:var(--muted); stroke-width:4; stroke-linecap:round; }
+.tw-start{ fill:none; stroke:var(--done); stroke-width:2; stroke-dasharray:4 4; }
+.tw-lamp{ fill:var(--done); }
+.tw-halo{ fill:var(--done); opacity:.5; animation:twHalo 2s ease-out infinite; }
+@keyframes twHalo{ from{ transform:scale(.5); opacity:.7 } to{ transform:scale(2.2); opacity:0 } }
+.tw-run{ fill:none; stroke:var(--teal); stroke-width:3; stroke-linecap:round; }
+.tw-rab{ fill:none; stroke:var(--orange); stroke-width:3.5; stroke-linecap:round; }
+.tw-mk{ fill:var(--teal); }
+.tw-lead{ stroke:var(--orange); stroke-width:1; }
+.tw-orbit{ animation:twOrb 9s linear infinite; }
+@keyframes twOrb{ to{ transform:rotate(-360deg) } }
+.orb{ fill:var(--orange); stroke:#fff; stroke-width:1.5; }
+.tw-n text{ fill:#fff; font-size:8.5px; font-weight:800; text-anchor:middle; }
+ol.lgd{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem; }
+ol.lgd li{ display:flex; gap:.6rem; align-items:flex-start; }
+ol.lgd li > span{ flex:none; width:1.35rem; height:1.35rem; margin-top:.1rem; border-radius:50%; background:var(--orange); color:#fff; font-size:.75rem; font-weight:800; display:flex; align-items:center; justify-content:center; }
+/* подписи схемы саи — в rem: растут вместе с настройкой «Aa» */
+.sai-hill{ fill:var(--hill); }
+.sai-gz{ fill:var(--gz); }
+.sai-t{ fill:var(--done); font-size:.68rem; font-weight:700; text-anchor:middle; }
+.sai-s{ fill:var(--muted); font-size:.68rem; text-anchor:middle; }
+.sai-e{ text-anchor:end; }
+.sai-h{ fill:var(--ink); font-size:.75rem; font-weight:800; text-anchor:middle; }
+.sai-u{ fill:var(--muted); font-size:.64rem; text-anchor:middle; }
+.sai-ln{ fill:none; stroke:var(--line); stroke-width:3; stroke-linecap:round; stroke-dasharray:2 7; }
+.sai-hd{ fill:none; stroke:var(--line); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+.sai-sch[data-dir="sm"] .ln-sm, .sai-sch[data-dir="ms"] .ln-ms{ stroke:var(--teal); stroke-dasharray:none; }
+.sai-d{ fill:var(--orange); stroke:#fff; stroke-width:1.5; opacity:0; }
+.sai-sch[data-dir="sm"] .d-sm{ animation:saiSM 5s linear infinite; }
+.sai-sch[data-dir="ms"] .d-ms{ animation:saiMS 5s linear infinite; }
+@keyframes saiSM{ 0%{ transform:translateX(0); opacity:0 } 4%{ opacity:1 } 36%{ transform:translateX(64px) } 49.5%{ transform:translateX(112px) } 82%{ transform:translateX(170px); opacity:1 } 100%{ transform:translateX(170px); opacity:0 } }
+@keyframes saiMS{ 0%{ transform:translateX(0); opacity:0 } 4%{ opacity:1 } 36%{ transform:translateX(-64px) } 49.5%{ transform:translateX(-112px) } 82%{ transform:translateX(-170px); opacity:1 } 100%{ transform:translateX(-170px); opacity:0 } }
+.sai-fin{ fill:var(--orange); opacity:0; }
+.sai-sch[data-dir="fin"] .sai-fin{ opacity:.85; animation:saiFin 1.6s ease-in-out infinite; }
+@keyframes saiFin{ 0%,100%{ transform:scale(.8); opacity:.9 } 50%{ transform:scale(1.5); opacity:.3 } }
+.acc:not(.open) .tw-orbit, .acc:not(.open) .tw-halo, .acc:not(.open) .sai-d, .acc:not(.open) .sai-fin{ animation-play-state:paused; }
+@media (prefers-reduced-motion: reduce){ .sai-sch[data-dir="sm"] .d-sm, .sai-sch[data-dir="ms"] .d-ms{ opacity:1; } }
 label.field{ display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; color:var(--muted); }
 label.field input, textarea, .inp{ font:inherit; font-size:1.05rem; color:var(--ink); background:var(--bg); border:1.5px solid var(--line); border-radius:.7rem; padding:.6rem .7rem; width:100%; }
 textarea{ min-height:12rem; resize:vertical; line-height:1.5; }
@@ -361,7 +428,7 @@ label.field input:focus, textarea:focus, .inp:focus{ outline:none; border-color:
 .btns{ display:flex; gap:.5rem; flex-wrap:wrap; }
 .btn{ flex:1; min-width:8.5rem; min-height:3rem; border-radius:.9rem; background:var(--teal); color:#fff; text-decoration:none; font-weight:800; display:flex; align-items:center; justify-content:center; gap:.4rem; padding:0 .8rem; transition:transform .15s var(--ease); }
 .btn:active{ transform:scale(.97); }
-.btn.wa{ background:#1FA855; }
+.btn.wa{ background:#15803D; }
 .btn.ghost{ background:var(--card); color:var(--teal-d); border:2px solid var(--teal); }
 .btn.ghost.sel{ background:var(--mint); }
 .tbd{ color:var(--muted); font-size:.85rem; font-style:italic; }
@@ -386,6 +453,53 @@ nav.tabs button svg{ width:1.55rem; height:1.55rem; transition:transform .4s var
 nav.tabs button.on{ color:var(--teal-d); }
 nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.08); }
 
+/* ---------- я потерялся ---------- */
+.lost{ position:fixed; inset:0; z-index:55; display:none; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; background:rgba(0,40,42,.72); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); padding:calc(.8rem + env(safe-area-inset-top)) .8rem calc(1rem + env(safe-area-inset-bottom)); }
+.lost.on{ display:block; animation:fade .3s; }
+.lost-box{ position:relative; max-width:26rem; margin:0 auto; background:var(--card); border-radius:1.4rem; padding:.8rem 1rem 1.2rem; display:flex; flex-direction:column; gap:.75rem; animation:rise .45s var(--ease); }
+.lost-x{ position:sticky; top:calc(.4rem + env(safe-area-inset-top)); z-index:2; align-self:flex-end; min-height:2.6rem; padding:.3rem .8rem; border-radius:2rem; background:var(--card); box-shadow:0 0 0 1.5px var(--line), 0 6px 16px rgba(0,0,0,.18); font-size:.85rem; font-weight:700; color:var(--muted); }
+.lost-me{ position:relative; width:3.6rem; height:3.6rem; margin:-.4rem auto 0; display:flex; align-items:center; justify-content:center; color:var(--orange); }
+.lost-me i{ position:relative; z-index:1; width:1.1rem; height:1.1rem; border-radius:50%; background:currentColor; box-shadow:0 0 0 .2rem #fff, 0 2px 8px rgba(0,0,0,.25); }
+.lost-me::before, .lost-me::after{ content:""; position:absolute; inset:0; border-radius:50%; background:currentColor; opacity:0; animation:lostPing 2s ease-out infinite; }
+.lost-me::after{ animation-delay:1s; }
+.lost-me.ok{ color:var(--done); }
+@keyframes lostPing{ from{ transform:scale(.35); opacity:.6 } to{ transform:scale(1); opacity:0 } }
+#lostT{ text-align:center; font-size:1.5rem; color:var(--teal-d); }
+.lost-tip{ text-align:center; font-size:.92rem; color:var(--muted); }
+.lost-call, .lost-wa{ display:flex; align-items:center; gap:.8rem; min-height:4.2rem; padding:.7rem 1rem; border-radius:1.1rem; color:#fff; text-decoration:none; transition:transform .15s var(--ease); }
+.lost-call{ background:#C0352B; box-shadow:0 8px 20px rgba(192,53,43,.3); }
+.lost-wa{ background:#15803D; box-shadow:0 8px 20px rgba(21,128,61,.28); }
+.lost-call:active, .lost-wa:active{ transform:scale(.97); }
+.lost-call svg, .lost-wa svg{ flex:none; width:2rem; height:2rem; }
+.lost-call span, .lost-wa span{ display:flex; flex-direction:column; line-height:1.25; }
+.lost-call b, .lost-wa b{ font-size:1.15rem; }
+.lost-call small, .lost-wa small{ font-size:.82rem; opacity:.92; }
+.lost-st{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:.2rem 1rem; }
+.lost-card{ border:1.5px solid var(--line); border-radius:1rem; padding:.8rem .9rem; display:flex; flex-direction:column; gap:.6rem; }
+.lost-pt{ display:flex; gap:.7rem; align-items:flex-start; }
+.lost-pt + .lost-pt{ margin-top:.6rem; }
+.lost-pt svg{ flex:none; width:1.5rem; height:1.5rem; color:var(--teal); margin-top:.1rem; }
+.lost-pt b, .lost-pt span{ display:block; }
+.lost-pt span{ font-size:.85rem; color:var(--muted); }
+.lost-gates{ display:grid; grid-template-columns:repeat(auto-fit,minmax(7rem,1fr)); gap:.6rem; align-items:end; }
+.lost-gates label.field input{ font-size:1.4rem; font-weight:800; text-align:center; padding:.45rem .5rem; }
+.lost-en{ background:var(--sand); border-radius:1rem; padding:.8rem .9rem; display:flex; flex-direction:column; gap:.45rem; }
+.lost-en p{ font-size:.95rem; }
+.lost-en a{ color:inherit; font-weight:800; }
+#lostChat svg, #homeChat svg, .btn[data-lost] svg{ flex:none; width:1.3rem; height:1.3rem; }
+.lost-big{ position:fixed; inset:0; z-index:58; display:none; flex-direction:column; gap:1rem; padding:calc(1.5rem + env(safe-area-inset-top)) 1.5rem calc(1.5rem + env(safe-area-inset-bottom)); background:#fff; color:#111; overflow-y:auto; }
+.lost-big.on{ display:flex; animation:fade .25s; }
+#lostBigIn{ margin-top:auto; display:flex; flex-direction:column; gap:.8rem; }
+.lost-big p{ font-size:1.5rem; line-height:1.3; }
+.lost-big a{ color:#111; }
+.lost-big small{ margin-bottom:auto; color:#555; font-size:.9rem; text-align:center; }
+/* крупный шрифт: таблица контактов — столбиком, чтобы экран не уезжал вбок; подписи сая «С→М» — в два ряда (4 + 3), чтобы не налезали друг на друга */
+html[data-fs="2"] table, html[data-fs="2"] tbody, html[data-fs="2"] tr, html[data-fs="2"] td{ display:block; }
+html[data-fs="2"] tr{ padding:.45rem 0; border-bottom:1px solid var(--line); }
+html[data-fs="2"] td{ padding:.1rem .3rem; border-bottom:0; white-space:normal !important; }
+.counter .dots7{ grid-template-columns:repeat(7,minmax(0,1fr)); }
+html[data-fs="1"] .counter[data-id="sai"] .dots7, html[data-fs="2"] .counter[data-id="sai"] .dots7{ display:flex; flex-wrap:wrap; justify-content:center; }
+html[data-fs="1"] .counter[data-id="sai"] .dots7 span, html[data-fs="2"] .counter[data-id="sai"] .dots7 span{ flex:0 0 calc(25% - .19rem); }
 /* ---------- праздник ---------- */
 .cele{ position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center; padding:1.5rem; background:rgba(0,40,42,.72); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
 .cele.on{ display:flex; animation:fade .4s; }
@@ -462,8 +576,9 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <button class="tile" data-go="umra"><div class="ringp"><svg viewBox="0 0 60 60"><circle class="bg" cx="30" cy="30" r="25"/><circle class="fg" id="tileRing" cx="30" cy="30" r="25" stroke-dasharray="157" stroke-dashoffset="157"/></svg><em id="tileNum">0/11</em></div><b>Умра</b><span id="tileNext">шаг за шагом</span></button>
   <button class="tile" data-go="dua"><svg><use href="#i-heart"/></svg><b>Дуа</b><span>дуа гида и свой список</span></button>
   <button class="tile" data-go="more" data-anchor="medina"><svg><use href="#i-dome"/></svg><b>Медина</b><span>салям, Равда, Куба, Ухуд</span></button>
-  <a class="tile sos" href="tel:+77777825555"><svg><use href="#i-phone"/></svg><b>Позвонить Чингису</b><span>потерялись или нужна помощь</span></a>
+  <button class="tile sos" data-lost><svg><use href="#i-pin"/></svg><b>Я потерялся</b><span>звонок · где я · точка сбора</span></button>
  </div>
+ <div class="btns" id="homeChatBox" hidden><a class="btn wa" id="homeChat" target="_blank" rel="noopener"><svg><use href="#i-chat"/></svg>Чат группы в WhatsApp</a></div>
  <div class="status" id="swStatus">Проверяю офлайн-режим…</div>
 </section>
 
@@ -574,7 +689,7 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
  <p class="small">Схема упрощённая, не в масштабе. Старт — напротив зелёной лампы на стене.</p>
   </div></div></div>
  </section>
-<section class="acc step" data-id="ghusl"><div class="acc-h"><div class="num">1</div><div class="st"><div class="kicker">Медина · 01.11 · в отеле</div><b>Гусль</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="ghusl"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-drop"/></svg><i>1</i></div><div class="st"><div class="kicker">Медина · 01.11 · в отеле</div><b>Гусль</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <p class="lead">Полное омовение перед ихрамом — для чистоты, а не для снятия скверны.</p>
@@ -582,13 +697,17 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <li class="s">Накануне (31.10): подстричь ногти, усы, удалить волосы под мышками и в паху.</li>
   <li class="s">Сделать гусль: прополоскать рот, промыть нос, омыть всё тело.</li>
   <li class="s">Нанести благовоние <b>на тело</b> (не на ткань ихрама).</li>
+ </ul>
+ <details class="det"><summary><span>Подробнее</span><small>без гусля · Мансуру · сверить</small><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="det-in">
+ <ul class="do">
   <li>Если гусль невозможен — достаточно обычного омовения (вуду).</li>
  </ul>
  <div class="note"><b>Мансуру (10 лет)</b> — то же самое, папа помогает. Для ребёнка всё проще: ошибки не страшны.</div>
  <div class="flag"><b>⚑ Сверить:</b> что делать ребёнку, если он нарушит запрет ихрама. У ханафитов искупление на ребёнка не возлагается — подтвердить у Даурена.</div>
+ </div></details>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="ihram"><div class="acc-h"><div class="num">2</div><div class="st"><div class="kicker">Медина · 01.11 · до миката</div><b>Одежда ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="ihram"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-cloth"/></svg><i>2</i></div><div class="st"><div class="kicker">Медина · 01.11 · до миката</div><b>Одежда ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
  <p class="lead">Мужчина надевает два белых несшитых полотна. Войти в ихрам нужно <b>до</b> миката Зуль-Хулейфа.</p>
@@ -597,12 +716,16 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <li><b>Рида</b> — верхнее полотно, на плечи.</li>
   <li>Сандалии, открывающие подъём стопы. Пояс-кошелёк можно.</li>
   <li class="no">Нижнее бельё, носки, кепка, шитая одежда.</li>
+ </ul>
+ <details class="det"><summary><span>Подробнее</span><small>идтиба, где переодеться</small><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="det-in">
+ <ul class="do">
   <li class="s">Перед тавафом — <b>идтиба</b>: правое плечо открыто, рида под правой рукой.</li>
  </ul>
  <div class="note">Одежду надеваем в отеле, а <b>намерение</b> и <b>тальбию</b> делаем на микате (шаги 4 и 5). До этого запреты ещё не действуют.</div>
+ </div></details>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="rakat"><div class="acc-h"><div class="num">3</div><div class="st"><div class="kicker">Микат Зуль-Хулейфа</div><b>2 ракаата ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="rakat"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-pray"/></svg><i>3</i></div><div class="st"><div class="kicker">Микат Зуль-Хулейфа</div><b>2 ракаата ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <p class="lead">Два ракаата с намерением «намаз ихрама». Ихрам ещё не начат — голову можно покрыть.</p>
@@ -616,13 +739,15 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <div class="ar">قُلْ هُوَ ٱللَّهُ أَحَدٌ</div>
   <div class="tr">Сура «Аль-Ихля́с» (112)</div>
  </div>
+ <details class="det"><summary><span>Подробнее</span><small>время намаза</small><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="det-in">
  <ul class="do">
   <li>Если время намаза-фарда (зухр) — можно совершить зухр вместо них.</li>
   <li>Не совершать в запретное время (восход, зенит, закат).</li>
  </ul>
+ </div></details>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="niyya"><div class="acc-h"><div class="num">4</div><div class="st"><div class="kicker">Микат · после 2 ракаатов</div><b>Намерение</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="niyya"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-heart"/></svg><i>4</i></div><div class="st"><div class="kicker">Микат · после 2 ракаатов</div><b>Намерение</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>шарт (условие)</i></span></div>
  <p class="lead">Намерение — в сердце. Произнести вслух желательно.</p>
@@ -636,7 +761,7 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
  <div class="note">Сразу после намерения — <b>тальбия</b> (шаг 5). С этого момента вы в ихраме и действуют запреты (карточка «Запреты ихрама» ниже).</div>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="talbiya"><div class="acc-h"><div class="num">5</div><div class="st"><div class="kicker">Микат → Мекка · всю дорогу</div><b>Тальбия</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="talbiya"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-voice"/></svg><i>5</i></div><div class="st"><div class="kicker">Микат → Мекка · всю дорогу</div><b>Тальбия</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>1 раз с намерением</i></span><span class="tag sunna">Сунна · <i>повторять</i></span></div>
  <div class="dua">
@@ -651,7 +776,7 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
  </ul>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc info"><div class="acc-h"><div class="num">!</div><div class="st"><div class="kicker">От намерения до бритья</div><b>Запреты ихрама</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<section class="acc info"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-ban"/></svg></div><div class="st"><div class="kicker">От намерения до бритья</div><b>Запреты ихрама</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <ul class="do">
   <li class="no">Шитая по телу одежда, носки, нижнее бельё</li>
@@ -662,14 +787,16 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <li class="no">Супружеская близость и всё, что к ней ведёт</li>
   <li class="no">Ругань, споры, грубость</li>
  </ul>
+ <details class="det"><summary><span>Подробнее</span><small>что можно, если нарушили</small><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="det-in">
  <h3>Можно</h3>
  <ul class="do">
   <li>Душ без мыла с запахом, часы, очки, пояс, кошелёк, рюкзак, лекарства, зубная щётка.</li>
   <li>Менять и стирать ихрам.</li>
  </ul>
  <div class="flag"><b>⚑ Нарушили по ошибке?</b> Не паникуйте и сразу скажите Даурену — он объяснит, нужно ли искупление (садака или жертва).</div>
+ </div></details>
 </div></div></div></section>
-<section class="acc step" data-id="enter"><div class="acc-h"><div class="num">6</div><div class="st"><div class="kicker">Мекка · Масджид аль-Харам</div><b>Вход в мечеть</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="enter"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-door"/></svg><i>6</i></div><div class="st"><div class="kicker">Мекка · Масджид аль-Харам</div><b>Вход в мечеть</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <ul class="do">
@@ -684,22 +811,23 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <div class="src">Муслим 713; Абу Дауд 465</div>
  </div>
  <div class="note"><b>Первый взгляд на Каабу</b> — поднимите руки, скажите «Аллаху акбар, ля иляха илляллах» и попросите Аллаха о самом важном.</div>
+ <button class="mygo" data-go="dua" data-seg="mine"><svg><use href="#i-heart"/></svg><span><b>Мои дуа</b><small>о самом важном</small></span><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="tawaf"><div class="acc-h"><div class="num">7</div><div class="st"><div class="kicker">Матаф · 7 кругов</div><b>Таваф</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="tawaf"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-tawaf"/></svg><i>7</i></div><div class="st"><div class="kicker">Матаф · 7 кругов</div><b>Таваф</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Фард · <i>4 круга</i></span><span class="tag must">Ваджиб · <i>3 круга, вуду</i></span></div>
  <ul class="do">
   <li>Обязательно <b>с омовением</b> (вуду).</li>
-  <li>Старт — <b>напротив Чёрного камня</b> (зелёная лампа на стене).</li>
-  <li><b>Кааба — слева</b>, идём против часовой стрелки.</li>
-  <li>Обходить <b>снаружи</b> Хиджра Исмаила (полукруглая стенка).</li>
   <li class="s">Идтиба — правое плечо открыто все 7 кругов.</li>
   <li class="s">Рамаль — первые 3 круга быстрый шаг, плечами вперёд (если позволяет толпа).</li>
  </ul>
+ <div class="tw-sch"><svg viewBox="0 0 200 200" role="img" aria-label="Схема тавафа: старт напротив Чёрного камня, Кааба слева, 7 кругов против часовой стрелки"><defs><marker id="tw-ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path class="tw-mk" d="M0 0L10 5L0 10z"/></marker><marker id="tw-aho" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path class="tw-mko" d="M0 0L10 5L0 10z"/></marker></defs><circle class="tw-mataf" cx="100" cy="100" r="92"/><path class="tw-run" d="M155.45 92.21A56 56 0 0 0 109.72 44.85" marker-end="url(#tw-ah)"/><path class="tw-run" d="M92.21 44.55A56 56 0 0 0 44.85 90.28" marker-end="url(#tw-ah)"/><path class="tw-run" d="M44.55 107.79A56 56 0 0 0 90.28 155.15" marker-end="url(#tw-ah)"/><path class="tw-rab" d="M107.79 155.45A56 56 0 0 0 155.45 107.79" marker-end="url(#tw-aho)"/><path class="tw-start" d="M128 100H186"/><g transform="translate(190 100)"><circle class="tw-halo" r="6"/></g><circle class="tw-lamp" cx="190" cy="100" r="3"/><path class="tw-hijr" d="M102 73A20.5 20.5 0 0 0 73 102"/><rect class="tw-kb" x="83" y="83" width="34" height="34" transform="rotate(45 100 100)"/><circle class="tw-stone" cx="124" cy="100" r="3.6"/><circle class="tw-yem" cx="100" cy="124" r="2.6"/><g transform="translate(100 100)"><g class="tw-orbit"><circle class="tw-trail" cx="54.34" cy="13.55" r="2.6" opacity=".35"/><circle class="tw-trail" cx="55.58" cy="6.82" r="3.6" opacity=".6"/><circle class="orb" cx="56" cy="0" r="5"/></g></g><path class="tw-lead" d="M52 52L70 70"/><g class="tw-n"><circle cx="172" cy="86" r="7"/><text x="172" y="89">1</text></g><g class="tw-n"><circle cx="150" cy="50" r="7"/><text x="150" y="53">2</text></g><g class="tw-n"><circle cx="47" cy="47" r="7"/><text x="47" y="50">3</text></g><g class="tw-n"><circle cx="100" cy="140" r="7"/><text x="100" y="143">4</text></g><g class="tw-n"><circle cx="149.5" cy="149.5" r="7"/><text x="149.5" y="152.5">5</text></g></svg><ol class="lgd"><li><span>1</span><div>Старт — <b>напротив Чёрного камня</b> (зелёная лампа на стене).</div></li><li><span>2</span><div><b>Кааба — слева</b>, идём против часовой стрелки.</div></li><li><span>3</span><div>Обходить <b>снаружи</b> Хиджра Исмаила (полукруглая стенка).</div></li><li><span>4</span><div>Йеменский угол — коснуться рукой, если свободно (не целовать).</div></li><li><span>5</span><div>Между Йеменским углом и Чёрным камнем — дуа «Господь наш! Одари нас добром…» (ниже).</div></li></ol><p class="cap">Схема-подсказка, не в масштабе.</p></div>
  <div class="counter" data-id="tawaf" data-unit="круг" data-plural="кругов" data-hint-1="круг 1 · от Чёрного камня" data-hint-2="круг 2" data-hint-3="круг 3 · последний с рамалем" data-hint-4="круг 4" data-hint-5="круг 5" data-hint-6="круг 6" data-hint-7="круг 7 · последний"><div class="ctitle"><span>Счётчик кругов</span></div><button class="ringbtn" aria-label="Отметить круг"><svg viewBox="0 0 128 128"><circle class="bg" cx="64" cy="64" r="58"/><circle class="fg" cx="64" cy="64" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/><line class="seg" x1="116.0" y1="64.0" x2="130.0" y2="64.0"/><line class="seg" x1="96.4" y1="104.7" x2="105.2" y2="115.6"/><line class="seg" x1="52.4" y1="114.7" x2="49.3" y2="128.3"/><line class="seg" x1="17.1" y1="86.6" x2="4.5" y2="92.6"/><line class="seg" x1="17.1" y1="41.4" x2="4.5" y2="35.4"/><line class="seg" x1="52.4" y1="13.3" x2="49.3" y2="-0.3"/><line class="seg" x1="96.4" y1="23.3" x2="105.2" y2="12.4"/></svg><span class="core"><span class="n">0<small>/7</small></span><span class="lab"></span><span class="tap"></span></span></button><div class="dots7"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
+ <details class="det"><summary><span>Подробнее</span><small>сбились со счёта, сверить</small><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="det-in">
  <p class="small">Сбились со счёта — берите меньшее число. Йеменский угол — коснуться рукой, если свободно (не целовать). В пути — любые дуа, зикр, Коран.</p>
  <div class="flag"><b>⚑ Сверить:</b> начало тавафа от Чёрного камня — у ханафитов одни считают его ваджибом, другие сунной. Саламату после операции — коляска (можно по уважительной причине).</div>
+ </div></details>
 <h3>Истилям и дуа</h3>
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <p class="lead">У Чёрного камня встаньте лицом к нему, поднимите правую руку (ладонью к камню), поцелуйте ладонь. <b>Не пробивайтесь</b> к камню.</p>
@@ -717,9 +845,10 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <div class="ru">«Господь наш! Одари нас добром в этом мире и добром в Последней жизни и защити нас от мучений в Огне»</div>
   <div class="src">Коран 2:201 (пер. Кулиева); Абу Дауд 1892</div>
  </div>
+ <button class="mygo" data-go="dua" data-seg="mine"><svg><use href="#i-heart"/></svg><span><b>Мои дуа</b><small>свои дуа — читать в пути</small></span><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="maqam"><div class="acc-h"><div class="num">8</div><div class="st"><div class="kicker">После 7-го круга</div><b>2 ракаата у Макама Ибрахима</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="maqam"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-feet"/></svg><i>8</i></div><div class="st"><div class="kicker">После 7-го круга</div><b>2 ракаата у Макама Ибрахима</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
  <ul class="do">
@@ -739,7 +868,7 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
  </ul>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="zamzam"><div class="acc-h"><div class="num">9</div><div class="st"><div class="kicker">Кулеры по краю матафа</div><b>Замзам</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="zamzam"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-cup"/></svg><i>9</i></div><div class="st"><div class="kicker">Кулеры по краю матафа</div><b>Замзам</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <ul class="do">
@@ -753,11 +882,14 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <div class="ru">«О Аллах, прошу у Тебя полезного знания, обильного удела и исцеления от всякой болезни»</div>
   <div class="src">Слова Ибн Аббаса (ад-Даракутни)</div>
  </div>
+ <button class="mygo" data-go="dua" data-seg="mine"><svg><use href="#i-heart"/></svg><span><b>Мои дуа</b><small>о чём попросить</small></span><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
  <div class="note">Потом — снова к Чёрному камню: истилям рукой издалека и к Сафе (сунна).</div>
+ <details class="det"><summary><span>Подробнее</span><small>о дуа Ибн Аббаса</small><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="det-in">
  <div class="flag"><b>⚑ Сверить:</b> дуа Ибн Аббаса — со слабым иснадом; читать как обычное дуа.</div>
+ </div></details>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="sai"><div class="acc-h"><div class="num">10</div><div class="st"><div class="kicker">Начало на холме Сафа</div><b>Сай: Сафа</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="sai"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-walk"/></svg><i>10</i></div><div class="st"><div class="kicker">Начало на холме Сафа</div><b>Сай: Сафа</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
  <div class="dua sm">
@@ -773,13 +905,13 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <div class="tr">Аллаху а́кбар ×3. Ля иля́ха илля-Лла́ху ва́хдаху ля шари́ка лях, ля́ху-ль-мульку ва-ля́ху-ль-хамд, ва-ху́а ‘аля́ ку́лли шай’ин кади́р. Ля иля́ха илля-Лла́ху ва́хдах, анджа́за ва‘дах, ва-наса́ра ‘абдах, ва-хаза́ма-ль-ахза́ба ва́хдах.</div>
   <div class="src">Муслим 1218. Потом — своё дуа.</div>
  </div>
+ <button class="mygo" data-go="dua" data-seg="mine"><svg><use href="#i-heart"/></svg><span><b>Мои дуа</b><small>своё дуа на Сафе и Марве</small></span><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 <h3>Сай: 7 отрезков</h3>
  <ul class="do">
   <li><b>Сафа → Марва = 1</b>, Марва → Сафа = 2 … заканчиваем <b>на Марве</b> (7).</li>
   <li class="s">Между <b>зелёными огнями</b> мужчины идут быстрым шагом.</li>
-  <li class="s">Омовение желательно, но не обязательно.</li>
-  <li>Устали — можно отдохнуть, сесть, попить. Есть коляски.</li>
  </ul>
+<div class="sai-sch" data-dir="sm"><svg viewBox="0 0 320 140" role="img" aria-label="Схема саи: 7 отрезков между Сафой и Марвой, между зелёными огнями — быстрый шаг, финиш на Марве"><rect class="sai-gz" x="136" y="44" width="48" height="48" rx="4"/><text class="sai-t" x="160" y="32">зелёные огни</text><path class="sai-hill" d="M8 92Q36 40 64 92Z"/><path class="sai-hill" d="M256 92Q284 40 312 92Z"/><path class="sai-ln ln-sm" d="M72 58H244"/><path class="sai-hd ln-sm" d="M236 51L245 58L236 65"/><path class="sai-ln ln-ms" d="M248 78H76"/><path class="sai-hd ln-ms" d="M84 71L75 78L84 85"/><text class="sai-s sai-e" x="110" y="52">1 · 3 · 5 · 7</text><text class="sai-s" x="212" y="94">2 · 4 · 6</text><circle class="sai-d d-sm" cx="72" cy="58" r="5"/><circle class="sai-d d-ms" cx="248" cy="78" r="5"/><g transform="translate(284 66)"><circle class="sai-fin" r="8"/></g><text x="36" y="96"><tspan class="sai-h" x="36" dy=".95em">Сафа</tspan><tspan class="sai-u" x="36" dy="1.4em">старт</tspan></text><text x="282" y="96"><tspan class="sai-h" x="282" dy=".95em">Марва</tspan><tspan class="sai-u" x="282" dy="1.4em">финиш (7)</tspan></text></svg><p class="cap">Схема-подсказка, не в масштабе. Точка показывает, куда идти сейчас.</p></div>
 <div class="counter" data-id="sai" data-unit="отрезок" data-plural="отрезков" data-hint-1="от Сафы до Марвы" data-hint-2="от Марвы до Сафы" data-hint-3="от Сафы до Марвы" data-hint-4="от Марвы до Сафы" data-hint-5="от Сафы до Марвы" data-hint-6="от Марвы до Сафы" data-hint-7="от Сафы до Марвы — финиш на Марве"><div class="ctitle"><span>Счётчик отрезков</span></div><button class="ringbtn" aria-label="Отметить отрезок"><svg viewBox="0 0 128 128"><circle class="bg" cx="64" cy="64" r="58"/><circle class="fg" cx="64" cy="64" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/><line class="seg" x1="116.0" y1="64.0" x2="130.0" y2="64.0"/><line class="seg" x1="96.4" y1="104.7" x2="105.2" y2="115.6"/><line class="seg" x1="52.4" y1="114.7" x2="49.3" y2="128.3"/><line class="seg" x1="17.1" y1="86.6" x2="4.5" y2="92.6"/><line class="seg" x1="17.1" y1="41.4" x2="4.5" y2="35.4"/><line class="seg" x1="52.4" y1="13.3" x2="49.3" y2="-0.3"/><line class="seg" x1="96.4" y1="23.3" x2="105.2" y2="12.4"/></svg><span class="core"><span class="n">0<small>/7</small></span><span class="lab"></span><span class="tap"></span></span></button><div class="dots7"><span>С→М</span><span>М→С</span><span>С→М</span><span>М→С</span><span>С→М</span><span>М→С</span><span>С→М</span></div><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
  <div class="dua">
   <div class="lbl">Между зелёными огнями</div>
@@ -788,10 +920,16 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <div class="ru">«Господи, прости и помилуй, ведь Ты — Самый Могущественный, Самый Щедрый»</div>
   <div class="src">Слова Ибн Масуда и Ибн Умара (Ибн Аби Шейба)</div>
  </div>
+ <details class="det"><summary><span>Подробнее</span><small>омовение, отдых, сверить</small><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="det-in">
+ <ul class="do">
+  <li class="s">Омовение желательно, но не обязательно.</li>
+  <li>Устали — можно отдохнуть, сесть, попить. Есть коляски.</li>
+ </ul>
  <div class="flag"><b>⚑ Сверить:</b> это дуа передано от сподвижников, а не от Пророка <span class="saw">ﷺ</span>. Можно читать любое дуа.</div>
+ </div></details>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="halq"><div class="acc-h"><div class="num">11</div><div class="st"><div class="kicker">После Марвы</div><b>Бритьё головы</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="halq"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-scis"/></svg><i>11</i></div><div class="st"><div class="kicker">После Марвы</div><b>Бритьё головы</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Обязательно · <i>ваджиб</i></span></div>
  <p class="lead"><b>Халк</b> — побрить голову полностью (лучше). <b>Таксир</b> — укоротить волосы не меньше чем на длину фаланги пальца.</p>
@@ -1089,6 +1227,7 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
   <li><b>Не ищите</b> группу в толпе. Идите к точке сбора или в отель и напишите в чат.</li>
   <li>Мансур — всегда рядом с папой, на руке браслет с телефоном.</li>
  </ul>
+ <div class="btns"><button class="btn" data-lost><svg><use href="#i-pin"/></svg>Я потерялся</button></div>
  <h3>Здоровье</h3>
  <ul class="do">
   <li>Днём +33…+38 °C: вода с собой, тень, зонт.</li>
@@ -1122,13 +1261,34 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
    <button class="btn ghost" data-theme-set="dark">Тёмная</button>
   </div>
  </div>
- <p class="foot">Пусть Аллах примет нашу умру и облегчит путь. · JURT · 2026<br>Версия 2.1 · 21.10.2026</p>
+ <p class="foot">Пусть Аллах примет нашу умру и облегчит путь. · JURT · 2026<br>Версия 2.2 · 21.10.2026</p>
 </section>
 </main>
 
 <div class="upd" id="updBar"><span style="flex:1">Есть обновление гида</span><button id="updBtn">Обновить</button></div>
 <div class="upd" id="toast"><span style="flex:1" id="toastT"></span><button id="toastBtn">Отменить</button></div>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+ <symbol id="i-pin" viewBox="0 0 48 48"><path d="M24 44S10 30.5 10 19a14 14 0 0 1 28 0c0 11.5-14 25-14 25z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><circle cx="24" cy="19" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/></symbol>
+ <symbol id="i-chat" viewBox="0 0 48 48"><path d="M8 22c0-8 7-14 16-14s16 6 16 14-7 14-16 14c-2 0-4-.3-5.8-.8L10 40l2.2-7.4C9.6 30 8 26.2 8 22z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></symbol>
+</defs></svg>
+<div class="lost" id="lost" role="dialog" aria-modal="true" aria-labelledby="lostT"><div class="lost-box">
+ <button class="lost-x" id="lostClose">✕ Закрыть</button>
+ <div class="lost-me" id="lostMe" aria-hidden="true"><i></i></div>
+ <h3 id="lostT">Я потерялся</h3>
+ <p class="lost-tip"><b>Не ищите</b> группу в толпе. Идите к точке сбора или в отель и напишите в чат.</p>
+ <a class="lost-call" href="tel:+77777825555"><svg><use href="#i-phone"/></svg><span><b>Позвонить Чингису</b><small>+7 777 782 55 55</small></span></a>
+ <a class="lost-wa" id="lostWa" href="https://wa.me/77777825555" target="_blank" rel="noopener"><svg><use href="#i-pin"/></svg><span><b>Отправить, где я</b><small>WhatsApp Чингису · с точкой на карте</small></span></a>
+ <div class="lost-st"><button class="linkbtn" id="lostGeo">Определить, где я</button><a class="linkbtn" id="lostSms" href="sms:+77777825555">SMS без интернета</a></div>
+ <div class="lost-card"><div class="kicker">Точка сбора</div><div id="lostPts"></div>
+  <div class="lost-gates"><label class="field"><span>Медина<br>ворота №</span><input data-k="p2-1"></label><label class="field"><span>Мекка<br>ворота №</span><input data-k="p2-2"></label></div>
+  <p class="small">Сфотографируйте номер ворот — так его не забыть.</p></div>
+ <div class="lost-card"><div class="kicker">Дорога в отель</div><div id="lostHotels"></div></div>
+ <div class="lost-en" lang="en"><div class="kicker" lang="ru">Покажите волонтёру или полицейскому</div><div id="lostEn"></div><div class="btns" lang="ru"><button class="btn ghost" id="lostBigBtn">Показать крупно</button></div></div>
+ <div class="btns" id="lostChatBox" hidden><a class="btn wa" id="lostChat" target="_blank" rel="noopener"><svg><use href="#i-chat"/></svg>Написать в чат группы</a></div>
+ <p class="small" id="lostSos"></p>
+</div></div>
+<div class="lost-big" id="lostBig" lang="en" role="dialog" aria-label="Карточка для волонтёра"><div id="lostBigIn"></div><small lang="ru">Нажмите, чтобы закрыть</small></div>
 <div class="cele" id="cele">
  <div class="box">
   <div class="conf" id="conf"></div>
@@ -1177,16 +1337,19 @@ $$('[data-theme-set]').forEach(function(b){ b.onclick=function(){ applyTheme(b.g
 
 /* вкладки */
 var TABS=['home','umra','dua','prog','more'];
-function show(tab, anchor){
+var curTab=null, scrollMem={};
+function show(tab, anchor, restore){
   if(TABS.indexOf(tab)<0) tab='home';
+  if(curTab) scrollMem[curTab]=window.scrollY;
+  var back=restore && tab!==curTab; curTab=tab;
   $$('.view').forEach(function(v){ v.classList.toggle('on', v.id==='v-'+tab); });
   $$('nav.tabs button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===tab); });
   $('#pill').style.transform='translateX('+(TABS.indexOf(tab)*100)+'%)';
   set('tab',tab);
-  if(anchor){ var a=document.getElementById(anchor); if(a) setTimeout(function(){ a.scrollIntoView({behavior:'smooth'}); },50); } else window.scrollTo(0,0);
+  if(anchor){ var a=document.getElementById(anchor); if(a) setTimeout(function(){ a.scrollIntoView({behavior:'smooth'}); },50); } else window.scrollTo(0, back ? (scrollMem[tab]||0) : 0);
   reveal();
 }
-$$('nav.tabs button').forEach(function(b){ b.onclick=function(){ buzz(8); show(b.getAttribute('data-tab')); }; });
+$$('nav.tabs button').forEach(function(b){ b.onclick=function(){ buzz(8); show(b.getAttribute('data-tab'), null, true); }; });
 $$('[data-go]').forEach(function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-go'), b.getAttribute('data-anchor')); if(b.getAttribute('data-seg')) segTo(b.getAttribute('data-seg')); }); });
 
 /* плавное появление */
@@ -1254,6 +1417,7 @@ function paint(c){
   btn.classList.toggle('fin', n>=7);
   $('.lab',c).textContent = n>=7 ? 'Все 7 '+c.getAttribute('data-plural')+' · аль-хамду ли-Лляхь' : (c.getAttribute('data-hint-'+(n+1))||(unit+' '+(n+1)));
   $('.tap',c).textContent = n>=7 ? '✓ готово' : 'в конце '+unit+'а';
+  if(id==='sai') $$('.sai-sch').forEach(function(s){ s.setAttribute('data-dir', n>=7?'fin':(n%2?'ms':'sm')); });
 }
 $$('.counter').forEach(function(c){
   var id=c.getAttribute('data-id'), btn=$('.ringbtn',c);
@@ -1331,6 +1495,83 @@ function itemsHtml(list, dt){
     return '<div class="it '+cls+'"><div class="tm">'+esc(r.time||'')+'</div><div class="tx"><div class="what">'+esc(r.what)+(cls==='now'?'<span class="badge">сейчас</span>':'')+'</div><div class="meta">'+esc(meta)+'</div></div></div>';
   }).join('');
 }
+/* ---------- я потерялся: звонок, «где я» в WhatsApp/SMS, точки сбора, карточка для волонтёра; чат группы ---------- */
+var CHAT0='';  /* ссылка-приглашение в группу WhatsApp, пока админка не подключена */
+var HOTELS={'Медина':{en:'Madinah',name:'Worth Peninsula',card:'Peninsula Worth Hotel',q:'Peninsula Worth Hotel Madinah',room:'f-room-med',k:'medina'},
+            'Мекка':{en:'Makkah',name:'Address Jabal Omar',card:'Address Jabal Omar',q:'Address Jabal Omar Makkah',room:'f-room-mak',k:'mecca'}};
+var LAT={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya','ә':'a','ғ':'gh','қ':'q','ң':'ng','ө':'o','ұ':'u','ү':'u','һ':'h','і':'i'};
+function latin(s){ return String(s||'').replace(/[а-яёәғқңөұүһіА-ЯЁӘҒҚҢӨҰҮҺІ]/g,function(c){ var l=c.toLowerCase(), r=LAT[l]; if(r==null) return c; return c===l?r:r.charAt(0).toUpperCase()+r.slice(1); }); }
+function okUrl(u){ return /^https:\/\/\S+$/i.test(String(u||'')); }
+var lostPos=null, lostSig='', lostBusy=false, lostQ=[], lostFrom=null;
+function lostFresh(){ return !!(lostPos && Date.now()-lostPos.t<120000); }
+/* по брошюре: 28.10 день в Стамбуле, 29–31.10 Медина, 01–04.11 Мекка, 05.11 день в Дубае, 06.11 ночью прилёт в Алматы */
+function lostCity(di){ return (di>=4&&di<=7)?'Мекка':'Медина'; }
+function lostSos(di){
+  if(di===0) return 'Экстренная помощь в Турции: <a class="call" href="tel:112">112</a>';
+  if(di===8) return 'Полиция в ОАЭ: <a class="call" href="tel:999">999</a> · скорая: <a class="call" href="tel:998">998</a>';
+  if(di>=9) return 'Экстренная помощь в Казахстане: <a class="call" href="tel:112">112</a>';
+  return 'Скорая и полиция в Саудовской Аравии: <a class="call" href="tel:911">911</a>'; }
+function lostMe(){ var D=get('data',null); return D&&D.me; }
+function lostName(){ var me=lostMe(); return String((me&&me.name)||get('in-f-name','')||'').trim(); }
+function lostRoom(c){ var h=HOTELS[c], me=lostMe(); return String((me&&me[h.k])||get('in-'+h.room,'')||'').trim(); }
+function lostMsg(){ var n=lostName(), m='Ассаляму алейкум! Это '+(n||'паломник группы JURT')+', я потерялся.';
+  if(lostPos) m+=' Я здесь: https://maps.google.com/?q='+lostPos.lat.toFixed(6)+','+lostPos.lng.toFixed(6)+' (точность ±'+Math.round(lostPos.acc)+' м)';
+  return m; }
+function lostLinks(){ var t=encodeURIComponent(lostMsg()); $('#lostWa').href='https://wa.me/77777825555?text='+t; $('#lostSms').href='sms:+77777825555?&body='+t; }
+function geoTxt(s){ $('#lostGeo').textContent=s; }
+function locate(cb){ if(cb) lostQ.push(cb); if(lostBusy) return;
+  function done(ok){ lostBusy=false; var q=lostQ; lostQ=[]; lostLinks(); q.forEach(function(f){ f(ok); }); }
+  if(!navigator.geolocation){ geoTxt('Телефон не даёт геопозицию'); done(false); return; }
+  lostBusy=true; geoTxt('Определяю место…');
+  navigator.geolocation.getCurrentPosition(function(p){ lostPos={lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy||0,t:Date.now()};
+      $('#lostMe').classList.add('ok'); geoTxt('Место определено · ±'+Math.round(lostPos.acc)+' м · обновить'); buzz(20); done(true); },
+    function(err){ geoTxt(err&&err.code===1?'Доступ к геопозиции запрещён — разрешите в настройках телефона':'Не удалось определить место · ещё раз'); done(false); },
+    {enableHighAccuracy:true,timeout:15000,maximumAge:30000}); }
+function renderLost(D){
+  var di=dayIdx(), c=lostCity(di), other=c==='Мекка'?'Медина':'Мекка', name=lostName();
+  var pts=((D&&D.points)||[]).filter(function(p){ return p&&p.name; }).slice().sort(function(a,b){ return (a.city===c?0:1)-(b.city===c?0:1); });
+  var chat=(D&&D.chat)||CHAT0;
+  var sig=JSON.stringify([di,name,lostRoom('Медина'),lostRoom('Мекка'),pts,chat]);
+  if(sig!==lostSig){ lostSig=sig;
+    $('#lostPts').innerHTML = pts.length ? pts.map(function(p){ return '<div class="lost-pt"><svg><use href="#i-door"/></svg><div><b>'+esc(p.name)+'</b><span>'+esc([p.city,p.how].filter(Boolean).join(' · '))+'</span>'+(okUrl(p.map)?'<a class="linkbtn" href="'+esc(p.map)+'" target="_blank" rel="noopener">Открыть на карте</a>':'')+'</div></div>'; }).join('') : '<p class="small">Точку сбора руководитель назовёт перед выходом.</p>';
+    $('#lostHotels').innerHTML=[c,other].map(function(k){ var h=HOTELS[k], r=lostRoom(k);
+      return '<div class="lost-pt"><svg><use href="#i-walk"/></svg><div><b>'+esc(h.name)+'</b><span>'+esc(k+(r?' · номер '+r:''))+'</span><a class="linkbtn" href="https://www.google.com/maps/dir/?api=1&amp;destination='+encodeURIComponent(h.q)+'&amp;travelmode=walking" target="_blank" rel="noopener">Маршрут пешком · нужен интернет</a></div></div>'; }).join('');
+    $('#lostEn').innerHTML='<p><b>I am a pilgrim from Kazakhstan. I am lost.</b></p><p>Please call my group leader: <a href="tel:+77777825555">+7 777 782 55 55</a> (WhatsApp)</p>'+
+      [c,other].map(function(k){ var h=HOTELS[k], r=lostRoom(k); return '<p>Hotel in '+h.en+': <b>'+esc(h.card)+'</b>'+(r?', room '+esc(r):'')+'</p>'; }).join('')+
+      '<p>Group: JURT'+(name?' · Name: '+esc(latin(name)):'')+'</p>';
+    $('#lostSos').innerHTML=lostSos(di);
+    var ok=okUrl(chat); $('#homeChatBox').hidden=!ok; $('#lostChatBox').hidden=!ok; if(ok){ $('#homeChat').href=chat; $('#lostChat').href=chat; }
+  }
+  lostLinks();
+}
+function openLost(){ buzz(15); lostFrom=document.activeElement; renderLost(get('data',null));
+  $$('#lost [data-k]').forEach(function(el){ el.value=get('in-'+el.getAttribute('data-k'),''); });
+  var o=$('#lost'); o.classList.add('on'); o.scrollTop=0; document.body.style.overflow='hidden';
+  try{ $('#lostClose').focus({preventScroll:true}); }catch(e){}
+  if(!lostFresh()) try{ navigator.permissions.query({name:'geolocation'}).then(function(p){ if(p.state==='granted') locate(); }).catch(function(){}); }catch(e){} }
+function closeBig(){ $('#lostBig').classList.remove('on'); }
+function openBig(){ $('#lostBigIn').innerHTML=$('#lostEn').innerHTML; $('#lostBig').classList.add('on'); buzz(10); }
+function closeLost(){ closeBig(); $('#lost').classList.remove('on'); document.body.style.overflow='';
+  SEND.forEach(function(s){ s.a.removeAttribute('data-ready'); s.lbl(''); });
+  if(lostFrom && lostFrom.focus) try{ lostFrom.focus({preventScroll:true}); }catch(e){} lostFrom=null; }
+/* отправка в два нажатия: сначала место, потом WhatsApp/SMS уже с точкой (в режиме приложения нельзя уводить окно на wa.me) */
+var SEND=[{a:$('#lostWa'), lbl:function(s){ var t={'':['Отправить, где я','WhatsApp Чингису · с точкой на карте'], busy:['Определяю место…','это займёт несколько секунд'],
+            ok:['Место определено ✓','нажмите ещё раз — откроется WhatsApp'], no:['Отправить без точки','место не определилось — напишите словами, где вы']}[s];
+            $('b',this.a).textContent=t[0]; $('small',this.a).textContent=t[1]; }},
+          {a:$('#lostSms'), lbl:function(s){ this.a.textContent={'':'SMS без интернета', busy:'SMS: определяю место…', ok:'Отправить SMS · место ✓', no:'SMS без точки'}[s]; }}];
+SEND.forEach(function(s){ s.a.addEventListener('click',function(e){
+  if(s.a.getAttribute('data-ready') || lostFresh()){ lostLinks(); return; }
+  e.preventDefault(); buzz(10); s.lbl('busy');
+  locate(function(ok){ s.a.setAttribute('data-ready','1'); s.lbl(ok?'ok':'no'); }); }); });
+$$('[data-lost]').forEach(function(b){ b.addEventListener('click',openLost); });
+$('#lostClose').onclick=closeLost;
+$('#lost').addEventListener('click',function(e){ if(e.target===this) closeLost(); });
+$('#lostGeo').onclick=function(){ buzz(8); locate(); };
+$('#lostBigBtn').onclick=openBig;
+$('#lostBig').addEventListener('click',function(e){ if(!e.target.closest('a')) closeBig(); });
+document.addEventListener('keydown',function(e){ if(e.key!=='Escape') return; if($('#lostBig').classList.contains('on')) closeBig(); else if($('#lost').classList.contains('on')) closeLost(); });
+/* одинаковые поля (ворота в «Памятке» и в «Я потерялся») держим в одном значении */
+$$('[data-k]').forEach(function(el){ el.addEventListener('input',function(){ var k=el.getAttribute('data-k'); $$('[data-k="'+k+'"]').forEach(function(o){ if(o!==el) o.value=el.value; }); }); });
 function renderData(){
   var D=get('data',null), me=D&&D.me, prog=(D&&D.program)||[];
   /* герой */
@@ -1353,6 +1594,7 @@ function renderData(){
   else $('#myAuto').hidden=true;
   renderCode(D);
   renderExtra(D);
+  renderLost(D);
   /* объявление */
   var a=D&&D.announcement;
   $('#annBox').innerHTML = a ? '<div class="ann"><div class="ic">📣</div><div><b>Объявление</b><br>'+esc(a.text)+'<small>'+esc(a.at||'')+' · Чингис</small></div></div>' : '';
