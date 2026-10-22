@@ -71,14 +71,36 @@ body.team .team-only{display:block}
 .rule{font-size:12.5px;color:var(--mute);margin:-6px 2px 14px}
 footer{text-align:center;font-size:12px;color:var(--mute);padding:10px 16px 30px}
 footer a{color:var(--sea)}
+.back{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;font:600 13px 'Exo 2',sans-serif;padding:6px 12px 6px 8px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3)}
+.back svg{width:16px;height:16px}
+.lg{display:flex;align-items:center;gap:10px}
+.inc{background:#fff;border-radius:16px;margin:0 0 14px;overflow:hidden}
+.inc summary{list-style:none;cursor:pointer;padding:12px 16px;font-weight:600;color:var(--sea);display:flex;justify-content:space-between;align-items:center}
+.inc summary::-webkit-details-marker{display:none}
+.inc summary:after,.it summary:after{content:'';width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .2s;margin:-4px 2px 0 10px;flex:none}
+.inc[open] summary:after,.it details[open] summary:after{transform:rotate(-135deg);margin-top:4px}
+.incb{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;padding:0 16px 14px;font-size:13.5px}
+.incb h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin:4px 0 4px;color:var(--mute)}
+.incb ul{margin:0;padding-left:18px}
+.incb li{margin:3px 0}
+.it details summary{list-style:none;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between}
+.it details summary::-webkit-details-marker{display:none}
+.it details summary:after{color:var(--sun);margin-top:6px}
+.it details[open] summary:after{margin-top:12px}
+.more{margin-top:6px;padding:8px 10px;background:var(--soft);border-radius:8px;font-size:13.5px;color:#2A3D3F}
+.more p{margin:0 0 6px}.more p:last-child{margin:0}
+.tag.own{background:#FFF1E6;color:#A2470A}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--deep);color:#fff;padding:9px 16px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.on{opacity:1}
-@media (max-width:420px){.it{grid-template-columns:78px 1fr}h1{font-size:23px}}
+@media (max-width:420px){.it{grid-template-columns:78px 1fr}h1{font-size:23px}.btn{padding:7px 10px}}
+@media (max-width:560px){.incb{grid-template-columns:1fr}}
 @media print{
  @page{size:A4;margin:12mm 11mm}
  body{background:#fff;font-size:10.5pt}
  header{background:var(--deep)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:10px 14px;border-radius:8px}
- .acts,nav,.toast,footer .fx{display:none!important}
+ .acts,nav,.toast,footer .fx,.back,.it summary:after{display:none!important}
+ .inc summary:after{display:none}
+ .more{background:none;padding:2px 0 0;font-size:9.5pt}
  h1{font-size:18pt;margin:6px 0 2px}
  main{padding:6px 0;max-width:none}
  .day{box-shadow:none;border:1px solid var(--line);border-radius:8px;break-inside:auto;margin:0 0 8px;outline:0!important}
@@ -91,7 +113,7 @@ footer a{color:var(--sea)}
 </head>
 <body>
 <header><div class="hw">
- <div class="top"><img src="../logo-white.svg" alt="JURT">
+ <div class="top"><div class="lg"><a class="back" id="back" href="../" aria-label="Вернуться в гид паломника"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Гид</a><img src="../logo-white.svg" alt="JURT"></div>
   <div class="acts"><button class="btn" id="share">Поделиться</button><button class="btn" onclick="print()">Печать / PDF</button></div></div>
  <h1 id="ttl">Программа умры</h1>
  <div class="sub" id="sub"></div>
@@ -118,6 +140,10 @@ footer a{color:var(--sea)}
   document.getElementById('grp').textContent=P.group;
   document.getElementById('ver').textContent='Версия: '+P.version+' от '+P.updated;
   out+='<p class="legend">'+esc(P.legend)+'</p>';
+  if (P.incl) {
+   var li=function(a){return '<ul>'+a.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'};
+   out+='<details class="inc"><summary>Что входит в стоимость</summary><div class="incb"><div><h3>Входит</h3>'+li(P.incl)+'</div><div><h3>За свой счёт</h3>'+li(P.excl)+'</div></div></details>';
+  }
   if (TEAM) {
    out+='<p class="rule">'+esc(P.pay_rule)+'</p><section class="dec"><h2>Открытые решения</h2><ul>';
    P.decisions.forEach(function(d){out+='<li><b>'+esc(d.q)+'.</b> '+esc(d.rec)+' <span class="s">→ '+esc(d.st)+'</span></li>'});
@@ -135,8 +161,11 @@ footer a{color:var(--sea)}
     if (it.tr) tags+='<span class="tag">'+esc(it.tr)+'</span>';
     if (TEAM && it.who) tags+='<span class="tag who">'+esc(it.who)+'</span>';
     if (TEAM && it.pay) tags+='<span class="tag pay">платит: '+esc(it.pay)+'</span>';
+    else if (it.pay==='свои') tags+='<span class="tag own">за свой счёт</span>';
     if (TEAM && it.st) tags+='<span class="tag st">'+esc(it.st)+'</span>';
-    out+='<div class="it'+(it.team?' tonly':'')+'"><div class="tm">'+esc(it.t)+'</div><div><div class="pl">'+esc(it.p)+'</div><div class="w">'+esc(it.w)+'</div>'+(tags?'<div class="tags">'+tags+'</div>':'')+'</div></div>';
+    var head='<div class="pl">'+esc(it.p)+'</div><div class="w">'+esc(it.w)+'</div>';
+    var body=it.m ? '<details><summary><div>'+head+'</div></summary><div class="more">'+it.m.split('\n').map(function(x){return '<p>'+esc(x)+'</p>'}).join('')+'</div></details>' : head;
+    out+='<div class="it'+(it.team?' tonly':'')+'"><div class="tm">'+esc(it.t)+'</div><div>'+body+(tags?'<div class="tags">'+tags+'</div>':'')+'</div></div>';
    });
    (d.notes||[]).forEach(function(t){out+='<div class="note">'+esc(t)+'</div>'});
    if (TEAM) (d.team||[]).forEach(function(t){out+='<p class="tnote"><b>Команде:</b> '+esc(t)+'</p>'});
@@ -147,6 +176,11 @@ footer a{color:var(--sea)}
   if (!location.hash) { var t=document.querySelector('.day.today'); if (t) t.scrollIntoView(); var c=document.querySelector('.chip.today'); if (c) c.scrollIntoView({inline:'center',block:'nearest'}); }
   else { var h=document.querySelector(location.hash); if (h) h.scrollIntoView(); }
  }
+ document.getElementById('back').onclick=function(e){
+  var r=document.referrer; if (r && r.indexOf(location.origin)===0 && r.indexOf('/program')<0 && history.length>1) { e.preventDefault(); history.back(); }
+ };
+ // при печати раскрываем «Что входит», подробности остаются свёрнутыми
+ window.addEventListener('beforeprint',function(){var i=document.querySelector('.inc'); if(i) i.open=true});
  document.getElementById('share').onclick=function(){
   var url=location.origin+location.pathname; // делимся всегда публичной версией, без ?team
   if (navigator.share) navigator.share({title:'Программа умры · октябрь 2026',url:url}).catch(function(){});
