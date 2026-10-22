@@ -22,7 +22,7 @@ self.addEventListener('message', function (e) { if (e.data === 'skip') self.skip
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  if (req.mode === 'navigate') {
+  if (req.mode === 'navigate' && new URL(req.url).pathname.indexOf('/program') !== 0) {  // /program/ — отдельная страница, не приложение
     e.respondWith(caches.match('index.html').then(function (r) { return r || fetch(req); }));
     return;
   }
