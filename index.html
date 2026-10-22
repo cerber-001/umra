@@ -284,7 +284,6 @@ th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(
 /* ---------- вкладка «Дуа»: переключатель, список дуа гида, мои дуа ---------- */
 .dseg{ position:relative; display:grid; grid-template-columns:1fr 1fr; background:var(--card); border-radius:1rem; padding:.25rem; box-shadow:var(--shadow); }
 .dseg .sp{ position:absolute; top:.25rem; bottom:.25rem; left:.25rem; width:calc(50% - .25rem); border-radius:.8rem; background:#005A5C; transition:transform .35s var(--ease); }
-.dseg.r .sp{ transform:translateX(100%); }
 .dseg button{ position:relative; z-index:1; min-height:2.9rem; font-weight:800; font-size:.95rem; color:var(--teal-d); display:flex; align-items:center; justify-content:center; gap:.4rem; transition:color .3s; }
 .dseg button.on{ color:#fff; }
 .dseg em{ font-style:normal; font-size:.72rem; min-width:1.35rem; height:1.35rem; padding:0 .3rem; border-radius:1rem; background:var(--orange); color:#fff; display:inline-flex; align-items:center; justify-content:center; }
@@ -523,6 +522,80 @@ a.chip{ text-decoration:none; }
 .conf{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
 .conf i{ position:absolute; top:-1rem; width:.5rem; height:.8rem; border-radius:.15rem; animation:fall linear forwards; }
 @keyframes fall{ to{ transform:translateY(32rem) rotate(540deg); opacity:.2 } }
+/* ---------- шаг 11: три сегмента «Дуа», зикр, печать «Моих дуа» ---------- */
+.dseg{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+.dseg .sp{ width:calc((100% - .5rem) / 3); }
+.dseg[data-i="1"] .sp{ transform:translateX(100%); }
+.dseg[data-i="2"] .sp{ transform:translateX(200%); }
+.dseg button{ font-size:.9rem; line-height:1.1; padding:.2rem .25rem; gap:.3rem; text-align:center; }
+html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem; }
+.zchips{ display:flex; flex-wrap:wrap; gap:.4rem; }
+.zchips button{ border:1.5px solid var(--teal); color:var(--teal-d); background:var(--card); border-radius:2rem; padding:.38rem .75rem; font-size:.85rem; font-weight:700; transition:transform .15s var(--ease); }
+.zchips button:active{ transform:scale(.95); }
+.zchips button.on{ background:#005A5C; border-color:#005A5C; color:#fff; }
+.zcard{ background:var(--card); border-radius:1.1rem; box-shadow:var(--shadow); padding:.9rem 1rem; display:flex; flex-direction:column; gap:.3rem; text-align:center; }
+.zar{ font-family:"Amiri","Geeza Pro","Noto Naskh Arabic",serif; direction:rtl; font-size:1.75rem; line-height:1.9; color:var(--ink); }
+.ztr{ font-weight:700; color:var(--teal-d); font-size:.95rem; }
+.zru{ color:var(--muted); font-size:.85rem; }
+.zph{ display:flex; justify-content:center; gap:.3rem; }
+.zph span{ font-size:.75rem; font-weight:800; min-width:2.4rem; padding:.12rem .4rem; border-radius:1rem; border:1.5px solid var(--teal); color:var(--teal-d); }
+.zph span.ok{ background:var(--mint); }
+.zph span.on{ background:#005A5C; border-color:#005A5C; color:#fff; }
+.zwrap{ background:var(--mint); border-radius:1.2rem; padding:1.1rem .8rem .9rem; display:flex; flex-direction:column; align-items:center; gap:.7rem; }
+.zring{ position:relative; width:min(15rem,74vw); height:min(15rem,74vw); border-radius:50%; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.zring svg{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+.zring circle{ fill:none; stroke-width:9; }
+.zring .bg{ stroke:rgba(0,90,92,.15); }
+.zring .fg{ stroke:url(#gr); stroke-linecap:round; transition:stroke-dashoffset .35s var(--ease); }
+.zring .core{ position:absolute; inset:1.3rem; border-radius:50%; background:var(--card); box-shadow:0 8px 24px rgba(0,100,100,.15); display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.1; overflow:hidden; transition:transform .12s var(--ease); }
+.zring:active .core{ transform:scale(.96); }
+.zring .n{ font-size:3.8rem; font-weight:800; color:var(--teal-d); font-variant-numeric:tabular-nums; }
+.zring .n.bump{ animation:bump .45s var(--ease); }
+.zring .lab{ font-size:.85rem; color:var(--muted); font-weight:700; }
+.zring .tap{ margin-top:.35rem; font-size:.75rem; font-weight:800; color:#fff; background:var(--orange); border-radius:2rem; padding:.22rem .75rem; }
+.zring .rip{ position:absolute; border-radius:50%; background:rgba(240,122,30,.25); transform:scale(0); animation:rip .6s ease-out forwards; pointer-events:none; }
+.zring .zmark{ position:absolute; left:50%; top:-.35rem; transform:translateX(-50%); z-index:2; background:#F07A1E; color:#fff; font-weight:800; font-size:.9rem; border-radius:2rem; padding:.2rem .8rem; white-space:nowrap; opacity:0; pointer-events:none; }
+.zring.hit{ box-shadow:0 0 0 .55rem rgba(240,122,30,.45); }
+.zring.hit .core{ background:#F07A1E; }
+.zring.win{ box-shadow:0 0 0 .7rem rgba(30,142,90,.45); }
+.zring.win .core{ background:#1E8E5A; }
+.zring.hit .n, .zring.hit .lab, .zring.win .n, .zring.win .lab{ color:#fff; }
+.zring.hit .tap, .zring.win .tap{ background:#fff; color:#00292C; }
+.zring.hit .zmark, .zring.win .zmark{ opacity:1; }
+.zring.win .zmark{ background:#1E8E5A; }
+.zinfo{ font-size:.85rem; font-weight:700; color:var(--teal-d); text-align:center; }
+.zinfo:empty{ display:none; }
+.zwrap .crow{ align-self:stretch; }
+.zwrap .crow button:disabled{ opacity:.45; }
+.zfadl{ border-left:.4rem solid var(--orange); }
+.zfadl p{ font-size:.95rem; }
+.zsrc{ display:flex; flex-wrap:wrap; gap:.3rem .9rem; }
+.zsrc span{ font-size:.85rem; font-weight:700; color:var(--ink); }
+.zsrc .zchk{ font-weight:600; color:var(--orange); }
+.pnote{ font-size:.8rem; color:var(--muted); text-align:center; margin:0 .3rem; }
+.btn.ghost.sel{ border-color:var(--orange); box-shadow:inset 0 0 0 1px var(--orange); }
+#printArea{ display:none; }
+@media print{
+  @page{ size:A4; margin:12mm 14mm 14mm; }
+  html.pm, html.pm body{ background:#fff !important; padding:0 !important; margin:0 !important; min-height:0 !important; }
+  html.pm body > *:not(#printArea){ display:none !important; }
+  html.pm #printArea{ display:block !important; color:#00292C; font-family:"Exo 2", Arial, sans-serif; font-size:11.5pt; line-height:1.4; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  #printArea .pa-h{ display:flex; align-items:center; gap:5mm; background:#005A5C !important; color:#fff; padding:5mm 6mm; border-radius:3mm; border-bottom:1.5mm solid #F07A1E; }
+  #printArea .pa-h img{ height:11mm; width:auto; display:block; }
+  #printArea .pa-h div{ border-left:.3mm solid rgba(255,255,255,.45); padding-left:5mm; }
+  #printArea .pa-h b{ display:block; font-size:19pt; line-height:1.1; font-weight:700; }
+  #printArea .pa-h span{ font-size:9.5pt; opacity:.92; }
+  #printArea .pa-m{ display:flex; justify-content:space-between; gap:6mm; margin:5mm 1mm 2mm; font-size:10.5pt; color:#3D5557; }
+  #printArea .pa-m b{ color:#00292C; }
+  #printArea .pa-l{ list-style:none; }
+  #printArea .pa-l li{ display:flex; gap:4mm; padding:3mm 1mm; border-bottom:.3mm solid #D5E2E0; break-inside:avoid; page-break-inside:avoid; }
+  #printArea .pa-l i{ flex:none; width:6mm; height:6mm; margin-top:.5mm; border:.5mm solid #005A5C; border-radius:1.2mm; font-style:normal; font-weight:800; font-size:10pt; color:#fff; display:flex; align-items:center; justify-content:center; }
+  #printArea .pa-l li.d i{ background:#1E8E5A !important; border-color:#1E8E5A; }
+  #printArea .pa-l b{ display:block; font-size:12pt; font-weight:700; }
+  #printArea .pa-l em{ font-style:normal; color:#F07A1E; margin-right:1.5mm; }
+  #printArea .pa-l span{ display:block; color:#3D5557; white-space:pre-wrap; }
+  #printArea .pa-f{ margin-top:6mm; padding-top:3mm; border-top:.6mm solid #F07A1E; display:flex; justify-content:space-between; gap:6mm; font-size:9.5pt; color:#3D5557; }
+}
 @media (prefers-reduced-motion: reduce){ *,*::before,*::after{ animation:none !important; transition:none !important; } .reveal{ opacity:1; transform:none; } }
 </style>
 </head>
@@ -554,8 +627,8 @@ a.chip{ text-decoration:none; }
 <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#005A5C"/><stop offset="1" stop-color="#F07A1E"/></linearGradient></defs></svg>
 <header class="app">
  <img class="logo" src="logo-white.svg" alt="JURT">
- <div class="t"><b>Гид паломника</b><span>Умра · JURT · 28.10–&#8288;06.11.2026</span></div>
- <button class="fs" id="fsBtn" aria-label="Размер шрифта">Aa</button>
+ <div class="t"><b data-i18n="app.t">Гид паломника</b><span data-i18n="app.s">Умра · JURT · 28.10–&#8288;06.11.2026</span></div>
+ <button class="fs" id="fsBtn" aria-label="Размер шрифта" data-i18n-al="app.fs">Aa</button>
 </header>
 
 <main>
@@ -582,16 +655,16 @@ a.chip{ text-decoration:none; }
 <span class="track" id="tripTrack" style="--n:4"><span class="tk"><i><svg><use href="#i-plane"/></svg></i><small>Стамбул</small><em>28.10</em></span><span class="tk"><i><svg><use href="#i-dome"/></svg></i><small>Медина</small><em>29–⁠31.10</em></span><span class="tk"><i><svg><use href="#i-tawaf"/></svg></i><small>Мекка</small><em>01–⁠04.11</em></span><span class="tk"><i><svg><use href="#i-plane"/></svg></i><small>Домой</small><em>05–⁠06.11</em></span></span>
  </button>
  <div class="card reveal" id="nowCard">
-  <div class="row" style="display:flex;justify-content:space-between;align-items:baseline"><h3 id="nowTitle">Сегодня</h3><button class="small" id="nowMore" data-go="prog" style="color:var(--teal-d);font-weight:700">Весь путь →</button></div>
+  <div class="row" style="display:flex;justify-content:space-between;align-items:baseline"><h3 id="nowTitle">Сегодня</h3><button class="small" id="nowMore" data-i18n="home.all" data-go="prog" style="color:var(--teal-d);font-weight:700">Весь путь →</button></div>
   <div class="tl" id="nowList"></div>
  </div>
  <div class="tiles reveal">
-  <button class="tile" data-go="umra"><div class="ringp"><svg viewBox="0 0 60 60"><circle class="bg" cx="30" cy="30" r="25"/><circle class="fg" id="tileRing" cx="30" cy="30" r="25" stroke-dasharray="157" stroke-dashoffset="157"/></svg><em id="tileNum">0/11</em></div><b>Умра</b><span id="tileNext">шаг за шагом</span></button>
-  <button class="tile" data-go="dua"><svg><use href="#i-heart"/></svg><b>Дуа</b><span>дуа гида и свой список</span></button>
-  <button class="tile" data-go="more" data-anchor="medina"><svg><use href="#i-dome"/></svg><b>Медина</b><span>салям, Равда, Куба, Ухуд</span></button>
-  <button class="tile sos" data-lost><svg><use href="#i-pin"/></svg><b>Я потерялся</b><span>звонок · где я · точка сбора</span></button>
+  <button class="tile" data-go="umra"><div class="ringp"><svg viewBox="0 0 60 60"><circle class="bg" cx="30" cy="30" r="25"/><circle class="fg" id="tileRing" cx="30" cy="30" r="25" stroke-dasharray="157" stroke-dashoffset="157"/></svg><em id="tileNum">0/11</em></div><b data-i18n="tab.umra">Умра</b><span id="tileNext">шаг за шагом</span></button>
+  <button class="tile" data-go="dua"><svg><use href="#i-heart"/></svg><b data-i18n="tile.dua">Дуа</b><span data-i18n="tile.duaS">дуа гида, свой список, зикр</span></button>
+  <button class="tile" data-go="more" data-anchor="medina"><svg><use href="#i-dome"/></svg><b data-i18n="tile.med">Медина</b><span data-i18n="tile.medS">салям, Равда, Куба, Ухуд</span></button>
+  <button class="tile sos" data-lost><svg><use href="#i-pin"/></svg><b data-i18n="tile.lost">Я потерялся</b><span data-i18n="tile.lostS">звонок · где я · точка сбора</span></button>
  </div>
- <div class="btns" id="homeChatBox" hidden><a class="btn wa" id="homeChat" target="_blank" rel="noopener"><svg><use href="#i-chat"/></svg>Чат группы в WhatsApp</a></div>
+ <div class="btns" id="homeChatBox" hidden><a class="btn wa" id="homeChat" target="_blank" rel="noopener"><svg><use href="#i-chat"/></svg><span data-i18n="home.chat">Чат группы в WhatsApp</span></a></div>
  <div class="status" id="swStatus">Проверяю офлайн-режим…</div>
 </section>
 
@@ -965,10 +1038,10 @@ a.chip{ text-decoration:none; }
 
 <!-- ================= ДУА ================= -->
 <section class="view" id="v-dua">
- <h2 class="sec">Дуа</h2>
- <div class="dseg" id="duaSeg"><span class="sp"></span><button data-dseg="guide">Дуа гида</button><button data-dseg="mine">Мои дуа<em id="myCount"></em></button></div>
+ <h2 class="sec" data-i18n="sec.dua">Дуа</h2>
+ <div class="dseg" id="duaSeg" data-i="0"><span class="sp"></span><button data-dseg="guide"><span data-i18n="seg.guide">Дуа гида</span></button><button data-dseg="mine"><span data-i18n="seg.mine">Мои дуа</span><em id="myCount"></em></button><button data-dseg="zikr"><span data-i18n="seg.zikr">Зикр</span></button></div>
  <div class="view-p stack" id="duaGuide">
-  <p class="sub">Нажмите на дуа — откроется арабский текст, транскрипция и перевод. Дуа можно читать и на своём языке — главное, сердцем.</p>
+  <p class="sub" data-i18n="dua.sub">Нажмите на дуа — откроется арабский текст, транскрипция и перевод. Дуа можно читать и на своём языке — главное, сердцем.</p>
 <h2 class="grp">Умра</h2>
 <section class="acc dq"><div class="acc-h"><div class="ico"><svg><use href="#i-heart"/></svg></div><div class="st"><b>Намерение умры</b><span class="pv">«О Аллах, я намереваюсь совершить умру — облегчи её мне и прими её от меня»</span></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
@@ -1117,27 +1190,41 @@ a.chip{ text-decoration:none; }
   <div id="extraBox"></div>
  </div>
  <div class="view-p stack" id="duaMine" hidden>
-  <p class="sub">Запишите, за кого и о чём попросить. В Хараме отмечайте ✓ — так ничего не забудете.</p>
+  <p class="sub" data-i18n="my.sub">Запишите, за кого и о чём попросить. В Хараме отмечайте ✓ — так ничего не забудете.</p>
   <div class="card">
    <div class="qchips">
-    <button data-q="За себя">За себя</button><button data-q="За родителей">За родителей</button><button data-q="За семью">За семью</button><button data-q="За детей">За детей</button><button data-q="За умму">За умму</button><button data-q="Просили: ">Меня просили…</button>
+    <button data-q="За себя" data-i18n-q="q.self" data-i18n="q.self">За себя</button><button data-q="За родителей" data-i18n-q="q.par" data-i18n="q.par">За родителей</button><button data-q="За семью" data-i18n-q="q.fam" data-i18n="q.fam">За семью</button><button data-q="За детей" data-i18n-q="q.kids" data-i18n="q.kids">За детей</button><button data-q="За умму" data-i18n-q="q.umma" data-i18n="q.umma">За умму</button><button data-q="Просили: " data-i18n-q="q.askedQ" data-i18n="q.asked">Меня просили…</button>
    </div>
-   <input class="inp" id="myT" placeholder="За кого или о чём" enterkeyhint="done" autocomplete="off">
-   <textarea class="sm" id="myX" placeholder="Слова дуа или подробности — по желанию"></textarea>
-   <div class="btns"><button class="btn" id="myAdd">Добавить</button></div>
+   <input class="inp" id="myT" placeholder="За кого или о чём" data-i18n-ph="my.ph1" enterkeyhint="done" autocomplete="off">
+   <textarea class="sm" id="myX" placeholder="Слова дуа или подробности — по желанию" data-i18n-ph="my.ph2"></textarea>
+   <div class="btns"><button class="btn" id="myAdd" data-i18n="my.add">Добавить</button></div>
   </div>
   <p class="mstat" id="myStat" hidden></p>
   <div class="stack" id="myList"></div>
-  <div class="empty" id="myEmpty"><svg><use href="#i-heart"/></svg>Пока пусто. Добавьте первое дуа — например, за родителей.</div>
-  <p class="small" style="text-align:center">Записи хранятся только в этом телефоне.</p>
-  <div class="foot"><button id="myUncheck" hidden>Снять все отметки ✓</button></div>
+  <div class="empty" id="myEmpty"><svg><use href="#i-heart"/></svg><span data-i18n="my.empty">Пока пусто. Добавьте первое дуа — например, за родителей.</span></div>
+  <div class="stack" id="myPrintBox" hidden><div class="btns"><button class="btn ghost" id="myPrint"><svg viewBox="0 0 24 24" style="width:1.2rem;height:1.2rem"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span data-i18n="my.print">Распечатать / PDF</span></button></div>
+  <p class="pnote" data-i18n="my.printH">Откроется окно печати: распечатайте на бумаге или сохраните PDF. На iPhone — «Поделиться» в этом окне → «Сохранить в Файлы».</p></div>
+  <p class="small" style="text-align:center" data-i18n="my.store">Записи хранятся только в этом телефоне.</p>
+  <div class="foot"><button id="myUncheck" hidden data-i18n="my.uncheck">Снять все отметки ✓</button></div>
+ </div>
+ <div class="view-p stack" id="duaZikr" hidden>
+  <p class="sub" data-i18n="z.sub">Выберите зикр и нажимайте на круг. Каждые 33 — вспышка и вибрация (на iPhone — только вспышка).</p>
+  <div class="zchips" id="zChips"></div>
+  <div class="zcard"><div class="zph" id="zPh" hidden><span>33</span><span>33</span><span>33</span><span>1</span></div><div class="zar" id="zAr" lang="ar"></div><div class="ztr" id="zTr"></div><div class="zru" id="zRu"></div></div>
+  <div class="zwrap">
+   <button class="zring" id="zBtn" aria-label="Счёт +1"><svg viewBox="0 0 128 128" aria-hidden="true"><circle class="bg" cx="64" cy="64" r="58"/><circle class="fg" id="zFg" cx="64" cy="64" r="58" stroke-dasharray="364.42" stroke-dashoffset="364.42"/></svg><span class="core"><span class="n" id="zN">0</span><span class="lab" id="zLab"></span><span class="tap" id="zTap"></span></span><span class="zmark" id="zMark" aria-live="polite"></span></button>
+   <div class="zinfo" id="zInfo"></div>
+   <div class="crow"><button id="zMinus">−1</button><button id="zGoal"></button><button id="zZero" data-i18n="z.zero">Сброс</button></div>
+  </div>
+  <div class="card zfadl"><div class="kicker" data-i18n="z.fadl">Достоинство</div><p id="zHad"></p><div class="zsrc" id="zSrc"></div></div>
+  <p class="small" style="text-align:center" data-i18n="z.store">Счёт каждого зикра хранится в телефоне отдельно.</p>
  </div>
 </section>
 
 <!-- ================= ПУТЬ ================= -->
 <section class="view" id="v-prog">
- <h2 class="sec">Путь</h2>
- <p class="sub">Нажмите на остановку — откроются дни. Программу обновляет Чингис.</p>
+ <h2 class="sec" data-i18n="sec.prog">Путь</h2>
+ <p class="sub" data-i18n="sec.prog.s">Нажмите на остановку — откроются дни. Программу обновляет Чингис.</p>
  <a class="btn" id="progLink" href="program/" style="margin:0 0 1rem">Программа по дням<svg viewBox="0 0 24 24" style="width:1.1em;height:1.1em"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 <div class="path" id="pathList">
 <div class="stop" id="stop-0" data-dates="28.10" data-short="Стамбул"><span class="dot"><svg><use href="#i-plane"/></svg></span><div class="sc"><button class="sh" aria-expanded="false"><span class="stt"><b>Алматы → Стамбул</b><span class="sd">28.10</span><span class="here"></span></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="sx"><span class="fl">TK 351</span></div><div class="sb"><div><div class="dl"><div class="dy bro" data-dates="28.10" style="order:0"><div class="dyh"><b>28.10 ср</b></div><div class="dyb"><b>03:15</b> сбор, аэропорт Алматы<br><span class="fly">TK 351</span> 06:15 → 10:35 Стамбул · день в городе</div></div></div></div></div></div></div>
@@ -1152,8 +1239,8 @@ a.chip{ text-decoration:none; }
 
 <!-- ================= ЕЩЁ ================= -->
 <section class="view" id="v-more">
- <h2 class="sec" id="medina">Медина</h2>
- <p class="sub">Масджид ан-Набави · 29.10–01.11, 04.11</p>
+ <h2 class="sec" id="medina" data-i18n="sec.med">Медина</h2>
+ <p class="sub" data-i18n="sec.med.s">Масджид ан-Набави · 29.10–01.11, 04.11</p>
 <div class="card"><div><div class="kicker">Медина · Масджид ан-Набави</div><h3 style="font-size:1.25rem">Салям Пророку <span class="saw">ﷺ</span></h3></div>
  <ul class="do">
   <li>Войти с дуа входа (раздел «Дуа»), совершить 2 ракаата приветствия мечети.</li>
@@ -1185,24 +1272,24 @@ a.chip{ text-decoration:none; }
   <div class="src">Муслим 975 · то же — на кладбище Баки</div>
  </div>
 </div>
- <h2 class="sec">Памятка</h2>
+ <h2 class="sec" data-i18n="sec.memo">Памятка</h2>
  <div class="card" id="myCard">
-  <h3>Мои данные</h3>
+  <h3 data-i18n="more.my">Мои данные</h3>
   <p class="small" id="myAuto" hidden></p>
   <div class="stack" id="codeBox" hidden>
    <div class="stack" id="codeForm">
-    <label class="field"><span>Личная ссылка от Чингиса</span><input id="codeIn" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="вставьте ссылку или код"></label>
-    <p class="small">Вставьте ссылку из сообщения Чингиса — имя и номера комнат подставятся сами.</p>
-    <div class="btns"><button class="btn" id="codeSave">Сохранить</button></div>
+    <label class="field"><span data-i18n="more.link">Личная ссылка от Чингиса</span><input id="codeIn" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="вставьте ссылку или код" data-i18n-ph="more.linkPh"></label>
+    <p class="small" data-i18n="more.linkS">Вставьте ссылку из сообщения Чингиса — имя и номера комнат подставятся сами.</p>
+    <div class="btns"><button class="btn" id="codeSave" data-i18n="btn.save">Сохранить</button></div>
    </div>
    <p class="small" id="codeMsg"></p>
-   <button class="linkbtn" id="codeReset" hidden>Это не я · сменить</button>
+   <button class="linkbtn" id="codeReset" hidden data-i18n="more.notme">Это не я · сменить</button>
   </div>
   <div class="stack" id="manual">
-   <label class="field"><span>Имя паломника</span><input data-k="f-name" autocomplete="name"></label>
-   <label class="field"><span>Номер в отеле · Медина</span><input data-k="f-room-med" inputmode="numeric"></label>
-   <label class="field"><span>Номер в отеле · Мекка</span><input data-k="f-room-mak" inputmode="numeric"></label>
-   <p class="small">Эти записи хранятся только в этом телефоне.</p>
+   <label class="field"><span data-i18n="more.name">Имя паломника</span><input data-k="f-name" autocomplete="name"></label>
+   <label class="field"><span data-i18n="more.rmed">Номер в отеле · Медина</span><input data-k="f-room-med" inputmode="numeric"></label>
+   <label class="field"><span data-i18n="more.rmak">Номер в отеле · Мекка</span><input data-k="f-room-mak" inputmode="numeric"></label>
+   <p class="small" data-i18n="more.store">Эти записи хранятся только в этом телефоне.</p>
   </div>
  </div>
 <div class="card"><div><div class="kicker">Памятка</div><h3 style="font-size:1.25rem">Документы и деньги</h3></div>
@@ -1263,24 +1350,31 @@ a.chip{ text-decoration:none; }
 </div>
 
  <div class="card">
-  <h3>Настройки</h3>
+  <h3 data-i18n="set.t">Настройки</h3>
   <div class="btns">
-   <button class="btn ghost" data-fs="0">Aa обычный</button>
-   <button class="btn ghost" data-fs="1">Aa крупный</button>
-   <button class="btn ghost" data-fs="2">Aa очень крупный</button>
+   <button class="btn ghost" data-fs="0" data-i18n="set.fs0">Aa обычный</button>
+   <button class="btn ghost" data-fs="1" data-i18n="set.fs1">Aa крупный</button>
+   <button class="btn ghost" data-fs="2" data-i18n="set.fs2">Aa очень крупный</button>
   </div>
   <div class="btns">
-   <button class="btn ghost" data-theme-set="">Как в телефоне</button>
-   <button class="btn ghost" data-theme-set="light">Светлая</button>
-   <button class="btn ghost" data-theme-set="dark">Тёмная</button>
+   <button class="btn ghost" data-theme-set="" data-i18n="set.th0">Как в телефоне</button>
+   <button class="btn ghost" data-theme-set="light" data-i18n="set.th1">Светлая</button>
+   <button class="btn ghost" data-theme-set="dark" data-i18n="set.th2">Тёмная</button>
   </div>
+  <div class="kicker" data-i18n="set.lang">Язык</div>
+  <div class="btns">
+   <button class="btn ghost" data-lang="ru" lang="ru">Русский</button>
+   <button class="btn ghost" data-lang="kk" lang="kk">Қазақша</button>
+   <button class="btn ghost" data-lang="en" lang="en">English</button>
+  </div>
+  <p class="small" id="langNote" data-i18n="lang.note" hidden></p>
  </div>
- <p class="foot">Пусть Аллах примет нашу умру и облегчит путь. · JURT · 2026<br>Версия 2.3 · 22.10.2026</p>
+ <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.4 · 22.10.2026</p>
 </section>
 </main>
 
-<div class="upd" id="updBar"><span style="flex:1">Есть обновление гида</span><button id="updBtn">Обновить</button></div>
-<div class="upd" id="toast"><span style="flex:1" id="toastT"></span><button id="toastBtn">Отменить</button></div>
+<div class="upd" id="updBar"><span style="flex:1" data-i18n="upd.t">Есть обновление гида</span><button id="updBtn" data-i18n="upd.b">Обновить</button></div>
+<div class="upd" id="toast"><span style="flex:1" id="toastT"></span><button id="toastBtn" data-i18n="toast.b">Отменить</button></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
  <symbol id="i-pin" viewBox="0 0 48 48"><path d="M24 44S10 30.5 10 19a14 14 0 0 1 28 0c0 11.5-14 25-14 25z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><circle cx="24" cy="19" r="5" fill="none" stroke="currentColor" stroke-width="2.6"/></symbol>
@@ -1315,13 +1409,14 @@ a.chip{ text-decoration:none; }
  </div>
 </div>
 
+<div id="printArea" aria-hidden="true"></div>
 <nav class="tabs">
  <span class="pill" id="pill"></span>
- <button data-tab="home"><svg><use href="#i-star"/></svg>Главная</button>
- <button data-tab="umra"><svg><use href="#i-tawaf"/></svg>Умра</button>
- <button data-tab="dua"><svg><use href="#i-heart"/></svg>Дуа</button>
- <button data-tab="prog"><svg><use href="#i-plane"/></svg>Путь</button>
- <button data-tab="more"><svg><use href="#i-dome"/></svg>Ещё</button>
+ <button data-tab="home"><svg><use href="#i-star"/></svg><span data-i18n="tab.home">Главная</span></button>
+ <button data-tab="umra"><svg><use href="#i-tawaf"/></svg><span data-i18n="tab.umra">Умра</span></button>
+ <button data-tab="dua"><svg><use href="#i-heart"/></svg><span data-i18n="tab.dua">Дуа</span></button>
+ <button data-tab="prog"><svg><use href="#i-plane"/></svg><span data-i18n="tab.prog">Путь</span></button>
+ <button data-tab="more"><svg><use href="#i-dome"/></svg><span data-i18n="tab.more">Ещё</span></button>
 </nav>
 
 <script>
@@ -1349,6 +1444,11 @@ function applyTheme(t){ if(t) root.setAttribute('data-theme',t); else root.remov
 applyTheme(get('theme',''));
 $$('[data-theme-set]').forEach(function(b){ b.onclick=function(){ applyTheme(b.getAttribute('data-theme-set')); }; });
 
+/* языки интерфейса: русский берём из разметки, казахский и английский — из словаря (содержание пока на русском) */
+var L={"ru": {"my.ph1": "За кого или о чём", "my.ph2": "Слова дуа или подробности — по желанию", "btn.save": "Сохранить", "btn.del": "Удалить", "my.mark": "Отметить", "my.stat": "Сделано {d} из {n}", "my.hamd": " · аль-хамду ли-Лляхь", "z.of": "из {g}", "z.tap": "нажмите", "z.again": "✓ ещё круг", "z.lap": "Кругов: {l} · всего {n}", "z.goal": "Цель {g}", "z.zeroQ": "Начать счёт этого зикра заново?", "z.btn": "Счёт +1", "z.src": "Источник", "z.chk": "Перевод смысла — на сверку", "pr.title": "Мои дуа", "pr.sub": "Умра · 28.10–06.11.2026", "pr.name": "Паломник", "pr.date": "Дата", "pr.foot": "Пусть Аллах примет ваши дуа."}, "kk": {"app.t": "Умра жолсерігі", "app.s": "Умра · JURT · 28.10–⁠06.11.2026", "app.fs": "Қаріп өлшемі", "tab.home": "Басты", "tab.umra": "Умра", "tab.dua": "Дұға", "tab.prog": "Жол", "tab.more": "Тағы", "home.all": "Бүкіл жол →", "home.chat": "Топтың WhatsApp чаты", "tile.duaS": "гид дұғалары, өз тізіміңіз, зікір", "tile.med": "Мәдина", "tile.medS": "сәлем, Рауда, Құба, Ұхұд", "tile.lost": "Адасып қалдым", "tile.lostS": "қоңырау · қайдамын · жиналу орны", "sec.dua": "Дұға", "sec.prog": "Жол", "sec.prog.s": "Аялдаманы басыңыз — күндер ашылады. Бағдарламаны Шыңғыс жаңартып отырады.", "sec.med": "Мәдина", "sec.med.s": "Мәсжид ән-Нәбауи · 29.10–01.11, 04.11", "sec.memo": "Жадынама", "seg.guide": "Гид дұғалары", "seg.mine": "Дұғаларым", "seg.zikr": "Зікір", "dua.sub": "Дұғаны басыңыз — арабша мәтіні, оқылуы және аудармасы ашылады. Дұғаны өз тіліңізде де жасауға болады — бастысы, шын жүректен.", "my.sub": "Кім үшін және не сұрайтыныңызды жазып алыңыз. Харамда ✓ белгілеп отырыңыз — ештеңе ұмытылмайды.", "q.self": "Өзім үшін", "q.par": "Ата-анам үшін", "q.fam": "Отбасым үшін", "q.kids": "Балаларым үшін", "q.umma": "Үмбет үшін", "q.asked": "Мені сұрағандар…", "q.askedQ": "Сұрады: ", "my.ph1": "Кім үшін немесе не туралы", "my.ph2": "Дұға сөздері немесе толығырақ — қаласаңыз", "my.add": "Қосу", "my.empty": "Әзірге бос. Алғашқы дұғаны қосыңыз — мысалы, ата-анаңыз үшін.", "my.store": "Жазбалар тек осы телефонда сақталады.", "my.uncheck": "Барлық ✓ белгілерін алып тастау", "my.print": "Басып шығару / PDF", "my.printH": "Басып шығару терезесі ашылады: қағазға шығарыңыз немесе PDF етіп сақтаңыз. iPhone-да — сол терезедегі «Бөлісу» → «Файлдарға сақтау».", "btn.save": "Сақтау", "btn.del": "Өшіру", "my.mark": "Белгілеу", "my.stat": "{n} дұғаның {d}-і орындалды", "my.hamd": " · әлхамдулиллаһ", "z.sub": "Зікірді таңдап, шеңберді басыңыз. Әр 33 сайын — жарқыл мен діріл (iPhone-да тек жарқыл).", "z.of": "{g}-ден", "z.tap": "басыңыз", "z.again": "✓ тағы бір айналым", "z.lap": "Айналым: {l} · барлығы {n}", "z.goal": "Мақсат {g}", "z.zero": "Нөлдеу", "z.zeroQ": "Бұл зікірді басынан бастаймыз ба?", "z.btn": "Санау +1", "z.fadl": "Фазилеті", "z.store": "Әр зікірдің саны телефонда бөлек сақталады.", "z.src": "Дереккөз", "z.chk": "Мағына аудармасы — тексерілуде", "more.my": "Менің деректерім", "more.link": "Шыңғыстан келген жеке сілтеме", "more.linkPh": "сілтемені немесе кодты қойыңыз", "more.linkS": "Шыңғыстың хабарламасындағы сілтемені қойыңыз — аты-жөніңіз бен бөлме нөмірлері өздігінен толады.", "more.notme": "Бұл мен емеспін · ауыстыру", "more.name": "Аты-жөні", "more.rmed": "Қонақүйдегі бөлме · Мәдина", "more.rmak": "Қонақүйдегі бөлме · Мекке", "more.store": "Бұл жазбалар тек осы телефонда сақталады.", "set.t": "Баптаулар", "set.fs0": "Aa қалыпты", "set.fs1": "Aa ірі", "set.fs2": "Aa өте ірі", "set.th0": "Телефондағыдай", "set.th1": "Ашық", "set.th2": "Қараңғы", "set.lang": "Тіл", "lang.note": "Интерфейс қазақша. Умра қадамдары, дұғалар мен хадистер әзірге орыс тілінде.", "foot.dua": "Алла умрамызды қабыл етіп, жолымызды жеңілдетсін.", "foot.ver": "Нұсқа", "upd.t": "Гидтің жаңа нұсқасы бар", "upd.b": "Жаңарту", "toast.b": "Болдырмау", "pr.title": "Дұғаларым", "pr.sub": "Умра · 28.10–06.11.2026", "pr.name": "Зиярат етуші", "pr.date": "Күні", "pr.foot": "Алла дұғаларыңызды қабыл етсін.", "tile.dua": "Дұға"}, "en": {"app.t": "Pilgrim’s Guide", "app.s": "Umrah · JURT · 28.10–⁠06.11.2026", "app.fs": "Text size", "tab.home": "Home", "tab.umra": "Umrah", "tab.dua": "Duas", "tab.prog": "Trip", "tab.more": "More", "home.all": "Full trip →", "home.chat": "Group chat on WhatsApp", "tile.duaS": "guide’s duas, your list, dhikr", "tile.med": "Madinah", "tile.medS": "salam, Rawdah, Quba, Uhud", "tile.lost": "I’m lost", "tile.lostS": "call · where am I · meeting point", "sec.dua": "Duas", "sec.prog": "Our trip", "sec.prog.s": "Tap a stop to see its days. Chingis keeps the programme up to date.", "sec.med": "Madinah", "sec.med.s": "Masjid an-Nabawi · 29.10–01.11, 04.11", "sec.memo": "Essentials", "seg.guide": "Guide’s duas", "seg.mine": "My duas", "seg.zikr": "Dhikr", "dua.sub": "Tap a dua to see the Arabic, transliteration and translation. You may also make dua in your own language — what matters is the heart.", "my.sub": "Write down who and what to pray for. Tick ✓ in the Haram so nothing is forgotten.", "q.self": "For myself", "q.par": "For my parents", "q.fam": "For my family", "q.kids": "For my children", "q.umma": "For the Ummah", "q.asked": "Asked of me…", "q.askedQ": "Asked by: ", "my.ph1": "Who or what for", "my.ph2": "Words of the dua or details — optional", "my.add": "Add", "my.empty": "Nothing here yet. Add your first dua — for your parents, for example.", "my.store": "Your notes stay on this phone only.", "my.uncheck": "Clear all ticks ✓", "my.print": "Print / PDF", "my.printH": "A print window opens: print it or save as PDF. On iPhone, tap Share in that window → Save to Files.", "btn.save": "Save", "btn.del": "Delete", "my.mark": "Tick", "my.stat": "Done {d} of {n}", "my.hamd": " · alhamdulillah", "z.sub": "Pick a dhikr and tap the circle. Every 33 — a flash and a buzz (on iPhone, the flash only).", "z.of": "of {g}", "z.tap": "tap", "z.again": "✓ one more round", "z.lap": "Rounds: {l} · total {n}", "z.goal": "Goal {g}", "z.zero": "Reset", "z.zeroQ": "Start counting this dhikr again?", "z.btn": "Count +1", "z.fadl": "Virtue", "z.store": "Each dhikr keeps its own count on this phone.", "z.src": "Source", "z.chk": "Translation of meaning — under review", "more.my": "My details", "more.link": "Personal link from Chingis", "more.linkPh": "paste the link or code", "more.linkS": "Paste the link from Chingis’s message — your name and room numbers fill in by themselves.", "more.notme": "Not me · change", "more.name": "Your name", "more.rmed": "Hotel room · Madinah", "more.rmak": "Hotel room · Makkah", "more.store": "These notes stay on this phone only.", "set.t": "Settings", "set.fs0": "Aa normal", "set.fs1": "Aa large", "set.fs2": "Aa extra large", "set.th0": "Like my phone", "set.th1": "Light", "set.th2": "Dark", "set.lang": "Language", "lang.note": "The interface is in English. Umrah steps, duas and hadith are in Russian for now.", "foot.dua": "May Allah accept our umrah and make the journey easy.", "foot.ver": "Version", "upd.t": "A guide update is available", "upd.b": "Update", "toast.b": "Undo", "pr.title": "My duas", "pr.sub": "Umrah · 28.10–06.11.2026", "pr.name": "Pilgrim", "pr.date": "Date", "pr.foot": "May Allah accept your duas.", "tile.dua": "Duas"}};
+var LANG=get('lang','ru'); if(!L[LANG]) LANG='ru';
+function t(k,o){ var s=(L[LANG][k]!=null)?L[LANG][k]:(L.ru[k]!=null?L.ru[k]:k); if(o) for(var x in o) s=s.split('{'+x+'}').join(o[x]); return s; }
+
 /* вкладки */
 var TABS=['home','umra','dua','prog','more'];
 var curTab=null, scrollMem={};
@@ -1359,7 +1459,7 @@ function show(tab, anchor, restore){
   $$('.view').forEach(function(v){ v.classList.toggle('on', v.id==='v-'+tab); });
   $$('nav.tabs button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===tab); });
   $('#pill').style.transform='translateX('+(TABS.indexOf(tab)*100)+'%)';
-  set('tab',tab);
+  set('tab',tab); root.classList.remove('pm');
   if(anchor){ var a=document.getElementById(anchor); if(a) setTimeout(function(){ a.scrollIntoView({behavior:'smooth'}); },50); } else window.scrollTo(0, back ? (scrollMem[tab]||0) : 0);
   reveal();
 }
@@ -1463,11 +1563,11 @@ if(!get('mydua-mig',false)){ var old=String(get('in-mydua','')||'').trim(); if(o
 function saveMy(){ set('mydua',MY); }
 function idxMy(id){ for(var i=0;i<MY.length;i++) if(MY[i].id===id) return i; return -1; }
 function mineStat(){ var n=MY.length, d=0; MY.forEach(function(m){ if(m.d) d++; });
-  $('#myEmpty').hidden=n>0; $('#myStat').hidden=!n; $('#myStat').textContent='Сделано '+d+' из '+n+(n&&d===n?' · аль-хамду ли-Лляхь':'');
+  $('#myEmpty').hidden=n>0; $('#myStat').hidden=!n; $('#myStat').textContent=t('my.stat',{d:d,n:n})+(n&&d===n?t('my.hamd'):''); $('#myPrintBox').hidden=!n;
   $('#myCount').textContent=n-d?String(n-d):''; $('#myUncheck').hidden=!d; }
 function renderMine(){ $('#myList').innerHTML=MY.map(function(m){
-    if(m.id===editId) return '<div class="mine edit" data-id="'+m.id+'"><input class="inp" value="'+esc(m.t)+'" placeholder="За кого или о чём" enterkeyhint="done"><textarea class="sm" placeholder="Слова дуа или подробности — по желанию">'+esc(m.x)+'</textarea><div class="btns"><button class="btn" data-a="save">Сохранить</button><button class="btn ghost" data-a="del">Удалить</button></div></div>';
-    return '<div class="mine'+(m.d?' done':'')+'" data-id="'+m.id+'"><button class="mchk" data-a="chk" aria-label="Отметить"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="mb" data-a="edit"><b>'+esc(m.t)+'</b>'+(m.x?'<span>'+esc(m.x)+'</span>':'')+'</button></div>';
+    if(m.id===editId) return '<div class="mine edit" data-id="'+m.id+'"><input class="inp" value="'+esc(m.t)+'" placeholder="'+esc(t('my.ph1'))+'" enterkeyhint="done"><textarea class="sm" placeholder="'+esc(t('my.ph2'))+'">'+esc(m.x)+'</textarea><div class="btns"><button class="btn" data-a="save">'+t('btn.save')+'</button><button class="btn ghost" data-a="del">'+t('btn.del')+'</button></div></div>';
+    return '<div class="mine'+(m.d?' done':'')+'" data-id="'+m.id+'"><button class="mchk" data-a="chk" aria-label="'+t('my.mark')+'"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="mb" data-a="edit"><b>'+esc(m.t)+'</b>'+(m.x?'<span>'+esc(m.x)+'</span>':'')+'</button></div>';
   }).join(''); mineStat(); }
 function toast(text, fn){ var t=$('#toast'); $('#toastT').textContent=text; t.classList.add('on'); clearTimeout(toastT);
   $('#toastBtn').onclick=function(){ t.classList.remove('on'); clearTimeout(toastT); fn(); };
@@ -1487,9 +1587,67 @@ $('#myList').addEventListener('click',function(e){ var b=e.target.closest('[data
   else if(a==='del'){ editId=null; removeMy(i); } });
 $('#myList').addEventListener('keydown',function(e){ if(e.key==='Enter' && e.target.classList.contains('inp')){ e.preventDefault(); var s=$('[data-a="save"]',e.target.closest('.mine')); if(s) s.click(); } });
 $('#myUncheck').onclick=function(){ if(confirm('Снять все отметки ✓ в «Моих дуа»?')){ MY.forEach(function(m){ m.d=0; }); saveMy(); renderMine(); } };
-function segTo(w){ w=w==='mine'?'mine':'guide'; set('duaSeg',w); $('#duaSeg').classList.toggle('r',w==='mine'); $$('#duaSeg button').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-dseg')===w); }); $('#duaGuide').hidden=w!=='guide'; $('#duaMine').hidden=w!=='mine'; }
+function segTo(w){ var W=['guide','mine','zikr']; if(W.indexOf(w)<0) w='guide'; set('duaSeg',w); $('#duaSeg').setAttribute('data-i',W.indexOf(w)); $$('#duaSeg button').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-dseg')===w); }); $('#duaGuide').hidden=w!=='guide'; $('#duaMine').hidden=w!=='mine'; $('#duaZikr').hidden=w!=='zikr'; if(w!=='mine') root.classList.remove('pm'); }
 $$('#duaSeg button').forEach(function(b){ b.onclick=function(){ buzz(8); segTo(b.getAttribute('data-dseg')); }; });
 segTo(get('duaSeg','guide')); renderMine();
+
+/* ---------- зикр: цель 33/100, счёт у каждого зикра свой; отдача вибрацией и цветом кольца (на iPhone вибрации нет) ---------- */
+var ZK=[{"id": "tasbih", "n": {"ru": "Тасбих 33·33·33", "kk": "Тәсбих 33·33·33", "en": "Tasbih 33·33·33"}, "goal": 100, "fix": 100, "ph": [{"ar": "سُبْحَانَ اللَّهِ", "tr": "Субха́на-Лла́х", "ru": "Пречист Аллах"}, {"ar": "الْحَمْدُ لِلَّهِ", "tr": "Аль-хамду ли-Лля́х", "ru": "Хвала Аллаху"}, {"ar": "اللَّهُ أَكْبَرُ", "tr": "Алла́ху а́кбар", "ru": "Аллах велик"}, {"ar": "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ", "tr": "Ля иля́ха и́лля-Лла́ху вахдаху ля шари́ка лях, ляхуль-мульку ва ляхуль-хамду, ва ху́ва ‘аля ку́лли шай’ин кади́р", "ru": "Нет божества, кроме Аллаха, Единого, нет у Него сотоварища. Ему — власть и хвала, и Он над всякой вещью мощен. (сотый раз)"}], "h": "Кто после каждой молитвы скажет 33 раза «Субхана-Ллах», 33 раза «Аль-хамду ли-Ллях», 33 раза «Аллаху акбар», а сотым — «Ля иляха илля-Ллаху вахдаху ля шарика лях…», тому простятся грехи, даже если их столько, сколько морской пены.", "src": ["Муслим, № 597"]}, {"id": "tahlil", "n": {"ru": "Тахлиль", "kk": "Таһлил", "en": "Tahlil"}, "goal": 100, "ar": "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ", "tr": "Ля иля́ха и́лля-Лла́ху вахдаху ля шари́ка лях, ляхуль-мульку ва ляхуль-хамду, ва ху́ва ‘аля ку́лли шай’ин кади́р", "ru": "Нет божества, кроме Аллаха, Единого, нет у Него сотоварища. Ему — власть и хвала, и Он над всякой вещью мощен.", "h": "Кто скажет это сто раз за день, получит награду, как за освобождение десяти рабов; ему запишут сто добрых дел, сотрут сто грехов, и до вечера он будет защищён от шайтана.", "src": ["аль-Бухари, № 6403", "Муслим, № 2691"]}, {"id": "bihamdihi", "n": {"ru": "Субхана-Ллахи ва би-хамдих", "kk": "Субханаллаһи уа бихамдиһи", "en": "SubhanAllahi wa bihamdihi"}, "goal": 100, "ar": "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ", "tr": "Субха́на-Лла́хи ва би-хамдих", "ru": "Пречист Аллах, и хвала Ему", "h": "Кто скажет «Субхана-Ллахи ва би-хамдих» сто раз за день, тому простятся грехи, даже если их столько, сколько морской пены.", "src": ["аль-Бухари, № 6405"]}, {"id": "azim", "n": {"ru": "Две лёгкие фразы", "kk": "Екі жеңіл сөз", "en": "Two light phrases"}, "goal": 33, "ar": "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ", "tr": "Субха́на-Лла́хи ва би-хамдихи, субха́на-Лла́хиль-‘Азы́м", "ru": "Пречист Аллах, и хвала Ему; пречист Аллах Великий", "h": "Два слова лёгкие для языка, тяжёлые на весах и любимые Милостивым: «Субхана-Ллахи ва би-хамдихи, субхана-Ллахиль-‘Азым».", "src": ["аль-Бухари, № 6406"]}, {"id": "istighfar", "n": {"ru": "Истигфар", "kk": "Истиғфар", "en": "Istighfar"}, "goal": 100, "ar": "أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ", "tr": "Астагфиру-Лла́ха ва ату́бу иляйх", "ru": "Прошу прощения у Аллаха и каюсь перед Ним", "h": "Пророк ﷺ сказал: «Клянусь Аллахом, я прошу у Аллаха прощения и каюсь перед Ним больше семидесяти раз в день». И ещё: «О люди, кайтесь перед Аллахом — я каюсь перед Ним сто раз в день».", "src": ["аль-Бухари, № 6307", "Муслим, № 2702"]}, {"id": "salawat", "n": {"ru": "Салават", "kk": "Салауат", "en": "Salawat"}, "goal": 100, "ar": "اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَعَلَىٰ آلِ مُحَمَّدٍ", "tr": "Алла́хумма са́лли ‘аля Муха́ммадин ва ‘аля а́ли Муха́ммад", "ru": "О Аллах, благослови Мухаммада и семью Мухаммада", "h": "Пророк ﷺ сказал: «Кто благословит меня один раз, того Аллах благословит десять раз».", "src": ["Муслим, № 408"]}, {"id": "hawqala", "n": {"ru": "Ля хауля…", "kk": "Лә хаула…", "en": "La hawla…"}, "goal": 33, "ar": "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ", "tr": "Ля ха́уля ва ля куввата и́лля би-Лля́х", "ru": "Нет силы и мощи ни у кого, кроме Аллаха", "h": "Пророк ﷺ сказал Абу Мусе: «Не указать ли тебе на одно из сокровищ Рая? Это „Ля хауля ва ля куввата илля би-Ллях“».", "src": ["аль-Бухари, № 6384", "Муслим, № 2704"]}];
+var zId=get('zk-cur',ZK[0].id), ZC=2*Math.PI*58, zTimer=null;
+function zz(){ for(var i=0;i<ZK.length;i++) if(ZK[i].id===zId) return ZK[i]; return ZK[0]; }
+function zGoal(z){ return z.fix||Number(get('zk-goal-'+z.id,z.goal))||z.goal; }
+function zPhrase(z,n){ if(!z.ph) return z; var k=n%100+1; return z.ph[k<=33?0:k<=66?1:k<=99?2:3]; }
+function zChips(){ $('#zChips').innerHTML=ZK.map(function(z){ return '<button data-z="'+z.id+'">'+esc(z.n[LANG]||z.n.ru)+'</button>'; }).join(''); zRender(); }
+function zRender(){ var z=zz(), g=zGoal(z), n=Number(get('zk-'+z.id,0))||0, full=n>0&&n%g===0, cur=full?g:n%g, p=zPhrase(z,n);
+  $$('#zChips button').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-z')===z.id); });
+  $('#zAr').textContent=p.ar; $('#zTr').textContent=p.tr; $('#zRu').textContent=p.ru;
+  $('#zPh').hidden=!z.ph;
+  if(z.ph){ var k=full?100:n%100; $$('#zPh span').forEach(function(s,i){ var a=[0,33,66,99][i], b=[33,66,99,100][i]; s.classList.toggle('ok',k>=b); s.classList.toggle('on',k>=a&&k<b); }); }
+  $('#zFg').style.strokeDashoffset=ZC*(1-cur/g);
+  $('#zN').textContent=cur; $('#zLab').textContent=t('z.of',{g:g}); $('#zTap').textContent=full?t('z.again'):t('z.tap');
+  $('#zInfo').textContent=n>=g?t('z.lap',{l:Math.floor(n/g),n:n}):'';
+  $('#zGoal').textContent=t('z.goal',{g:g}); $('#zGoal').disabled=!!z.fix;
+  $('#zHad').textContent=z.h;
+  $('#zSrc').innerHTML='<span>'+esc(t('z.src'))+': '+z.src.map(esc).join('; ')+'</span><span class="zchk">'+esc(t('z.chk'))+'</span>';
+  $('#zBtn').setAttribute('aria-label',t('z.btn')); }
+function zFlash(c,txt){ var b=$('#zBtn'); clearTimeout(zTimer); b.classList.remove('hit','win'); void b.offsetWidth; $('#zMark').textContent=txt; b.classList.add(c);
+  zTimer=setTimeout(function(){ b.classList.remove('hit','win'); }, c==='win'?1800:1100); }
+$('#zChips').addEventListener('click',function(e){ var b=e.target.closest('[data-z]'); if(!b) return; buzz(8); zId=b.getAttribute('data-z'); set('zk-cur',zId);
+  clearTimeout(zTimer); $('#zBtn').classList.remove('hit','win'); zRender(); });
+$('#zBtn').addEventListener('click',function(e){ var z=zz(), g=zGoal(z), n=(Number(get('zk-'+z.id,0))||0)+1; set('zk-'+z.id,n); wake();
+  var c=$('.core',this), r=c.getBoundingClientRect(), k=document.createElement('span'), s=r.width/3; k.className='rip';
+  k.style.width=k.style.height=s+'px'; k.style.left=((e.clientX||r.left+r.width/2)-r.left-s/2)+'px'; k.style.top=((e.clientY||r.top+r.height/2)-r.top-s/2)+'px';
+  c.appendChild(k); setTimeout(function(){ k.remove(); },650);
+  var nn=$('#zN'); nn.classList.remove('bump'); void nn.offsetWidth; nn.classList.add('bump');
+  zRender();
+  if(n%g===0){ zFlash('win',g+' ✓'); buzz([80,50,80,50,220]); burst(this); }
+  else if(n%33===0){ zFlash('hit',(n%g)+' ✓'); buzz([60,40,60]); }
+  else buzz(12); });
+$('#zMinus').onclick=function(){ var z=zz(), n=Number(get('zk-'+z.id,0))||0; if(n>0){ set('zk-'+z.id,n-1); zRender(); } };
+$('#zZero').onclick=function(){ var z=zz(); if(confirm(t('z.zeroQ'))){ set('zk-'+z.id,0); zRender(); } };
+$('#zGoal').onclick=function(){ var z=zz(); if(z.fix) return; set('zk-goal-'+z.id, zGoal(z)===33?100:33); buzz(8); zRender(); };
+
+/* ---------- мои дуа → печать / PDF в фирменном стиле: на время печати html.pm, видно только #printArea ---------- */
+function buildPrint(){ var d=new Date(), nm=lostName();
+  $('#printArea').innerHTML='<div class="pa-h"><img src="logo-white.svg" alt="JURT"><div><b>'+esc(t('pr.title'))+'</b><span>'+esc(t('pr.sub'))+'</span></div></div>'
+   +'<div class="pa-m"><span>'+(nm?esc(t('pr.name'))+': <b>'+esc(nm)+'</b>':'')+'</span><span>'+esc(t('pr.date'))+': <b>'+pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()+'</b></span></div>'
+   +'<ol class="pa-l">'+MY.map(function(m,i){ return '<li'+(m.d?' class="d"':'')+'><i>'+(m.d?'✓':'')+'</i><div><b><em>'+(i+1)+'.</em>'+esc(m.t)+'</b>'+(m.x?'<span>'+esc(m.x)+'</span>':'')+'</div></li>'; }).join('')+'</ol>'
+   +'<div class="pa-f"><span>'+esc(t('pr.foot'))+'</span><span>JURT · umra.jurt.kz</span></div>'; }
+function pmOff(){ root.classList.remove('pm'); }
+$('#myPrint').onclick=function(){ if(!MY.length) return; buzz(8); buildPrint(); root.classList.add('pm'); setTimeout(function(){ try{ window.print(); }catch(e){ pmOff(); } },80); };
+window.addEventListener('beforeprint',function(){ if(curTab==='dua' && !$('#duaMine').hidden && MY.length){ buildPrint(); root.classList.add('pm'); } });
+window.addEventListener('afterprint',pmOff);
+if(window.matchMedia){ var mqP=window.matchMedia('print'), mqF=function(e){ if(!e.matches) pmOff(); }; if(mqP.addEventListener) mqP.addEventListener('change',mqF); else if(mqP.addListener) mqP.addListener(mqF); }
+
+/* ---------- язык интерфейса ---------- */
+var I18A={'data-i18n-ph':'placeholder','data-i18n-al':'aria-label','data-i18n-q':'data-q'};
+function applyLang(l){ if(!L[l]) l='ru'; LANG=l; set('lang',l); root.lang=l;
+  $$('[data-i18n]').forEach(function(el){ var k=el.getAttribute('data-i18n'); if(L.ru[k]==null) L.ru[k]=el.innerHTML; el.innerHTML=t(k); });
+  Object.keys(I18A).forEach(function(a){ $$('['+a+']').forEach(function(el){ var k=el.getAttribute(a), at=I18A[a]; if(L.ru[k]==null) L.ru[k]=el.getAttribute(at)||''; el.setAttribute(at,t(k)); }); });
+  $$('[data-lang]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-lang')===l); });
+  $('#langNote').hidden=l==='ru'; zChips(); renderMine(); }
+$$('[data-lang]').forEach(function(b){ b.onclick=function(){ buzz(8); applyLang(b.getAttribute('data-lang')); }; });
+applyLang(LANG);
 
 /* ---------- данные из таблицы Чингиса ---------- */
 function pad(n){ return ('0'+n).slice(-2); }
