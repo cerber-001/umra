@@ -1,9 +1,9 @@
 /* Гид паломника JURT — офлайн-кэш. Версия меняется автоматически при каждой сборке. */
-var CACHE = 'jurt-umra-376a417593';
+var CACHE = 'jurt-umra-e87366a641';
 var ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'amiri-400.woff2',
   'exo2-regular.woff2', 'exo2-semibold.woff2', 'exo2-bold.woff2', 'logo-white.svg', 'umra.ics',
   'icon-mark.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png',
-  'haram3d/', 'haram3d/bg.webp', 'haram3d/haram.glb', 'haram3d/haram_meta.json', 'haram3d/index.html', 'haram3d/poster.webp', 'haram3d/vendor/three/addons/controls/OrbitControls.js', 'haram3d/vendor/three/addons/environments/RoomEnvironment.js', 'haram3d/vendor/three/addons/loaders/GLTFLoader.js', 'haram3d/vendor/three/addons/utils/BufferGeometryUtils.js', 'haram3d/vendor/three/three.module.min.js'];  // 3D-сцена Харама — тоже офлайн
+  'haram3d/', 'haram3d/bg.webp', 'haram3d/haram.glb', 'haram3d/haram_city.glb', 'haram3d/vendor/draco/draco_decoder.wasm', 'haram3d/vendor/draco/draco_wasm_wrapper.js', 'haram3d/vendor/three/addons/loaders/DRACOLoader.js', 'haram3d/haram_meta.json', 'haram3d/index.html', 'haram3d/poster.webp', 'haram3d/vendor/three/addons/controls/OrbitControls.js', 'haram3d/vendor/three/addons/environments/RoomEnvironment.js', 'haram3d/vendor/three/addons/loaders/GLTFLoader.js', 'haram3d/vendor/three/addons/utils/BufferGeometryUtils.js', 'haram3d/vendor/three/three.module.min.js'];  // 3D-сцена Харама — тоже офлайн
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
