@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#005A5C">
+<title>Админка гида JURT</title>
+<link rel="icon" href="../icon-192.png" type="image/png">
+<style>
+@font-face{ font-family:"Exo 2"; src:url("../exo2-regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face{ font-family:"Exo 2"; src:url("../exo2-semibold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face{ font-family:"Exo 2"; src:url("../exo2-bold.woff2") format("woff2"); font-weight:700 900; font-display:swap; }
+:root{
+  --teal:#005A5C; --teal-d:#004C4E; --orange:#F07A1E; --orange-t:#A3500F;
+  --bg:#F4EDE1; --card:#FFFDF9; --ink:#00292C; --muted:#4F6466; --line:#E2D8C8;
+  --sand:#FBF3E6; --mint:#E4EFEC; --red:#B3261E; --redbg:#FCEDEB; --chbg:#FFF4EA; --done:#1E8E5A; --wa:#1E8E5A;
+  --shadow:0 1px 2px rgba(10,40,40,.06), 0 6px 20px rgba(10,40,40,.06);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --teal:#1A8F8D; --teal-d:#8FD8D5; --orange:#F38B3A; --orange-t:#F5A866;
+    --bg:#001A1C; --card:#00292C; --ink:#F4EDE1; --muted:#A3B8B6; --line:#0F4245;
+    --sand:#2A2117; --mint:#063A3B; --red:#FF8A80; --redbg:#3A1C1A; --chbg:#3D2A14; --done:#4CC38A; --wa:#1E8E5A;
+    --shadow:0 1px 0 rgba(255,255,255,.03); color-scheme:dark;
+  }
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+[hidden]{ display:none !important; }
+html{ font-size:17px; -webkit-text-size-adjust:100%; }
+body{ font-family:"Exo 2", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.45; min-height:100vh; padding-bottom:4rem; }
+header{ background:#00292C; color:#F4EDE1; padding:calc(env(safe-area-inset-top) + .8rem) 16px .8rem; }
+header .row{ max-width:760px; margin:0 auto; display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
+header img{ height:26px; }
+header h1{ font-size:1.05rem; font-weight:700; flex:1; min-width:9rem; }
+header h1 small{ display:block; font-weight:400; font-size:.78rem; color:#A3B8B6; }
+header select{ font:inherit; font-size:.9rem; font-weight:600; background:#004C4E; color:#fff; border:1px solid #0A7275;
+  border-radius:10px; padding:.45rem .6rem; max-width:100%; }
+nav{ position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); }
+nav .row{ max-width:760px; margin:0 auto; display:flex; gap:.3rem; overflow-x:auto; padding:.5rem 16px; scrollbar-width:none; }
+nav button{ font:inherit; font-size:.9rem; font-weight:600; border:0; background:none; color:var(--muted); padding:.45rem .8rem;
+  border-radius:999px; white-space:nowrap; cursor:pointer; }
+nav button.on{ background:var(--teal); color:#fff; }
+main{ max-width:760px; margin:0 auto; padding:1rem 16px; }
+.card{ background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:1rem; margin-bottom:1rem; }
+h2{ font-size:1.15rem; margin-bottom:.3rem; }
+h3{ font-size:.95rem; margin:.2rem 0 .4rem; }
+p.small, .small{ font-size:.84rem; color:var(--muted); }
+p + p{ margin-top:.4rem; }
+.btns{ display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.8rem; }
+.btn{ font:inherit; font-weight:700; font-size:.92rem; border:0; border-radius:12px; padding:.65rem 1rem; cursor:pointer;
+  background:var(--teal); color:#fff; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; }
+.btn.ghost{ background:var(--mint); color:var(--teal-d); }
+.btn.orange{ background:var(--orange); color:#fff; }
+.btn.wa{ background:var(--wa); }
+.btn.red{ background:var(--redbg); color:var(--red); }
+.btn.sm{ font-size:.8rem; padding:.42rem .7rem; border-radius:10px; }
+.btn:disabled{ opacity:.5; cursor:default; }
+textarea, input{ font:inherit; font-size:16px; color:var(--ink); background:var(--sand); border:1px solid var(--line); border-radius:12px;
+  padding:.6rem .7rem; width:100%; }
+textarea{ min-height:7.5rem; resize:vertical; }
+input:focus, textarea:focus{ outline:2px solid var(--teal); outline-offset:1px; }
+label.f{ display:block; margin-top:.7rem; }
+label.f > span{ display:block; font-size:.82rem; font-weight:600; color:var(--muted); margin-bottom:.25rem; }
+.ann{ display:flex; gap:.7rem; background:var(--sand); border:1px solid var(--line); border-left:4px solid var(--orange);
+  border-radius:12px; padding:.75rem .9rem; white-space:pre-wrap; }
+.ann small{ display:block; color:var(--muted); font-size:.78rem; margin-top:.3rem; }
+.empty{ color:var(--muted); font-size:.9rem; font-style:italic; }
+.hist{ border-top:1px solid var(--line); padding:.6rem 0; display:flex; gap:.6rem; align-items:flex-start; }
+.hist div{ flex:1; white-space:pre-wrap; font-size:.9rem; }
+.hist small{ display:block; color:var(--muted); font-size:.76rem; }
+.tag{ display:inline-block; font-size:.7rem; font-weight:700; border-radius:6px; padding:.05rem .4rem; margin-left:.3rem;
+  background:var(--mint); color:var(--teal-d); vertical-align:middle; }
+.tag.off{ background:var(--redbg); color:var(--red); }
+.people{ width:100%; border-collapse:collapse; }
+.people td, .people th{ padding:.45rem .3rem; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; }
+.people th{ font-size:.75rem; color:var(--muted); font-weight:600; }
+.people td.n b{ display:block; font-size:.92rem; }
+.people td.n span{ font-size:.75rem; color:var(--muted); }
+.people input{ width:5.2rem; padding:.45rem .5rem; text-align:center; }
+.people input.ch{ border-color:var(--orange); background:var(--chbg); }
+.people tr.off{ opacity:.45; }
+.mates{ margin-top:.8rem; font-size:.88rem; }
+.mates b{ color:var(--teal-d); }
+.mates li{ margin:.2rem 0 .2rem 1.1rem; }
+.warn{ color:var(--orange-t); }
+.lrow{ border-top:1px solid var(--line); padding:.6rem 0; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+.lrow b{ flex:1; min-width:9rem; }
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:0 .7rem; }
+@media (max-width:520px){ .grid2{ grid-template-columns:1fr; } }
+#toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 1rem); transform:translateX(-50%); max-width:calc(100% - 32px);
+  background:#00292C; color:#F4EDE1; border-radius:12px; padding:.7rem 1rem; font-size:.9rem; box-shadow:0 6px 24px rgba(0,0,0,.25); z-index:20; }
+#toast.err{ background:var(--red); color:#fff; }
+.load{ text-align:center; color:var(--muted); padding:2rem 0; }
+</style>
+</head>
+<body>
+<header><div class="row">
+  <img src="../logo-white.svg" alt="JURT">
+  <h1>Админка гида<small id="upd">umra.jurt.kz</small></h1>
+  <select id="grp" aria-label="Группа" hidden></select>
+</div></header>
+<nav id="nav" hidden><div class="row">
+  <button data-t="ann" class="on">Объявление</button>
+  <button data-t="rooms">Комнаты</button>
+  <button data-t="links">Ссылки</button>
+  <button data-t="group">Группа</button>
+  <button data-t="export">Таблица</button>
+</div></nav>
+<main>
+  <div class="card" id="nokey" hidden>
+    <h2>Нужна ссылка с ключом</h2>
+    <p>Откройте админку по ссылке с ключом: Google Таблица группы → меню <b>«🕋 Гид паломника» → «Открыть админку»</b>.
+      Один раз открыли — телефон запомнит ключ.</p>
+    <p class="small">Ссылку с ключом никому не пересылайте: по ней можно менять данные гида.</p>
+  </div>
+  <div class="card" id="noapi" hidden>
+    <h2>Админка ещё не подключена</h2>
+    <p>Сервер (Apps Script) не развёрнут — эта страница собрана без его адреса.</p>
+  </div>
+  <div class="load" id="loading" hidden>Загружаю данные из таблицы…</div>
+
+  <!-- объявление -->
+  <section data-p="ann" hidden>
+    <div class="card">
+      <h2>Объявление для группы</h2>
+      <p class="small">Паломники увидят его на главной странице гида, когда откроют его с интернетом (обновляется примерно за минуту).</p>
+      <div id="annNow" style="margin-top:.8rem"></div>
+      <label class="f"><span>Новый текст</span><textarea id="annText" maxlength="1500" placeholder="Например: Завтра выезд на Кубу в 08:30 от входа в отель. Взять воду и паспорт."></textarea></label>
+      <div class="btns">
+        <button class="btn orange" id="annPub">Опубликовать</button>
+        <button class="btn red" id="annOff" hidden>Убрать объявление</button>
+        <a class="btn wa" id="annWa" target="_blank" rel="noopener" hidden>Отправить в WhatsApp</a>
+      </div>
+      <p class="small" style="margin-top:.5rem">«Отправить в WhatsApp» откроет WhatsApp с готовым текстом — выберете чат группы и нажмёте «Отправить» сами.</p>
+    </div>
+    <div class="card"><h3>Прошлые объявления</h3><div id="annHist"></div></div>
+  </section>
+
+  <!-- комнаты -->
+  <section data-p="rooms" hidden>
+    <div class="card">
+      <h2>Номера комнат</h2>
+      <p class="small">Впишите номера — гид сам покажет каждому его комнату и соседей с кнопками «Звонок» и WhatsApp. Соседи = у кого один номер.</p>
+      <table class="people" style="margin-top:.6rem"><thead><tr><th>Паломник</th><th>Медина</th><th>Мекка</th></tr></thead><tbody id="roomRows"></tbody></table>
+      <div class="btns"><button class="btn orange" id="roomSave" disabled>Сохранить</button><button class="btn ghost" id="roomUndo" hidden>Отменить правки</button></div>
+      <div class="mates" id="roomMates"></div>
+    </div>
+  </section>
+
+  <!-- ссылки -->
+  <section data-p="links" hidden>
+    <div class="card">
+      <h2>Личные ссылки</h2>
+      <p class="small">У каждого паломника своя ссылка: по ней гид знает имя, комнаты и соседей. «WhatsApp» откроет чат с человеком и готовым текстом — останется нажать «Отправить».</p>
+      <div id="linkRows" style="margin-top:.6rem"></div>
+    </div>
+  </section>
+
+  <!-- группа -->
+  <section data-p="group" hidden>
+    <div class="card">
+      <h2 id="gTitle">Группа</h2>
+      <p class="small" id="gNote">Эти данные видят паломники этой группы. Ссылку на чат видят только те, кто открыл гид по личной ссылке.</p>
+      <label class="f" id="gCodeBox" hidden><span>Код группы (латиница, например UMRA-0010)</span><input id="g-code" autocapitalize="characters"></label>
+      <label class="f"><span>Название</span><input id="g-name"></label>
+      <label class="f"><span>Ссылка на чат группы в WhatsApp</span><input id="g-chat" inputmode="url" placeholder="https://chat.whatsapp.com/…"></label>
+      <div class="grid2">
+        <label class="f"><span>Вылет</span><input id="g-dep" placeholder="ДД.ММ.ГГГГ"></label>
+        <label class="f"><span>Возвращение</span><input id="g-ret" placeholder="ДД.ММ.ГГГГ"></label>
+        <label class="f"><span>Отель в Медине</span><input id="g-medina"></label>
+        <label class="f"><span>Отель в Мекке</span><input id="g-mecca"></label>
+      </div>
+      <label class="f"><span>Рейсы</span><input id="g-flights"></label>
+      <label class="f"><span>Таблица группы (ссылка; пусто — штаб-таблица)</span><input id="g-sheet" inputmode="url"></label>
+      <div class="btns">
+        <button class="btn orange" id="gSave">Сохранить</button>
+        <button class="btn ghost" id="gNew">+ Новая группа</button>
+        <button class="btn ghost" id="gCancel" hidden>Отмена</button>
+      </div>
+      <p class="small" style="margin-top:.6rem">Пока гид берёт из этих данных чат группы; даты, отели и рейсы в самом гиде начнут подтягиваться отсюда со следующих групп.</p>
+    </div>
+  </section>
+
+  <!-- экспорт -->
+  <section data-p="export" hidden>
+    <div class="card">
+      <h2>Таблица и выгрузка</h2>
+      <p class="small">Всё, что вы вносите здесь, сразу записывается в Google Таблицу — она же резервная копия. Паспорта и оплаты в админке не показываются.</p>
+      <div class="btns">
+        <a class="btn" id="xSheet" target="_blank" rel="noopener">Открыть таблицу группы</a>
+        <a class="btn ghost" id="xXlsx" target="_blank" rel="noopener">Скачать Excel (.xlsx)</a>
+        <a class="btn ghost" id="xHub" target="_blank" rel="noopener">Штаб: группы и объявления</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Этот телефон</h3>
+      <p class="small">Ключ админки хранится только в этом браузере.</p>
+      <div class="btns"><button class="btn red" id="forget">Забыть ключ на этом устройстве</button></div>
+    </div>
+  </section>
+</main>
+<div id="toast" hidden></div>
+<script>
+var API="https://script.google.com/macros/s/AKfycbx5I0M0ZfnLQalWMZ34qYKOz280DJBQQ5lZumsZtHtqpcAAmrMlDACfmzS0eFVBGyTD/exec";
+var KS='jurt-admin-key', GS='jurt-admin-group';
+var KEY='', G='', S=null, TAB='ann', busy=false, newGroup=false;
+function $(s){ return document.querySelector(s); }
+function $$(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function ls(k,v){ try{ if(v===undefined) return localStorage.getItem(k)||''; if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){ return ''; } }
+var toastT=0;
+function toast(msg,err){ var t=$('#toast'); t.textContent=msg; t.className=err?'err':''; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(function(){ t.hidden=true; }, err?6000:3000); }
+
+function call(a, extra){
+  var body={k:KEY, a:a, g:G}; for(var x in extra) body[x]=extra[x];
+  return fetch(API,{method:'POST', body:JSON.stringify(body)})  /* text/plain — без предварительного CORS-запроса */
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(j && j.error==='key'){ ls(KS,null); KEY=''; showKey(); throw new Error('Ключ не подошёл'); }
+      if(!j || !j.ok) throw new Error((j&&j.error)||'Сервер не ответил');
+      return j;
+    });
+}
+function act(btn, a, extra, okMsg){
+  if(busy) return; busy=true; if(btn) btn.disabled=true;
+  return call(a, extra).then(function(j){ S=j; G=j.g; ls(GS,G); render(); if(okMsg) toast(typeof okMsg==='function'?okMsg(j):okMsg); })
+    .catch(function(e){ toast(e.message||'Ошибка', true); })
+    .then(function(){ busy=false; if(btn) btn.disabled=false; if(TAB==='rooms') roomDirty(); });
+}
+function showKey(){ $('#nokey').hidden=false; $('#nav').hidden=true; $('#grp').hidden=true; $$('section').forEach(function(s){ s.hidden=true; }); }
+
+/* ---------- отрисовка ---------- */
+function render(){
+  if(!S) return;
+  $('#nav').hidden=false;
+  $('#upd').textContent='данные на '+S.updated;
+  var sel=$('#grp');
+  sel.innerHTML=S.groups.map(function(g){ return '<option value="'+esc(g.code)+'"'+(g.code===S.g?' selected':'')+'>'+esc(g.code+(g.name?' · '+g.name:''))+(g.on?'':' (скрыта)')+'</option>'; }).join('');
+  sel.hidden=false;
+  renderAnn(); renderRooms(); renderLinks(); renderGroup(); renderExport();
+  tab(TAB);
+}
+function grp(){ for(var i=0;i<S.groups.length;i++) if(S.groups[i].code===S.g) return S.groups[i]; return {}; }
+function tab(t){ TAB=t; $$('nav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-t')===t); });
+  $$('section').forEach(function(s){ s.hidden=s.getAttribute('data-p')!==t; }); }
+
+function renderAnn(){
+  var a=S.ann;
+  $('#annNow').innerHTML = a ? '<div class="ann"><div>📣</div><div><b>Сейчас в гиде:</b><br>'+esc(a.text)+'<small>'+esc(a.at)+' · Чингис</small></div></div>'
+                             : '<p class="empty">Сейчас объявления нет.</p>';
+  $('#annOff').hidden=!a;
+  $('#annHist').innerHTML = S.history.length ? S.history.map(function(h,i){
+    return '<div class="hist"><div>'+esc(h.text)+'<small>'+esc(h.at)+(h.on?' · <b>в гиде сейчас</b>':'')+'</small></div><button class="btn ghost sm" data-re="'+i+'">Повторить</button></div>'; }).join('')
+    : '<p class="empty">Пока не было.</p>';
+  annWa();
+}
+function annWa(){ var t=$('#annText').value.trim() || (S.ann&&S.ann.text) || ''; var w=$('#annWa'); w.hidden=!t; w.href='https://wa.me/?text='+encodeURIComponent(t); }
+
+function renderRooms(){
+  $('#roomRows').innerHTML = S.people.map(function(p,i){
+    return '<tr'+(p.off?' class="off"':'')+'><td class="n"><b>'+esc(p.name)+(p.off?'<span class="tag off">'+esc(p.status)+'</span>':'')+'</b><span>'+esc(p.role)+'</span></td>'+
+      '<td><input data-i="'+i+'" data-k="medina" value="'+esc(p.medina)+'" aria-label="Медина, '+esc(p.name)+'"'+(p.off?' disabled':'')+'></td>'+
+      '<td><input data-i="'+i+'" data-k="mecca" value="'+esc(p.mecca)+'" aria-label="Мекка, '+esc(p.name)+'"'+(p.off?' disabled':'')+'></td></tr>'; }).join('')
+    || '<tr><td colspan="3" class="empty">В листе «Участники» никого нет.</td></tr>';
+  roomDirty();
+}
+function roomVals(){ return S.people.map(function(p,i){
+  var m=$('#roomRows input[data-i="'+i+'"][data-k="medina"]'), k=$('#roomRows input[data-i="'+i+'"][data-k="mecca"]');
+  return {id:p.id, name:p.name, off:p.off, medina:m?m.value.trim():'', mecca:k?k.value.trim():''}; }); }
+function roomDirty(){
+  var v=roomVals(), n=0;
+  $$('#roomRows input').forEach(function(el){ var p=S.people[+el.getAttribute('data-i')], ch=el.value.trim()!==String(p[el.getAttribute('data-k')]||'');
+    el.classList.toggle('ch', ch); if(ch) n++; });
+  $('#roomSave').disabled=!n||busy; $('#roomSave').textContent=n?'Сохранить ('+n+')':'Сохранить'; $('#roomUndo').hidden=!n;
+  /* как увидят паломники */
+  var out=[['medina','Медина'],['mecca','Мекка']].map(function(c){
+    var by={}, keys=[];
+    v.forEach(function(p){ if(p.off||!p[c[0]]) return; if(!by[p[c[0]]]){ by[p[c[0]]]=[]; keys.push(p[c[0]]); } by[p[c[0]]].push(p.name); });
+    if(!keys.length) return '';
+    keys.sort(function(a,b){ return a.localeCompare(b,'ru',{numeric:true}); });
+    var none=v.filter(function(p){ return !p.off&&!p[c[0]]; }).length;
+    return '<h3>'+c[1]+'</h3><ul>'+keys.map(function(k){ var l=by[k];
+      return '<li><b>№ '+esc(k)+'</b> — '+esc(l.join(', '))+(l.length===1?' <span class="warn">· один в номере</span>':'')+(l.length>4?' <span class="warn">· больше 4 человек — проверьте</span>':'')+'</li>'; }).join('')+'</ul>'+
+      (none?'<p class="small warn">Без номера: '+none+' чел.</p>':'');
+  }).join('');
+  $('#roomMates').innerHTML = out ? '<p class="small">Так соседи увидят друг друга в гиде:</p>'+out : '';
+  window.__dirty=n>0;
+}
+
+function renderLinks(){
+  var list=S.people.filter(function(p){ return !p.off; });
+  $('#linkRows').innerHTML = list.map(function(p,i){
+    return '<div class="lrow"><b>'+esc(p.name)+'</b>'+
+      '<button class="btn ghost sm" data-copy="'+esc(p.link)+'">Копировать</button>'+
+      '<a class="btn ghost sm" href="'+esc(p.link)+'" target="_blank" rel="noopener">Открыть</a>'+
+      (p.wa?'<a class="btn wa sm" href="'+esc(p.wa)+'" target="_blank" rel="noopener">WhatsApp</a>':'<span class="small">нет телефона</span>')+'</div>'; }).join('')
+    || '<p class="empty">Нет участников со статусом «Летит».</p>';
+}
+
+function renderGroup(){
+  var g=newGroup?{}:grp();
+  $('#gTitle').textContent=newGroup?'Новая группа':'Группа '+(g.code||'');
+  $('#gCodeBox').hidden=!newGroup; $('#gCancel').hidden=!newGroup; $('#gNew').hidden=newGroup;
+  ['code','name','chat','dep','ret','medina','mecca','flights','sheet'].forEach(function(k){ $('#g-'+k).value=g[k]||''; });
+}
+function renderExport(){ $('#xSheet').href=S.sheetUrl; $('#xXlsx').href=S.xlsx; $('#xHub').href=S.hubUrl; }
+
+/* ---------- действия ---------- */
+$$('nav button').forEach(function(b){ b.onclick=function(){ tab(b.getAttribute('data-t')); window.scrollTo(0,0); }; });
+$('#grp').onchange=function(){
+  if(window.__dirty && !confirm('Номера комнат не сохранены. Перейти к другой группе без сохранения?')){ this.value=G; return; }
+  G=this.value; ls(GS,G); newGroup=false; act(null,'state'); };
+$('#annText').oninput=annWa;
+$('#annPub').onclick=function(){ var t=$('#annText').value.trim(); if(!t){ toast('Напишите текст объявления', true); return; }
+  act(this,'ann',{text:t},'Опубликовано — паломники увидят его в течение минуты').then(function(){ if(S&&S.ann&&S.ann.text===t){ $('#annText').value=''; annWa(); } }); };
+$('#annOff').onclick=function(){ if(confirm('Убрать объявление из гида?')) act(this,'ann',{text:''},'Объявление убрано'); };
+$('#annHist').onclick=function(e){ var b=e.target.closest('[data-re]'); if(!b) return; $('#annText').value=S.history[+b.getAttribute('data-re')].text; annWa(); $('#annText').focus(); };
+$('#roomRows').oninput=roomDirty;
+$('#roomUndo').onclick=function(){ renderRooms(); };
+$('#roomSave').onclick=function(){
+  var rows=roomVals().filter(function(r,i){ var p=S.people[i]; return !p.off && (r.medina!==String(p.medina||'') || r.mecca!==String(p.mecca||'')); })
+    .map(function(r){ return {id:r.id, medina:r.medina, mecca:r.mecca}; });
+  act(this,'rooms',{rows:rows},function(j){ return 'Сохранено: '+j.changed+' изм. Соседи обновятся в гиде в течение минуты'; });
+};
+$('#linkRows').onclick=function(e){ var b=e.target.closest('[data-copy]'); if(!b) return;
+  var t=b.getAttribute('data-copy');
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){ b.textContent='Скопировано'; },function(){ prompt('Скопируйте ссылку:', t); }); };
+$('#gNew').onclick=function(){ newGroup=true; renderGroup(); $('#g-code').focus(); };
+$('#gCancel').onclick=function(){ newGroup=false; renderGroup(); };
+$('#gSave').onclick=function(){
+  var d={}; ['name','chat','dep','ret','medina','mecca','flights','sheet'].forEach(function(k){ d[k]=$('#g-'+k).value.trim(); });
+  d.code=newGroup?$('#g-code').value.trim().toUpperCase():G;
+  if(newGroup){ d.show='да'; G=d.code; }
+  var wasNew=newGroup;
+  act(this,'group',{data:d,isNew:wasNew}, wasNew?'Группа '+d.code+' создана':'Сохранено').then(function(){ if(S&&S.g===d.code) { newGroup=false; renderGroup(); } });
+};
+$('#forget').onclick=function(){ if(confirm('Забыть ключ админки на этом устройстве?')){ ls(KS,null); ls(GS,null); KEY=''; S=null; showKey(); } };
+window.addEventListener('hashchange',function(){ if(/k=/.test(location.hash)) location.reload(); });  /* новая ссылка с ключом в уже открытой вкладке */
+window.addEventListener('beforeunload',function(e){ if(window.__dirty){ e.preventDefault(); e.returnValue=''; } });
+
+/* ---------- старт ---------- */
+(function(){
+  var m=location.hash.match(/k=([A-Za-z0-9]{20,})/);
+  if(m){ ls(KS,m[1]); history.replaceState(null,'',location.pathname+location.search); }  /* ключ не остаётся в адресной строке */
+  KEY=ls(KS); G=ls(GS);
+  if(!API){ $('#noapi').hidden=false; return; }
+  if(!KEY){ showKey(); return; }
+  $('#loading').hidden=false;
+  call('state').then(function(j){ S=j; G=j.g; ls(GS,G); render(); })
+    .catch(function(e){ toast(e.message||'Ошибка', true); })
+    .then(function(){ $('#loading').hidden=true; });
+})();
+</script>
+</body>
+</html>

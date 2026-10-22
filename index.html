@@ -1336,7 +1336,7 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
  </ul>
 </div>
 <div class="card"><div><div class="kicker">Сохраните в телефон</div><h3 style="font-size:1.25rem">Контакты</h3></div>
-<div class="btns"><a class="btn wa" href="https://wa.me/77777825555">WhatsApp Чингису</a><a class="btn" href="tel:+77777825555">Позвонить</a></div>
+<div class="btns"><a class="btn wa" id="moreChat" href="https://wa.me/77777825555" target="_blank" rel="noopener">WhatsApp Чингису</a><a class="btn" href="tel:+77777825555">Позвонить Чингису</a></div>
  <table>
   <tr><td><b>Чингис Мадияров</b><br><span class="small">организатор · WhatsApp</span></td><td style="white-space:nowrap"><a class="call" href="tel:+77777825555">+7 777 782 55 55</a></td></tr>
   <tr><td><b>Даурен Кубжанов</b><br><span class="small">духовный руководитель</span></td><td><a class="call" href="tel:+77776056056">+7 777 605 60 56</a><br><a class="call" href="https://wa.me/77776056056" target="_blank" rel="noopener">WhatsApp</a></td></tr>
@@ -1369,7 +1369,7 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
   </div>
   <p class="small" id="langNote" data-i18n="lang.note" hidden></p>
  </div>
- <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.4 · 22.10.2026</p>
+ <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.5 · 22.10.2026</p>
 </section>
 </main>
 
@@ -1421,7 +1421,7 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
 
 <script>
 (function(){
-var API='';
+var API='https://script.google.com/macros/s/AKfycbx5I0M0ZfnLQalWMZ34qYKOz280DJBQQ5lZumsZtHtqpcAAmrMlDACfmzS0eFVBGyTD/exec';
 var P='jurt-umra:';
 function get(k,d){ try{ var v=localStorage.getItem(P+k); return v===null?d:JSON.parse(v); }catch(e){ return d; } }
 function set(k,v){ try{ localStorage.setItem(P+k,JSON.stringify(v)); }catch(e){} }
@@ -1433,6 +1433,7 @@ var buzz=function(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e)
 /* личная ссылка: ?p=код запоминаем и оставляем в адресе — на iPhone иконка «Домой» откроет этот же адрес (её хранилище отдельно от Safari) */
 var lastFetch=0;
 function useCode(c){ c=String(c||'').toLowerCase(); if(c===get('code','')) return; set('code',c); var D=get('data',null); if(D){ D.me=null; D.code=''; set('data',D); } lastFetch=0; }
+(function(){ var g=location.search.match(/[?&]g=([A-Za-z0-9-]{3,20})/); if(g) set('grp',g[1].toUpperCase()); })();
 (function(){ var m=location.search.match(/[?&]p=([a-z0-9]{6,12})/i); if(m){ var c=m[1].toLowerCase(); if(c!==get('codeUrl','')){ set('codeUrl',c); useCode(c); } } })();
 
 /* шрифт и тема */
@@ -1713,6 +1714,7 @@ function renderLost(D){
       '<p>Tour company: JURT (Kazakhstan)</p>'+(name?'<p>My name: <b>'+esc(latin(name))+'</b></p>':'');
     $('#lostSos').innerHTML=lostSos(di);
     var ok=okUrl(chat); $('#homeChatBox').hidden=!ok; $('#lostChatBox').hidden=!ok; if(ok){ $('#homeChat').href=chat; $('#lostChat').href=chat; }
+    var mc=$('#moreChat'); if(mc){ mc.href=ok?chat:'https://wa.me/77777825555'; mc.textContent=ok?'Написать в группу':'WhatsApp Чингису'; }
   }
   lostLinks();
 }
@@ -1864,7 +1866,7 @@ function renderPath(by, dates, t, di){
 function load(){
   if(!API || !navigator.onLine || Date.now()-lastFetch<60000) return;
   lastFetch=Date.now();
-  var code=get('code',''); var url=API+(API.indexOf('?')<0?'?':'&')+'t='+Date.now()+(code?'&p='+encodeURIComponent(code):'');
+  var code=get('code',''); var url=API+(API.indexOf('?')<0?'?':'&')+'t='+Date.now()+(code?'&p='+encodeURIComponent(code):'')+(get('grp','')?'&g='+encodeURIComponent(get('grp','')):'');
   fetch(url,{cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){ if(j&&j.ok&&code===get('code','')){ j.code=code; var old=JSON.stringify(get('data',{})); set('data',j); if(old!==JSON.stringify(j)) renderData(); } }).catch(function(){});
 }
 /* личный код вручную — если гид поставили на экран «Домой» без личной ссылки */
@@ -1906,7 +1908,7 @@ banner();
 /* офлайн */
 var st=$('#swStatus');
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').then(function(reg){
+  navigator.serviceWorker.register('/sw.js').then(function(reg){
     function waiting(w){ $('#updBar').classList.add('on'); $('#updBtn').onclick=function(){ w.postMessage('skip'); }; }
     if(reg.waiting && navigator.serviceWorker.controller) waiting(reg.waiting);
     reg.addEventListener('updatefound',function(){ var w=reg.installing; w.addEventListener('statechange',function(){ if(w.state==='installed' && navigator.serviceWorker.controller) waiting(w); }); });

@@ -1,5 +1,5 @@
 /* Гид паломника JURT — офлайн-кэш. Версия меняется автоматически при каждой сборке. */
-var CACHE = 'jurt-umra-a78f02edd7';
+var CACHE = 'jurt-umra-e8ea3ed54f';
 var ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'amiri-400.woff2',
   'exo2-regular.woff2', 'exo2-semibold.woff2', 'exo2-bold.woff2', 'logo-white.svg', 'umra.ics',
   'icon-mark.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
@@ -22,7 +22,7 @@ self.addEventListener('message', function (e) { if (e.data === 'skip') self.skip
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  if (req.mode === 'navigate' && new URL(req.url).pathname.indexOf('/program') !== 0) {  // /program/ — отдельная страница, не приложение
+  if (req.mode === 'navigate' && !/^\/(program|admin)(\/|$)/.test(new URL(req.url).pathname)) {  // /program/ и /admin/ — отдельные страницы, не приложение
     e.respondWith(caches.match('index.html').then(function (r) { return r || fetch(req); }));
     return;
   }
