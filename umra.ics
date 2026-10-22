@@ -1,0 +1,38 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//JURT//Gid palomnika//RU
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:umra-2026-sbor@umra.jurt.kz
+DTSTAMP:20261022T000000Z
+DTSTART:20261027T221500Z
+DTEND:20261028T011500Z
+SUMMARY:Умра JURT: сбор в аэропорту Алматы
+LOCATION:Международный аэропорт Алматы\, терминал вылета
+DESCRIPTION:Сбор группы в 03:15. Вылет TK 351 в 06:15. Паспорт\, билет\, багаж до 23 кг. Гид: https://umra.jurt.kz
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через 2 часа сбор в аэропорту
+TRIGGER:-PT2H
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Через час сбор в аэропорту
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:umra-2026-bag@umra.jurt.kz
+DTSTAMP:20261022T000000Z
+DTSTART:20261027T150000Z
+DTEND:20261027T160000Z
+SUMMARY:Умра JURT: собрать сумку и лечь пораньше
+DESCRIPTION:Ихрам\, паспорт\, лекарства\, зарядка. Сбор в аэропорту в 03:15. Список вещей — в гиде: https://umra.jurt.kz
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Пора собирать сумку
+TRIGGER:PT0M
+END:VALARM
+END:VEVENT
+END:VCALENDAR

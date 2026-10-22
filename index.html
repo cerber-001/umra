@@ -15,7 +15,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="ru_RU">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#00878A">
+<meta name="theme-color" content="#005A5C">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,27 +24,30 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
+@font-face{ font-family:"Exo 2"; src:url("exo2-regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face{ font-family:"Exo 2"; src:url("exo2-semibold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face{ font-family:"Exo 2"; src:url("exo2-bold.woff2") format("woff2"); font-weight:700 900; font-display:swap; }
 @font-face{ font-family:"Amiri"; src:url("amiri-400.woff2") format("woff2"); font-weight:400; font-display:swap; }
 :root{
-  --teal:#00878A; --teal-d:#006669; --teal-l:#14A3A6; --orange:#FC7F00; --orange-t:#B35A00;
-  --bg:#F2F5F5; --card:#FFFFFF; --ink:#172021; --muted:#59676A; --line:#DCE3E3;
-  --sand:#FFF5EA; --mint:#E5F3F3; --red:#B3261E; --redbg:#FCEDEB; --done:#1E8E5A; --gz:#CFEBDD; --hill:#EADFC8; --kb:#1B1B1B;
+  --teal:#005A5C; --teal-d:#004C4E; --teal-l:#0A7275; --orange:#F07A1E; --orange-t:#A3500F;
+  --bg:#F4EDE1; --card:#FFFDF9; --ink:#00292C; --muted:#4F6466; --line:#E2D8C8;
+  --sand:#FBF3E6; --mint:#E4EFEC; --red:#B3261E; --redbg:#FCEDEB; --done:#1E8E5A; --gz:#CFEBDD; --hill:#EADFC8; --kb:#1B1B1B;
   --shadow:0 1px 2px rgba(10,40,40,.06), 0 6px 20px rgba(10,40,40,.06);
   --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --teal:#2DB4B6; --teal-d:#7FD6D7; --teal-l:#45C6C8; --orange:#FF9A33; --orange-t:#FFB466;
-    --bg:#0D1314; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
-    --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A; --gz:#1E3B2E; --hill:#3A3122; --kb:#8A9A9C;
+    --teal:#1A8F8D; --teal-d:#8FD8D5; --teal-l:#3FB3B0; --orange:#F38B3A; --orange-t:#F5A866;
+    --bg:#001A1C; --card:#00292C; --ink:#F4EDE1; --muted:#A3B8B6; --line:#0F4245;
+    --sand:#2A2117; --mint:#063A3B; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A; --gz:#1E3B2E; --hill:#3A3122; --kb:#8A9A9C;
     --shadow:0 1px 0 rgba(255,255,255,.03); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --teal:#2DB4B6; --teal-d:#7FD6D7; --teal-l:#45C6C8; --orange:#FF9A33; --orange-t:#FFB466;
-  --bg:#0D1314; --card:#172122; --ink:#ECF2F2; --muted:#9DAEB0; --line:#2A3738;
-  --sand:#251E15; --mint:#12302F; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A; --gz:#1E3B2E; --hill:#3A3122; --kb:#8A9A9C;
+  --teal:#1A8F8D; --teal-d:#8FD8D5; --teal-l:#3FB3B0; --orange:#F38B3A; --orange-t:#F5A866;
+  --bg:#001A1C; --card:#00292C; --ink:#F4EDE1; --muted:#A3B8B6; --line:#0F4245;
+  --sand:#2A2117; --mint:#063A3B; --red:#FF8A80; --redbg:#3A1C1A; --done:#4CC38A; --gz:#1E3B2E; --hill:#3A3122; --kb:#8A9A9C;
   --shadow:0 1px 0 rgba(255,255,255,.03); color-scheme:dark;
 }
 html{ font-size:18px; -webkit-text-size-adjust:100%; }
@@ -54,7 +57,7 @@ html[data-fs="2"]{ font-size:23px; }
 [hidden]{ display:none !important; }
 .stack{ display:flex; flex-direction:column; gap:.55rem; }
 .linkbtn{ align-self:flex-start; font-size:.88rem; font-weight:700; color:var(--teal-d); text-decoration:underline; padding:.2rem 0; }
-body{ font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+body{ font-family:"Exo 2", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background:var(--bg); color:var(--ink); line-height:1.45; min-height:100vh;
   padding-bottom:calc(5.4rem + env(safe-area-inset-bottom)); -webkit-tap-highlight-color:transparent; }
 button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
@@ -63,7 +66,7 @@ b{ font-weight:700; }
 
 /* ---------- шапка ---------- */
 header.app{ position:sticky; top:0; z-index:20; color:#fff; overflow:hidden;
-  background:linear-gradient(120deg,#006E71 0%,#00878A 55%,#0A9EA1 100%);
+  background:linear-gradient(120deg,#00292C 0%,#004C4E 55%,#005A5C 100%);
   padding:calc(.55rem + env(safe-area-inset-top)) 1rem .55rem; display:flex; align-items:center; gap:.7rem; }
 header.app::after{ content:""; position:absolute; inset:0; pointer-events:none; opacity:.13;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23fff' stroke-width='3'%3E%3Crect x='25' y='25' width='50' height='50'/%3E%3Crect x='25' y='25' width='50' height='50' transform='rotate(45 50 50)'/%3E%3C/g%3E%3C/svg%3E");
@@ -72,7 +75,8 @@ header.app::after{ content:""; position:absolute; inset:0; pointer-events:none; 
 header.app > *{ position:relative; z-index:1; }
 header.app .mark{ width:2.1rem; height:2.1rem; flex:none; background:#fff; border-radius:.6rem; padding:.24rem; box-shadow:0 2px 8px rgba(0,0,0,.15); }
 header.app .mark img{ width:100%; height:100%; display:block; }
-header.app .t{ flex:1; min-width:0; line-height:1.15; }
+header.app .logo{ height:2.2rem; width:auto; flex:none; display:block; }
+header.app .t{ flex:1; border-left:1px solid rgba(255,255,255,.28); padding-left:.7rem; min-width:0; line-height:1.15; }
 header.app .t b{ display:block; font-size:1.02rem; }
 header.app .t span{ font-size:.72rem; opacity:.92; }
 header.app .fs{ font-weight:800; border:1.5px solid rgba(255,255,255,.7); border-radius:.6rem; padding:.2rem .55rem; font-size:.85rem; }
@@ -81,6 +85,7 @@ main{ max-width:40rem; margin:0 auto; padding:.9rem 1rem 1rem; }
 .view{ display:none; flex-direction:column; gap:.85rem; }
 .view.on{ display:flex; animation:viewIn .38s var(--ease); }
 @keyframes viewIn{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+h2.sec, h2.grp, .card > h3, .acc-in h3, .hero .nm, .cele h3{ font-weight:600; }
 h2.sec{ font-size:1.45rem; line-height:1.15; color:var(--teal-d); margin:.4rem .1rem 0; }
 h2.grp{ font-size:1.1rem; color:var(--teal-d); margin:.6rem .1rem -.2rem; }
 .sub{ color:var(--muted); font-size:.85rem; margin:0 .1rem; }
@@ -92,8 +97,8 @@ h2.grp{ font-size:1.1rem; color:var(--teal-d); margin:.6rem .1rem -.2rem; }
 
 /* ---------- главная ---------- */
 .hero{ border-radius:1.3rem; padding:1.15rem 1.1rem 1.05rem; color:#fff; position:relative; overflow:hidden;
-  background:radial-gradient(120% 140% at 100% 0%, #FC7F00 0%, rgba(252,127,0,0) 45%), linear-gradient(140deg,#00676A,#00878A 60%,#11A0A3);
-  box-shadow:0 10px 30px rgba(0,110,113,.28); display:flex; flex-direction:column; gap:.55rem; }
+  background:radial-gradient(120% 140% at 100% 0%, #F07A1E 0%, rgba(240,122,30,0) 45%), linear-gradient(140deg,#00292C,#005A5C 62%,#0A6A6C);
+  box-shadow:0 10px 30px rgba(0,41,44,.28); display:flex; flex-direction:column; gap:.55rem; }
 .hero .star{ position:absolute; right:-2.2rem; bottom:-2.6rem; width:10rem; height:10rem; color:rgba(255,255,255,.16); animation:spin 80s linear infinite; }
 @keyframes spin{ to{ transform:rotate(360deg) } }
 .hero .hi{ font-size:.85rem; opacity:.95; letter-spacing:.02em; }
@@ -102,10 +107,10 @@ h2.grp{ font-size:1.1rem; color:var(--teal-d); margin:.6rem .1rem -.2rem; }
 .hero .phase i{ width:.5rem; height:.5rem; border-radius:50%; background:#FFD08A; box-shadow:0 0 0 0 rgba(255,208,138,.7); animation:pulse 2s infinite; }
 @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(255,208,138,.7) } 70%{ box-shadow:0 0 0 .55rem rgba(255,208,138,0) } 100%{ box-shadow:0 0 0 0 rgba(255,208,138,0) } }
 .chips{ display:flex; flex-wrap:wrap; gap:.45rem; position:relative; z-index:1; }
-.chip{ background:rgba(255,255,255,.95); color:var(--teal-d); border-radius:.75rem; padding:.42rem .65rem; font-size:.82rem; line-height:1.2; }
-.chip b{ display:block; font-size:1.05rem; color:#0F2A2B; }
-:root[data-theme="dark"] .chip b{ color:#0F2A2B; }
-.ann{ background:linear-gradient(135deg,var(--orange),#FF9A33); color:#fff; border-radius:1.1rem; padding:.9rem 1rem; display:flex; gap:.7rem; align-items:flex-start; box-shadow:0 8px 22px rgba(252,127,0,.28); animation:annIn .6s var(--ease); }
+.chip{ background:rgba(255,255,255,.95); color:#004C4E; border-radius:.75rem; padding:.42rem .65rem; font-size:.82rem; line-height:1.2; }
+.chip b{ display:block; font-size:1.05rem; color:#00292C; }
+:root[data-theme="dark"] .chip b{ color:#00292C; }
+.ann{ background:var(--card); color:var(--ink); border:1px solid var(--line); border-left:.4rem solid var(--orange); border-radius:1.1rem; padding:.9rem 1rem; display:flex; gap:.7rem; align-items:flex-start; box-shadow:var(--shadow); animation:annIn .6s var(--ease); }
 @keyframes annIn{ from{ opacity:0; transform:scale(.96) } to{ opacity:1; transform:none } }
 .ann .ic{ font-size:1.4rem; line-height:1; animation:ring 2.4s ease-in-out 1s 2; }
 @keyframes ring{ 0%,100%{ transform:rotate(0) } 10%,30%{ transform:rotate(-14deg) } 20%,40%{ transform:rotate(14deg) } 50%{ transform:rotate(0) } }
@@ -136,7 +141,7 @@ h2.grp{ font-size:1.1rem; color:var(--teal-d); margin:.6rem .1rem -.2rem; }
 .tl .it.past{ opacity:.55; }
 .tl .it.past .tx::before{ background:var(--teal); }
 .tl .it.now .tx::before{ background:var(--orange); border-color:var(--orange); animation:pulseO 1.8s infinite; }
-@keyframes pulseO{ 0%{ box-shadow:0 0 0 0 rgba(252,127,0,.55) } 70%{ box-shadow:0 0 0 .6rem rgba(252,127,0,0) } 100%{ box-shadow:0 0 0 0 rgba(252,127,0,0) } }
+@keyframes pulseO{ 0%{ box-shadow:0 0 0 0 rgba(240,122,30,.55) } 70%{ box-shadow:0 0 0 .6rem rgba(240,122,30,0) } 100%{ box-shadow:0 0 0 0 rgba(240,122,30,0) } }
 .tl .it.now .what{ color:var(--orange-t); }
 .tl .what{ font-weight:700; line-height:1.3; }
 .tl .meta{ font-size:.8rem; color:var(--muted); margin-top:.15rem; }
@@ -214,7 +219,7 @@ html{ scroll-padding-top:calc(var(--hdr,3.6rem) + .6rem); }
 .num{ flex:none; width:2.45rem; height:2.45rem; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; transition:background .4s, transform .4s var(--ease); }
 .acc.info .num{ background:var(--red); font-size:1.2rem; }
 .acc.info.blue .num{ background:var(--muted); }
-.acc.next:not(.done) .num{ background:var(--orange); box-shadow:0 0 0 .3rem rgba(252,127,0,.18); }
+.acc.next:not(.done) .num{ background:var(--orange); box-shadow:0 0 0 .3rem rgba(240,122,30,.18); }
 .st{ flex:1; min-width:0; }
 .kicker{ font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--orange-t); font-weight:700; }
 .st b{ display:block; font-size:1.12rem; line-height:1.2; transition:color .3s; }
@@ -232,7 +237,7 @@ html{ scroll-padding-top:calc(var(--hdr,3.6rem) + .6rem); }
 @keyframes fly{ from{ transform:translate(0,0) scale(1); opacity:1 } to{ transform:translate(var(--x),var(--y)) scale(.3); opacity:0 } }
 .chev{ flex:none; width:1.1rem; height:1.1rem; color:var(--muted); transition:transform .35s var(--ease); }
 .acc.open .chev{ transform:rotate(180deg); }
-.donebtn{ margin-top:.3rem; width:100%; min-height:3.5rem; border-radius:1rem; background:linear-gradient(135deg,var(--teal),var(--teal-l)); color:#fff; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center; gap:.5rem; box-shadow:0 6px 16px rgba(0,135,138,.25); transition:transform .15s var(--ease); }
+.donebtn{ margin-top:.3rem; width:100%; min-height:3.5rem; border-radius:1rem; background:linear-gradient(135deg,var(--teal),var(--teal-l)); color:#fff; font-weight:800; font-size:1.05rem; display:flex; align-items:center; justify-content:center; gap:.5rem; box-shadow:0 6px 16px rgba(0,90,92,.25); transition:transform .15s var(--ease); }
 .donebtn:active{ transform:scale(.98); }
 .done .donebtn{ background:var(--mint); color:var(--teal-d); box-shadow:none; }
 
@@ -278,7 +283,7 @@ th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(
 
 /* ---------- вкладка «Дуа»: переключатель, список дуа гида, мои дуа ---------- */
 .dseg{ position:relative; display:grid; grid-template-columns:1fr 1fr; background:var(--card); border-radius:1rem; padding:.25rem; box-shadow:var(--shadow); }
-.dseg .sp{ position:absolute; top:.25rem; bottom:.25rem; left:.25rem; width:calc(50% - .25rem); border-radius:.8rem; background:#00878A; transition:transform .35s var(--ease); }
+.dseg .sp{ position:absolute; top:.25rem; bottom:.25rem; left:.25rem; width:calc(50% - .25rem); border-radius:.8rem; background:#005A5C; transition:transform .35s var(--ease); }
 .dseg.r .sp{ transform:translateX(100%); }
 .dseg button{ position:relative; z-index:1; min-height:2.9rem; font-weight:800; font-size:.95rem; color:var(--teal-d); display:flex; align-items:center; justify-content:center; gap:.4rem; transition:color .3s; }
 .dseg button.on{ color:#fff; }
@@ -327,7 +332,7 @@ th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(
 .ringbtn{ position:relative; width:13rem; height:13rem; border-radius:50%; touch-action:manipulation; }
 .ringbtn svg{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
 .ringbtn circle{ fill:none; stroke-width:9; }
-.ringbtn .bg{ stroke:rgba(0,135,138,.15); }
+.ringbtn .bg{ stroke:rgba(0,90,92,.15); }
 .ringbtn .fg{ stroke:url(#gr); stroke-linecap:round; transition:stroke-dashoffset .7s var(--ease); }
 .ringbtn .seg{ stroke:var(--mint); stroke-width:10; }
 .ringbtn .core{ position:absolute; inset:1.25rem; border-radius:50%; background:var(--card); box-shadow:0 8px 24px rgba(0,100,100,.15); display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.1; transition:transform .15s var(--ease); overflow:hidden; }
@@ -337,7 +342,7 @@ th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(
 .ringbtn .lab{ font-size:.82rem; color:var(--muted); font-weight:700; text-align:center; padding:0 .8rem; }
 .ringbtn .tap{ margin-top:.3rem; font-size:.75rem; font-weight:800; color:#fff; background:var(--orange); border-radius:2rem; padding:.22rem .7rem; }
 .ringbtn.fin .tap{ background:var(--done); }
-.ringbtn .rip{ position:absolute; border-radius:50%; background:rgba(252,127,0,.25); transform:scale(0); animation:rip .6s ease-out forwards; pointer-events:none; }
+.ringbtn .rip{ position:absolute; border-radius:50%; background:rgba(240,122,30,.25); transform:scale(0); animation:rip .6s ease-out forwards; pointer-events:none; }
 @keyframes rip{ to{ transform:scale(4); opacity:0 } }
 .ringbtn .n.bump{ animation:bump .45s var(--ease); }
 @keyframes bump{ 0%{ transform:scale(.6); opacity:.3 } 60%{ transform:scale(1.15) } 100%{ transform:scale(1); opacity:1 } }
@@ -384,14 +389,11 @@ th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(
 .tw-hijr{ fill:none; stroke:var(--muted); stroke-width:4; stroke-linecap:round; }
 .tw-start{ fill:none; stroke:var(--done); stroke-width:2; stroke-dasharray:4 4; }
 .tw-lamp{ fill:var(--done); }
-.tw-halo{ fill:var(--done); opacity:.5; animation:twHalo 2s ease-out infinite; }
-@keyframes twHalo{ from{ transform:scale(.5); opacity:.7 } to{ transform:scale(2.2); opacity:0 } }
+.tw-halo{ fill:var(--done); }
 .tw-run{ fill:none; stroke:var(--teal); stroke-width:3; stroke-linecap:round; }
 .tw-rab{ fill:none; stroke:var(--orange); stroke-width:3.5; stroke-linecap:round; }
 .tw-mk{ fill:var(--teal); }
 .tw-lead{ stroke:var(--orange); stroke-width:1; }
-.tw-orbit{ animation:twOrb 9s linear infinite; }
-@keyframes twOrb{ to{ transform:rotate(-360deg) } }
 .orb{ fill:var(--orange); stroke:#fff; stroke-width:1.5; }
 .tw-n text{ fill:#fff; font-size:8.5px; font-weight:800; text-anchor:middle; }
 ol.lgd{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem; }
@@ -409,15 +411,9 @@ ol.lgd li > span{ flex:none; width:1.35rem; height:1.35rem; margin-top:.1rem; bo
 .sai-hd{ fill:none; stroke:var(--line); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
 .sai-sch[data-dir="sm"] .ln-sm, .sai-sch[data-dir="ms"] .ln-ms{ stroke:var(--teal); stroke-dasharray:none; }
 .sai-d{ fill:var(--orange); stroke:#fff; stroke-width:1.5; opacity:0; }
-.sai-sch[data-dir="sm"] .d-sm{ animation:saiSM 5s linear infinite; }
-.sai-sch[data-dir="ms"] .d-ms{ animation:saiMS 5s linear infinite; }
-@keyframes saiSM{ 0%{ transform:translateX(0); opacity:0 } 4%{ opacity:1 } 36%{ transform:translateX(64px) } 49.5%{ transform:translateX(112px) } 82%{ transform:translateX(170px); opacity:1 } 100%{ transform:translateX(170px); opacity:0 } }
-@keyframes saiMS{ 0%{ transform:translateX(0); opacity:0 } 4%{ opacity:1 } 36%{ transform:translateX(-64px) } 49.5%{ transform:translateX(-112px) } 82%{ transform:translateX(-170px); opacity:1 } 100%{ transform:translateX(-170px); opacity:0 } }
+.sai-sch[data-dir="sm"] .d-sm, .sai-sch[data-dir="ms"] .d-ms{ opacity:1; }
 .sai-fin{ fill:var(--orange); opacity:0; }
-.sai-sch[data-dir="fin"] .sai-fin{ opacity:.85; animation:saiFin 1.6s ease-in-out infinite; }
-@keyframes saiFin{ 0%,100%{ transform:scale(.8); opacity:.9 } 50%{ transform:scale(1.5); opacity:.3 } }
-.acc:not(.open) .tw-orbit, .acc:not(.open) .tw-halo, .acc:not(.open) .sai-d, .acc:not(.open) .sai-fin{ animation-play-state:paused; }
-@media (prefers-reduced-motion: reduce){ .sai-sch[data-dir="sm"] .d-sm, .sai-sch[data-dir="ms"] .d-ms{ opacity:1; } }
+.sai-sch[data-dir="fin"] .sai-fin{ opacity:1; }
 label.field{ display:flex; flex-direction:column; gap:.25rem; font-size:.85rem; color:var(--muted); }
 label.field input, textarea, .inp{ font:inherit; font-size:1.05rem; color:var(--ink); background:var(--bg); border:1.5px solid var(--line); border-radius:.7rem; padding:.6rem .7rem; width:100%; }
 textarea{ min-height:12rem; resize:vertical; line-height:1.5; }
@@ -500,6 +496,21 @@ html[data-fs="2"] td{ padding:.1rem .3rem; border-bottom:0; white-space:normal !
 .counter .dots7{ grid-template-columns:repeat(7,minmax(0,1fr)); }
 html[data-fs="1"] .counter[data-id="sai"] .dots7, html[data-fs="2"] .counter[data-id="sai"] .dots7{ display:flex; flex-wrap:wrap; justify-content:center; }
 html[data-fs="1"] .counter[data-id="sai"] .dots7 span, html[data-fs="2"] .counter[data-id="sai"] .dots7 span{ flex:0 0 calc(25% - .19rem); }
+/* ---------- отсчёт и регистрация (шаг 9) ---------- */
+.hero .cd{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:.4rem; position:relative; z-index:1; }
+.hero .cd .u{ background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); border-radius:.8rem; padding:.3rem .55rem .25rem; min-width:3.4rem; text-align:center; }
+.hero .cd .u b{ display:block; font-size:1.55rem; line-height:1.05; font-weight:700; font-variant-numeric:tabular-nums; }
+.hero .cd .u span{ font-size:.7rem; opacity:.9; }
+.hero .cd .when{ flex-basis:100%; font-size:.82rem; color:#fff; opacity:.95; }
+.hero .cd a{ color:#fff; font-weight:700; font-size:.85rem; text-decoration:none; border:1.5px solid rgba(255,255,255,.6); border-radius:.7rem; padding:.35rem .65rem; display:inline-flex; align-items:center; gap:.35rem; }
+.reg{ background:var(--sand); border:2px solid var(--orange); border-radius:1rem; padding:.8rem .9rem; display:flex; flex-direction:column; gap:.3rem; }
+.reg b{ color:var(--orange-t); }
+.mates{ display:flex; flex-direction:column; gap:.5rem; }
+.mate{ display:flex; align-items:center; gap:.6rem; justify-content:space-between; border-top:1px solid var(--line); padding-top:.5rem; }
+.mate .who b{ display:block; } .mate .who span{ font-size:.8rem; color:var(--muted); }
+.mate .acts{ display:flex; gap:.4rem; flex:none; }
+.mate .acts a{ min-width:auto; min-height:2.4rem; padding:0 .7rem; font-size:.85rem; }
+a.chip{ text-decoration:none; }
 /* ---------- праздник ---------- */
 .cele{ position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center; padding:1.5rem; background:rgba(0,40,42,.72); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
 .cele.on{ display:flex; animation:fade .4s; }
@@ -540,9 +551,9 @@ html[data-fs="1"] .counter[data-id="sai"] .dots7 span, html[data-fs="2"] .counte
  </defs>
 </svg>
 
-<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00878A"/><stop offset="1" stop-color="#FC7F00"/></linearGradient></defs></svg>
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#005A5C"/><stop offset="1" stop-color="#F07A1E"/></linearGradient></defs></svg>
 <header class="app">
- <div class="mark"><img src="icon-mark.png" alt="JURT"></div>
+ <img class="logo" src="logo-white.svg" alt="JURT">
  <div class="t"><b>Гид паломника</b><span>Умра · JURT · 28.10–&#8288;06.11.2026</span></div>
  <button class="fs" id="fsBtn" aria-label="Размер шрифта">Aa</button>
 </header>
@@ -555,9 +566,11 @@ html[data-fs="1"] .counter[data-id="sai"] .dots7 span, html[data-fs="2"] .counte
   <div class="hi">Ассаляму алейкум</div>
   <div class="nm" id="heroName">Дорогой паломник</div>
   <div class="phase"><i></i><span id="heroPhase"></span></div>
+  <div class="cd" id="heroCd" hidden></div>
   <div class="chips" id="heroChips"></div>
  </div>
  <div id="annBox"></div>
+ <div id="regBox"></div>
  <div class="banner" id="installBanner" hidden>
   <b>Установите гид на телефон</b>
   <div id="installText"></div>
@@ -822,7 +835,7 @@ html[data-fs="1"] .counter[data-id="sai"] .dots7 span, html[data-fs="2"] .counte
   <li class="s">Идтиба — правое плечо открыто все 7 кругов.</li>
   <li class="s">Рамаль — первые 3 круга быстрый шаг, плечами вперёд (если позволяет толпа).</li>
  </ul>
- <div class="tw-sch"><svg viewBox="0 0 200 200" role="img" aria-label="Схема тавафа: старт напротив Чёрного камня, Кааба слева, 7 кругов против часовой стрелки"><defs><marker id="tw-ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path class="tw-mk" d="M0 0L10 5L0 10z"/></marker><marker id="tw-aho" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path class="tw-mko" d="M0 0L10 5L0 10z"/></marker></defs><circle class="tw-mataf" cx="100" cy="100" r="92"/><path class="tw-run" d="M155.45 92.21A56 56 0 0 0 109.72 44.85" marker-end="url(#tw-ah)"/><path class="tw-run" d="M92.21 44.55A56 56 0 0 0 44.85 90.28" marker-end="url(#tw-ah)"/><path class="tw-run" d="M44.55 107.79A56 56 0 0 0 90.28 155.15" marker-end="url(#tw-ah)"/><path class="tw-rab" d="M107.79 155.45A56 56 0 0 0 155.45 107.79" marker-end="url(#tw-aho)"/><path class="tw-start" d="M128 100H186"/><g transform="translate(190 100)"><circle class="tw-halo" r="6"/></g><circle class="tw-lamp" cx="190" cy="100" r="3"/><path class="tw-hijr" d="M102 73A20.5 20.5 0 0 0 73 102"/><rect class="tw-kb" x="83" y="83" width="34" height="34" transform="rotate(45 100 100)"/><circle class="tw-stone" cx="124" cy="100" r="3.6"/><circle class="tw-yem" cx="100" cy="124" r="2.6"/><g transform="translate(100 100)"><g class="tw-orbit"><circle class="tw-trail" cx="54.34" cy="13.55" r="2.6" opacity=".35"/><circle class="tw-trail" cx="55.58" cy="6.82" r="3.6" opacity=".6"/><circle class="orb" cx="56" cy="0" r="5"/></g></g><path class="tw-lead" d="M52 52L70 70"/><g class="tw-n"><circle cx="172" cy="86" r="7"/><text x="172" y="89">1</text></g><g class="tw-n"><circle cx="150" cy="50" r="7"/><text x="150" y="53">2</text></g><g class="tw-n"><circle cx="47" cy="47" r="7"/><text x="47" y="50">3</text></g><g class="tw-n"><circle cx="100" cy="140" r="7"/><text x="100" y="143">4</text></g><g class="tw-n"><circle cx="149.5" cy="149.5" r="7"/><text x="149.5" y="152.5">5</text></g></svg><ol class="lgd"><li><span>1</span><div>Старт — <b>напротив Чёрного камня</b> (зелёная лампа на стене).</div></li><li><span>2</span><div><b>Кааба — слева</b>, идём против часовой стрелки.</div></li><li><span>3</span><div>Обходить <b>снаружи</b> Хиджра Исмаила (полукруглая стенка).</div></li><li><span>4</span><div>Йеменский угол — коснуться рукой, если свободно (не целовать).</div></li><li><span>5</span><div>Между Йеменским углом и Чёрным камнем — дуа «Господь наш! Одари нас добром…» (ниже).</div></li></ol><p class="cap">Схема-подсказка, не в масштабе.</p></div>
+ <div class="tw-sch"><svg viewBox="0 0 200 200" role="img" aria-label="Схема тавафа: старт напротив Чёрного камня, Кааба слева, 7 кругов против часовой стрелки"><defs><marker id="tw-ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path class="tw-mk" d="M0 0L10 5L0 10z"/></marker><marker id="tw-aho" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path class="tw-mko" d="M0 0L10 5L0 10z"/></marker></defs><circle class="tw-mataf" cx="100" cy="100" r="92"/><path class="tw-run" d="M155.45 92.21A56 56 0 0 0 109.72 44.85" marker-end="url(#tw-ah)"/><path class="tw-run" d="M92.21 44.55A56 56 0 0 0 44.85 90.28" marker-end="url(#tw-ah)"/><path class="tw-run" d="M44.55 107.79A56 56 0 0 0 90.28 155.15" marker-end="url(#tw-ah)"/><path class="tw-rab" d="M107.79 155.45A56 56 0 0 0 155.45 107.79" marker-end="url(#tw-aho)"/><path class="tw-start" d="M128 100H186"/><g transform="translate(190 100)"><circle class="tw-halo" r="3"><animate attributeName="r" values="3;13.2" keyTimes="0;1" calcMode="spline" keySplines="0 0 .58 1" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" keyTimes="0;1" calcMode="spline" keySplines="0 0 .58 1" dur="2s" repeatCount="indefinite"/></circle></g><circle class="tw-lamp" cx="190" cy="100" r="3"/><path class="tw-hijr" d="M102 73A20.5 20.5 0 0 0 73 102"/><rect class="tw-kb" x="83" y="83" width="34" height="34" transform="rotate(45 100 100)"/><circle class="tw-stone" cx="124" cy="100" r="3.6"/><circle class="tw-yem" cx="100" cy="124" r="2.6"/><g transform="translate(100 100)"><g class="tw-orbit"><circle class="tw-trail" cx="54.34" cy="13.55" r="2.6" opacity=".35"/><circle class="tw-trail" cx="55.58" cy="6.82" r="3.6" opacity=".6"/><circle class="orb" cx="56" cy="0" r="5"/><animateTransform attributeName="transform" type="rotate" from="0" to="-360" dur="9s" repeatCount="indefinite"/></g></g><path class="tw-lead" d="M52 52L70 70"/><g class="tw-n"><circle cx="172" cy="86" r="7"/><text x="172" y="89">1</text></g><g class="tw-n"><circle cx="150" cy="50" r="7"/><text x="150" y="53">2</text></g><g class="tw-n"><circle cx="47" cy="47" r="7"/><text x="47" y="50">3</text></g><g class="tw-n"><circle cx="100" cy="140" r="7"/><text x="100" y="143">4</text></g><g class="tw-n"><circle cx="149.5" cy="149.5" r="7"/><text x="149.5" y="152.5">5</text></g></svg><ol class="lgd"><li><span>1</span><div>Старт — <b>напротив Чёрного камня</b> (зелёная лампа на стене).</div></li><li><span>2</span><div><b>Кааба — слева</b>, идём против часовой стрелки.</div></li><li><span>3</span><div>Обходить <b>снаружи</b> Хиджра Исмаила (полукруглая стенка).</div></li><li><span>4</span><div>Йеменский угол — коснуться рукой, если свободно (не целовать).</div></li><li><span>5</span><div>Между Йеменским углом и Чёрным камнем — дуа «Господь наш! Одари нас добром…» (ниже).</div></li></ol><p class="cap">Схема-подсказка, не в масштабе.</p></div>
  <div class="counter" data-id="tawaf" data-unit="круг" data-plural="кругов" data-hint-1="круг 1 · от Чёрного камня" data-hint-2="круг 2" data-hint-3="круг 3 · последний с рамалем" data-hint-4="круг 4" data-hint-5="круг 5" data-hint-6="круг 6" data-hint-7="круг 7 · последний"><div class="ctitle"><span>Счётчик кругов</span></div><button class="ringbtn" aria-label="Отметить круг"><svg viewBox="0 0 128 128"><circle class="bg" cx="64" cy="64" r="58"/><circle class="fg" cx="64" cy="64" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/><line class="seg" x1="116.0" y1="64.0" x2="130.0" y2="64.0"/><line class="seg" x1="96.4" y1="104.7" x2="105.2" y2="115.6"/><line class="seg" x1="52.4" y1="114.7" x2="49.3" y2="128.3"/><line class="seg" x1="17.1" y1="86.6" x2="4.5" y2="92.6"/><line class="seg" x1="17.1" y1="41.4" x2="4.5" y2="35.4"/><line class="seg" x1="52.4" y1="13.3" x2="49.3" y2="-0.3"/><line class="seg" x1="96.4" y1="23.3" x2="105.2" y2="12.4"/></svg><span class="core"><span class="n">0<small>/7</small></span><span class="lab"></span><span class="tap"></span></span></button><div class="dots7"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
  <details class="det"><summary><span>Подробнее</span><small>сбились со счёта, сверить</small><svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="det-in">
  <p class="small">Сбились со счёта — берите меньшее число. Йеменский угол — коснуться рукой, если свободно (не целовать). В пути — любые дуа, зикр, Коран.</p>
@@ -911,7 +924,7 @@ html[data-fs="1"] .counter[data-id="sai"] .dots7 span, html[data-fs="2"] .counte
   <li><b>Сафа → Марва = 1</b>, Марва → Сафа = 2 … заканчиваем <b>на Марве</b> (7).</li>
   <li class="s">Между <b>зелёными огнями</b> мужчины идут быстрым шагом.</li>
  </ul>
-<div class="sai-sch" data-dir="sm"><svg viewBox="0 0 320 140" role="img" aria-label="Схема саи: 7 отрезков между Сафой и Марвой, между зелёными огнями — быстрый шаг, финиш на Марве"><rect class="sai-gz" x="136" y="44" width="48" height="48" rx="4"/><text class="sai-t" x="160" y="32">зелёные огни</text><path class="sai-hill" d="M8 92Q36 40 64 92Z"/><path class="sai-hill" d="M256 92Q284 40 312 92Z"/><path class="sai-ln ln-sm" d="M72 58H244"/><path class="sai-hd ln-sm" d="M236 51L245 58L236 65"/><path class="sai-ln ln-ms" d="M248 78H76"/><path class="sai-hd ln-ms" d="M84 71L75 78L84 85"/><text class="sai-s sai-e" x="110" y="52">1 · 3 · 5 · 7</text><text class="sai-s" x="212" y="94">2 · 4 · 6</text><circle class="sai-d d-sm" cx="72" cy="58" r="5"/><circle class="sai-d d-ms" cx="248" cy="78" r="5"/><g transform="translate(284 66)"><circle class="sai-fin" r="8"/></g><text x="36" y="96"><tspan class="sai-h" x="36" dy=".95em">Сафа</tspan><tspan class="sai-u" x="36" dy="1.4em">старт</tspan></text><text x="282" y="96"><tspan class="sai-h" x="282" dy=".95em">Марва</tspan><tspan class="sai-u" x="282" dy="1.4em">финиш (7)</tspan></text></svg><p class="cap">Схема-подсказка, не в масштабе. Точка показывает, куда идти сейчас.</p></div>
+<div class="sai-sch" data-dir="sm"><svg viewBox="0 0 320 140" role="img" aria-label="Схема саи: 7 отрезков между Сафой и Марвой, между зелёными огнями — быстрый шаг, финиш на Марве"><rect class="sai-gz" x="136" y="44" width="48" height="48" rx="4"/><text class="sai-t" x="160" y="32">зелёные огни</text><path class="sai-hill" d="M8 92Q36 40 64 92Z"/><path class="sai-hill" d="M256 92Q284 40 312 92Z"/><path class="sai-ln ln-sm" d="M72 58H244"/><path class="sai-hd ln-sm" d="M236 51L245 58L236 65"/><path class="sai-ln ln-ms" d="M248 78H76"/><path class="sai-hd ln-ms" d="M84 71L75 78L84 85"/><text class="sai-s sai-e" x="110" y="52">1 · 3 · 5 · 7</text><text class="sai-s" x="212" y="94">2 · 4 · 6</text><g class="sai-d d-sm"><circle cx="72" cy="58" r="5"><animateTransform attributeName="transform" type="translate" values="0 0;64 0;112 0;170 0;170 0" keyTimes="0;.36;.495;.82;1" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.04;.82;1" dur="5s" repeatCount="indefinite"/></circle></g><g class="sai-d d-ms"><circle cx="248" cy="78" r="5"><animateTransform attributeName="transform" type="translate" values="0 0;-64 0;-112 0;-170 0;-170 0" keyTimes="0;.36;.495;.82;1" dur="5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.04;.82;1" dur="5s" repeatCount="indefinite"/></circle></g><g class="sai-fin" transform="translate(284 66)"><circle r="6.4"><animate attributeName="r" values="6.4;12;6.4" keyTimes="0;.5;1" calcMode="spline" keySplines=".42 0 .58 1;.42 0 .58 1" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;.3;.9" keyTimes="0;.5;1" calcMode="spline" keySplines=".42 0 .58 1;.42 0 .58 1" dur="1.6s" repeatCount="indefinite"/></circle></g><text x="36" y="96"><tspan class="sai-h" x="36" dy=".95em">Сафа</tspan><tspan class="sai-u" x="36" dy="1.4em">старт</tspan></text><text x="282" y="96"><tspan class="sai-h" x="282" dy=".95em">Марва</tspan><tspan class="sai-u" x="282" dy="1.4em">финиш (7)</tspan></text></svg><p class="cap">Схема-подсказка, не в масштабе. Точка показывает, куда идти сейчас.</p></div>
 <div class="counter" data-id="sai" data-unit="отрезок" data-plural="отрезков" data-hint-1="от Сафы до Марвы" data-hint-2="от Марвы до Сафы" data-hint-3="от Сафы до Марвы" data-hint-4="от Марвы до Сафы" data-hint-5="от Сафы до Марвы" data-hint-6="от Марвы до Сафы" data-hint-7="от Сафы до Марвы — финиш на Марве"><div class="ctitle"><span>Счётчик отрезков</span></div><button class="ringbtn" aria-label="Отметить отрезок"><svg viewBox="0 0 128 128"><circle class="bg" cx="64" cy="64" r="58"/><circle class="fg" cx="64" cy="64" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/><line class="seg" x1="116.0" y1="64.0" x2="130.0" y2="64.0"/><line class="seg" x1="96.4" y1="104.7" x2="105.2" y2="115.6"/><line class="seg" x1="52.4" y1="114.7" x2="49.3" y2="128.3"/><line class="seg" x1="17.1" y1="86.6" x2="4.5" y2="92.6"/><line class="seg" x1="17.1" y1="41.4" x2="4.5" y2="35.4"/><line class="seg" x1="52.4" y1="13.3" x2="49.3" y2="-0.3"/><line class="seg" x1="96.4" y1="23.3" x2="105.2" y2="12.4"/></svg><span class="core"><span class="n">0<small>/7</small></span><span class="lab"></span><span class="tap"></span></span></button><div class="dots7"><span>С→М</span><span>М→С</span><span>С→М</span><span>М→С</span><span>С→М</span><span>М→С</span><span>С→М</span></div><div class="crow"><button class="minus">− отменить</button><button class="zero">Сначала</button></div></div>
  <div class="dua">
   <div class="lbl">Между зелёными огнями</div>
@@ -1238,14 +1251,14 @@ html[data-fs="1"] .counter[data-id="sai"] .dots7 span, html[data-fs="2"] .counte
 <div class="btns"><a class="btn wa" href="https://wa.me/77777825555">WhatsApp Чингису</a><a class="btn" href="tel:+77777825555">Позвонить</a></div>
  <table>
   <tr><td><b>Чингис Мадияров</b><br><span class="small">организатор · WhatsApp</span></td><td style="white-space:nowrap"><a class="call" href="tel:+77777825555">+7 777 782 55 55</a></td></tr>
-  <tr><td><b>Даурен Кубжанов</b><br><span class="small">духовный руководитель</span></td><td class="tbd">уточняется</td></tr>
-  <tr><td><b>Worth Peninsula</b><br><span class="small">отель, Медина</span></td><td class="tbd">уточняется</td></tr>
-  <tr><td><b>Address Jabal Omar</b><br><span class="small">отель, Мекка</span></td><td class="tbd">уточняется</td></tr>
-  <tr><td><b>Посольство / консульство РК</b><br><span class="small">Эр-Рияд / Джидда</span></td><td class="tbd">уточняется</td></tr>
+  <tr><td><b>Даурен Кубжанов</b><br><span class="small">духовный руководитель</span></td><td><a class="call" href="tel:+77776056056">+7 777 605 60 56</a><br><a class="call" href="https://wa.me/77776056056" target="_blank" rel="noopener">WhatsApp</a></td></tr>
+  <tr><td><b>Worth Peninsula</b><br><span class="small">отель, Медина</span></td><td><a class="call" href="tel:+966148188167">+966 14 818 8167</a><br><a class="call" href="https://maps.google.com/?q=Peninsula+Worth+Hotel+Madinah" target="_blank" rel="noopener">На карте</a></td></tr>
+  <tr><td><b>Address Jabal Omar</b><br><span class="small">отель, Мекка</span></td><td><a class="call" href="tel:+966125531444">+966 12 553 1444</a><br><a class="call" href="https://maps.google.com/?q=Address+Jabal+Omar+Makkah" target="_blank" rel="noopener">На карте</a></td></tr>
+  <tr><td><b>Генконсульство РК в Джидде</b><br><span class="small">для Мекки и Медины · круглосуточно</span></td><td><a class="call" href="tel:+966554169079">+966 55 416 9079</a></td></tr>
+  <tr><td><b>Посольство РК в Эр-Рияде</b><br><span class="small">рабочие дни</span></td><td><a class="call" href="tel:+966114809106">+966 11 480 9106</a></td></tr>
   <tr><td><b>Экстренные службы</b></td><td>Сауд. Аравия <a class="call" href="tel:911">911</a><br>Турция <a class="call" href="tel:112">112</a><br>ОАЭ <a class="call" href="tel:999">999</a> · скорая <a class="call" href="tel:998">998</a></td></tr>
-  <tr><td><b>flydubai</b></td><td><a class="call" href="tel:+971600544445">+971 600 54 44 45</a></td></tr>
  </table>
- <label class="field"><span>Мой сосед по номеру · телефон</span><input data-k="ct-1"></label>
+ <div class="mates" id="matesBox"></div>
 </div>
 
  <div class="card">
@@ -1261,7 +1274,7 @@ html[data-fs="1"] .counter[data-id="sai"] .dots7 span, html[data-fs="2"] .counte
    <button class="btn ghost" data-theme-set="dark">Тёмная</button>
   </div>
  </div>
- <p class="foot">Пусть Аллах примет нашу умру и облегчит путь. · JURT · 2026<br>Версия 2.2 · 21.10.2026</p>
+ <p class="foot">Пусть Аллах примет нашу умру и облегчит путь. · JURT · 2026<br>Версия 2.3 · 22.10.2026</p>
 </section>
 </main>
 
@@ -1377,7 +1390,7 @@ function render(){
   return {next:nx, n:n};
 }
 function burst(el){
-  var b=document.createElement('span'); b.className='burst'; var cols=['#FC7F00','#00878A','#FFC46B','#1E8E5A'];
+  var b=document.createElement('span'); b.className='burst'; var cols=['#F07A1E','#005A5C','#FFC46B','#1E8E5A'];
   for(var i=0;i<10;i++){ var t=document.createElement('i'), a=i/10*Math.PI*2, r=28+Math.random()*10;
     t.style.setProperty('--x',Math.cos(a)*r+'px'); t.style.setProperty('--y',Math.sin(a)*r+'px'); t.style.background=cols[i%4]; b.appendChild(t); }
   el.appendChild(b); setTimeout(function(){ b.remove(); },800);
@@ -1398,7 +1411,7 @@ $('#resetBtn').onclick=function(){ if(confirm('Сбросить все отме�
 
 /* праздник */
 function celebrate(){
-  var c=$('#cele'), f=$('#conf'); f.innerHTML=''; var cols=['#FC7F00','#00878A','#FFC46B','#14A3A6','#ffffff'];
+  var c=$('#cele'), f=$('#conf'); f.innerHTML=''; var cols=['#F07A1E','#005A5C','#FFC46B','#14A3A6','#ffffff'];
   for(var i=0;i<46;i++){ var p=document.createElement('i'); p.style.left=Math.random()*100+'%'; p.style.background=cols[i%5];
     p.style.animationDuration=(2.2+Math.random()*2)+'s'; p.style.animationDelay=(Math.random()*.8)+'s'; f.appendChild(p); }
   c.classList.add('on'); buzz([80,60,80,60,160]);
@@ -1510,7 +1523,7 @@ function lostSos(di){
   if(di===0) return 'Экстренная помощь в Турции: <a class="call" href="tel:112">112</a>';
   if(di===8) return 'Полиция в ОАЭ: <a class="call" href="tel:999">999</a> · скорая: <a class="call" href="tel:998">998</a>';
   if(di>=9) return 'Экстренная помощь в Казахстане: <a class="call" href="tel:112">112</a>';
-  return 'Скорая и полиция в Саудовской Аравии: <a class="call" href="tel:911">911</a>'; }
+  return 'Скорая и полиция в Саудовской Аравии: <a class="call" href="tel:911">911</a><br>Консульство Казахстана (круглосуточно): <a class="call" href="tel:+966554169079">+966 55 416 9079</a>'; }
 function lostMe(){ var D=get('data',null); return D&&D.me; }
 function lostName(){ var me=lostMe(); return String((me&&me.name)||get('in-f-name','')||'').trim(); }
 function lostRoom(c){ var h=HOTELS[c], me=lostMe(); return String((me&&me[h.k])||get('in-'+h.room,'')||'').trim(); }
@@ -1536,9 +1549,9 @@ function renderLost(D){
     $('#lostPts').innerHTML = pts.length ? pts.map(function(p){ return '<div class="lost-pt"><svg><use href="#i-door"/></svg><div><b>'+esc(p.name)+'</b><span>'+esc([p.city,p.how].filter(Boolean).join(' · '))+'</span>'+(okUrl(p.map)?'<a class="linkbtn" href="'+esc(p.map)+'" target="_blank" rel="noopener">Открыть на карте</a>':'')+'</div></div>'; }).join('') : '<p class="small">Точку сбора руководитель назовёт перед выходом.</p>';
     $('#lostHotels').innerHTML=[c,other].map(function(k){ var h=HOTELS[k], r=lostRoom(k);
       return '<div class="lost-pt"><svg><use href="#i-walk"/></svg><div><b>'+esc(h.name)+'</b><span>'+esc(k+(r?' · номер '+r:''))+'</span><a class="linkbtn" href="https://www.google.com/maps/dir/?api=1&amp;destination='+encodeURIComponent(h.q)+'&amp;travelmode=walking" target="_blank" rel="noopener">Маршрут пешком · нужен интернет</a></div></div>'; }).join('');
-    $('#lostEn').innerHTML='<p><b>I am a pilgrim from Kazakhstan. I am lost.</b></p><p>Please call my group leader: <a href="tel:+77777825555">+7 777 782 55 55</a> (WhatsApp)</p>'+
+    $('#lostEn').innerHTML='<p><b>I am a pilgrim from Kazakhstan. I am lost.</b></p><p>Please call my group leader:<br><a href="tel:+77777825555">+7 777 782 55 55</a> (WhatsApp)</p>'+
       [c,other].map(function(k){ var h=HOTELS[k], r=lostRoom(k); return '<p>Hotel in '+h.en+': <b>'+esc(h.card)+'</b>'+(r?', room '+esc(r):'')+'</p>'; }).join('')+
-      '<p>Group: JURT'+(name?' · Name: '+esc(latin(name)):'')+'</p>';
+      '<p>Tour company: JURT (Kazakhstan)</p>'+(name?'<p>My name: <b>'+esc(latin(name))+'</b></p>':'');
     $('#lostSos').innerHTML=lostSos(di);
     var ok=okUrl(chat); $('#homeChatBox').hidden=!ok; $('#lostChatBox').hidden=!ok; if(ok){ $('#homeChat').href=chat; $('#lostChat').href=chat; }
   }
@@ -1572,6 +1585,35 @@ $('#lostBig').addEventListener('click',function(e){ if(!e.target.closest('a')) c
 document.addEventListener('keydown',function(e){ if(e.key!=='Escape') return; if($('#lostBig').classList.contains('on')) closeBig(); else if($('#lost').classList.contains('on')) closeLost(); });
 /* одинаковые поля (ворота в «Памятке» и в «Я потерялся») держим в одном значении */
 $$('[data-k]').forEach(function(el){ el.addEventListener('input',function(){ var k=el.getAttribute('data-k'); $$('[data-k="'+k+'"]').forEach(function(o){ if(o!==el) o.value=el.value; }); }); });
+/* шаг 9: живой отсчёт до вылета TK 351 (28.10 06:15 Алматы) и окно онлайн-регистрации TK (за 24 ч до вылета) */
+var DEP=new Date('2026-10-28T06:15:00+05:00'), REG_OPEN=new Date('2026-10-27T06:15:00+05:00'), REG_CLOSE=new Date('2026-10-28T05:15:00+05:00');
+function renderCd(){
+  var now=Date.now(), ms=DEP-now, box=$('#heroCd');
+  if(ms<=0){ box.hidden=true; }
+  else { var m=Math.floor(ms/6e4), d=Math.floor(m/1440), h=Math.floor(m%1440/60), mi=m%60;
+    box.hidden=false;
+    box.innerHTML=(d?'<div class="u"><b>'+d+'</b><span>'+nDays(d).replace(/^\d+ /,'')+'</span></div>':'')+
+      '<div class="u"><b>'+h+'</b><span>ч</span></div><div class="u"><b>'+mi+'</b><span>мин</span></div>'+
+      '<a href="umra.ics" download="umra-jurt.ics">🔔 Напомнить</a>'+
+      '<div class="when">Сбор в аэропорту Алматы 28.10 в 03:15 · вылет в 06:15</div>'; }
+  var reg=$('#regBox');
+  reg.innerHTML=(now>=REG_OPEN&&now<REG_CLOSE)?'<div class="reg"><b>Онлайн-регистрация на TK 351 открыта</b>'+
+    '<span>Группу регистрирует Чингис — посадочный талон придёт в WhatsApp. Багаж всё равно сдаём на стойке Turkish Airlines: приезжайте к 03:15, стойка закрывается в 05:15.</span></div>':'';
+}
+/* соседи: из таблицы приходят строки (старый формат) или {name, tel} */
+function mateOf(m){ return typeof m==='string'?{name:m,tel:''}:(m||{}); }
+function telDigits(t){ var d=String(t||'').replace(/\D/g,''); if(d.length===11&&d[0]==='8') d='7'+d.slice(1); return d; }
+function renderMates(me){
+  var box=$('#matesBox'); if(!box) return;
+  if(!me){ box.innerHTML='<p class="small">Откройте гид по личной ссылке от Чингиса — здесь появятся ваши соседи по номеру с телефонами.</p>'; return; }
+  var rows=[['Медина',me.medina,me.matesMedina],['Мекка',me.mecca,me.matesMecca]].map(function(r){
+    var ms=(r[2]||[]).map(mateOf).filter(function(m){ return m.name; });
+    if(!ms.length) return '';
+    return ms.map(function(m){ var d=telDigits(m.tel);
+      return '<div class="mate"><div class="who"><b>'+esc(m.name)+'</b><span>'+esc(r[0]+(r[1]?' · номер '+r[1]:''))+'</span></div>'+
+        (d?'<div class="acts"><a class="btn" href="tel:+'+d+'">Звонок</a><a class="btn wa" href="https://wa.me/'+d+'" target="_blank" rel="noopener">WhatsApp</a></div>':'<span class="tbd">нет номера</span>')+'</div>'; }).join(''); }).join('');
+  box.innerHTML='<b>Мои соседи по номеру</b>'+(rows||'<p class="small">Соседи появятся, когда Чингис заполнит номера комнат в таблице.</p>');
+}
 function renderData(){
   var D=get('data',null), me=D&&D.me, prog=(D&&D.program)||[];
   /* герой */
@@ -1579,22 +1621,24 @@ function renderData(){
   $('#heroName').textContent = name ? name : 'Дорогой паломник';
   $('#celeName').textContent = name || 'паломник';
   var di=dayIdx(), ph;
-  if(di<0){ ph='До вылета '+nDays(-di); }
+  if(di<0){ ph=(DEP-Date.now()<=0)?'В пути':'До вылета'; }
   else if(di<=9){ var c=cityOf(today(),prog); ph='День '+(di+1)+' из 10'+(c?' · '+c:''); }
   else ph='С возвращением! Умра мабрур';
   $('#heroPhase').textContent=ph;
   var chips=[];
   var med=(me&&me.medina)||get('in-f-room-med',''), mak=(me&&me.mecca)||get('in-f-room-mak','');
-  if(med) chips.push('<div class="chip">Медина · номер<b>'+esc(med)+'</b></div>');
-  if(mak) chips.push('<div class="chip">Мекка · номер<b>'+esc(mak)+'</b></div>');
+  if(med) chips.push('<a class="chip" href="https://maps.google.com/?q='+encodeURIComponent(HOTELS['Медина'].q)+'" target="_blank" rel="noopener">Медина · номер<b>'+esc(med)+'</b></a>');
+  if(mak) chips.push('<a class="chip" href="https://maps.google.com/?q='+encodeURIComponent(HOTELS['Мекка'].q)+'" target="_blank" rel="noopener">Мекка · номер<b>'+esc(mak)+'</b></a>');
   var mates=(me&&((di>=4&&di<=7)?me.matesMecca:me.matesMedina))||[];
-  if(me && mates.length) chips.push('<div class="chip">Соседи<b>'+esc(mates.join(', '))+'</b></div>');
+  if(me && mates.length) chips.push('<div class="chip">Соседи<b>'+esc(mates.map(function(m){ return mateOf(m).name; }).join(', '))+'</b></div>');
   $('#heroChips').innerHTML=chips.join('');
   if(me){ $('#myAuto').hidden=false; $('#myAuto').innerHTML='Из таблицы Чингиса: <b>'+esc(me.name)+'</b>'+(me.medina?' · Медина <b>'+esc(me.medina)+'</b>':'')+(me.mecca?' · Мекка <b>'+esc(me.mecca)+'</b>':''); }
   else $('#myAuto').hidden=true;
   renderCode(D);
   renderExtra(D);
   renderLost(D);
+  renderMates(me);
+  renderCd();
   /* объявление */
   var a=D&&D.announcement;
   $('#annBox').innerHTML = a ? '<div class="ann"><div class="ic">📣</div><div><b>Объявление</b><br>'+esc(a.text)+'<small>'+esc(a.at||'')+' · Чингис</small></div></div>' : '';
@@ -1683,6 +1727,7 @@ renderData(); load();
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible'){ renderData(); load(); } });
 window.addEventListener('online',load);
 setInterval(function(){ if(document.visibilityState==='visible') renderData(); },60000);
+setInterval(function(){ if(document.visibilityState==='visible') renderCd(); },30000);
 
 show(get('tab','home'));
 
