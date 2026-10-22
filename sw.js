@@ -1,8 +1,9 @@
 /* Гид паломника JURT — офлайн-кэш. Версия меняется автоматически при каждой сборке. */
-var CACHE = 'jurt-umra-7f20016951';
+var CACHE = 'jurt-umra-376a417593';
 var ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'amiri-400.woff2',
   'exo2-regular.woff2', 'exo2-semibold.woff2', 'exo2-bold.woff2', 'logo-white.svg', 'umra.ics',
-  'icon-mark.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
+  'icon-mark.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png',
+  'haram3d/', 'haram3d/bg.webp', 'haram3d/haram.glb', 'haram3d/haram_meta.json', 'haram3d/index.html', 'haram3d/poster.webp', 'haram3d/vendor/three/addons/controls/OrbitControls.js', 'haram3d/vendor/three/addons/environments/RoomEnvironment.js', 'haram3d/vendor/three/addons/loaders/GLTFLoader.js', 'haram3d/vendor/three/addons/utils/BufferGeometryUtils.js', 'haram3d/vendor/three/three.module.min.js'];  // 3D-сцена Харама — тоже офлайн
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
@@ -22,7 +23,7 @@ self.addEventListener('message', function (e) { if (e.data === 'skip') self.skip
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  if (req.mode === 'navigate' && !/^\/(program|admin)(\/|$)/.test(new URL(req.url).pathname)) {  // /program/ и /admin/ — отдельные страницы, не приложение
+  if (req.mode === 'navigate' && !/^\/(program|admin|haram3d)(\/|$)/.test(new URL(req.url).pathname)) {  // /program/, /admin/, /haram3d/ — отдельные страницы, не приложение
     e.respondWith(caches.match('index.html').then(function (r) { return r || fetch(req); }));
     return;
   }

@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Харам 3D — JURT</title>
+<link rel="preload" href="../exo2-semibold.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Exo 2 локально (те же файлы, что в «Гиде паломника»), лицензия OFL */
+  @font-face { font-family: "Exo 2"; font-weight: 400; font-display: swap; src: url(../exo2-regular.woff2) format("woff2"); }
+  @font-face { font-family: "Exo 2"; font-weight: 600; font-display: swap; src: url(../exo2-semibold.woff2) format("woff2"); }
+  @font-face { font-family: "Exo 2"; font-weight: 700; font-display: swap; src: url(../exo2-bold.woff2) format("woff2"); }
+  :root {
+    --sapphire: #005A5C; --deep: #00292C; --orange: #F07A1E; --copper: #E9A06A; --cream: #F4EDE1;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--deep); color: var(--cream);
+    font-family: "Exo 2", system-ui, sans-serif; }
+  #bg { position: fixed; inset: 0; background: url(bg.webp) center/cover no-repeat; }
+  #bg::after { content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(0,20,22,.75) 100%); }
+  canvas { position: fixed; inset: 0; display: block; touch-action: none; }
+  header { position: fixed; top: 0; left: 0; right: 0; padding: max(14px, env(safe-area-inset-top)) 16px 10px;
+    display: flex; align-items: center; gap: 10px; pointer-events: none;
+    background: linear-gradient(var(--deep), transparent); }
+  header .back { pointer-events: auto; font: 600 13px "Exo 2", sans-serif; color: var(--cream); text-decoration: none;
+    background: rgba(0,90,92,.85); border-radius: 10px; padding: 8px 10px; }
+  header .brand { font-weight: 700; letter-spacing: .14em; color: var(--copper); font-size: 13px; }
+  header h1 { margin: 0; font-size: 17px; font-weight: 600; }
+  .bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(16px, env(safe-area-inset-bottom));
+    display: flex; gap: 6px; padding: 5px; border-radius: 14px; background: rgba(0,41,44,.82);
+    backdrop-filter: blur(8px); border: 1px solid rgba(233,160,106,.25); transition: opacity .25s; }
+  .bar button { font: 600 13px "Exo 2", sans-serif; color: var(--cream); background: transparent; border: 0;
+    padding: 9px 12px; border-radius: 10px; cursor: pointer; white-space: nowrap; }
+  .bar button.on { background: var(--sapphire); }
+  .spot { position: fixed; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
+    display: grid; place-items: center; font: 700 14px "Exo 2", sans-serif; color: var(--deep);
+    background: var(--cream); border: 2px solid var(--copper); cursor: pointer; padding: 0;
+    box-shadow: 0 0 0 0 rgba(233,160,106,.6); animation: pulse 2.4s infinite; transition: opacity .2s; }
+  .spot::before { content: ""; position: absolute; inset: -8px; }
+  .spot.hid { opacity: .28; animation: none; }
+  .spot.off { display: none; }
+  .spot.sel { background: var(--orange); color: #fff; border-color: #fff; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(233,160,106,.55); } 70% { box-shadow: 0 0 0 10px rgba(233,160,106,0); } 100% { box-shadow: 0 0 0 0 rgba(233,160,106,0); } }
+  #card { position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); max-width: 460px;
+    margin: 0 auto; padding: 16px 16px 14px; border-radius: 18px; background: rgba(0,41,44,.94);
+    border: 1px solid rgba(233,160,106,.35); backdrop-filter: blur(10px);
+    transform: translateY(130%); transition: transform .32s cubic-bezier(.2,.8,.2,1); }
+  #card.open { transform: none; }
+  #card .tag { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--copper); }
+  #card h2 { margin: 4px 36px 8px 0; font-size: 20px; line-height: 1.2; }
+  #card h2 b { color: var(--orange); margin-right: 6px; }
+  #card p { margin: 0 0 8px; font-size: 14.5px; line-height: 1.45; color: #E8E1D4; }
+  #card .dua { padding: 8px 10px; border-left: 3px solid var(--orange); background: rgba(0,90,92,.45);
+    border-radius: 0 8px 8px 0; font-style: italic; }
+  #card .nav { display: flex; justify-content: space-between; margin-top: 10px; }
+  #card .nav button, #close { font: 600 13px "Exo 2", sans-serif; color: var(--cream); background: var(--sapphire);
+    border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  #close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; padding: 0; font-size: 18px; }
+  #card { max-height: 58vh; overflow-y: auto; overscroll-behavior: contain; }
+  #card .src { font-size: 12px; color: rgba(244,237,225,.62); }
+  header .go { margin-left: auto; pointer-events: auto; font: 600 13px "Exo 2", sans-serif; color: #fff;
+    background: var(--orange); border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  header .go.on { background: var(--sapphire); }
+  #chips { position: fixed; top: calc(max(14px, env(safe-area-inset-top)) + 42px); left: 0; right: 0; display: none;
+    justify-content: center; gap: 6px; padding: 0 12px; }
+  #chips.on { display: flex; }
+  #chips button { width: 32px; height: 32px; border-radius: 50%; padding: 0; font: 700 13px "Exo 2", sans-serif;
+    color: var(--cream); background: rgba(0,41,44,.85); border: 1px solid rgba(233,160,106,.45); cursor: pointer; }
+  #chips button.done { background: var(--sapphire); }
+  #chips button.sel { background: var(--orange); border-color: #fff; color: #fff; }
+  #counter { position: fixed; top: calc(max(14px, env(safe-area-inset-top)) + 84px); left: 50%; transform: translateX(-50%);
+    display: none; padding: 6px 14px; border-radius: 20px; font: 600 14px "Exo 2", sans-serif; color: #fff;
+    background: rgba(240,122,30,.92); white-space: nowrap; }
+  #card .note { font-size: 11px; color: rgba(244,237,225,.5); margin: 6px 0 0; }
+  #load { position: fixed; inset: 0; display: grid; place-items: center; font-size: 14px; color: var(--copper); }
+  #fallback { position: fixed; inset: 0; display: none; background: url(poster.webp) center/cover; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="fallback"></div>
+<div id="load">Загружаем Харам…</div>
+<header><a class="back" href="../" aria-label="Вернуться в «Гид паломника»">← Гид</a><span class="brand">JURT</span><h1>Масджид аль-Харам</h1><button class="go" id="go">8 шагов умры</button></header>
+<div id="chips"></div>
+<div id="counter"></div>
+<div id="spots"></div>
+<div class="bar" id="bar">
+  <button data-view="kaaba" class="on">Кааба</button>
+  <button data-view="haram">Весь Харам</button>
+  <button data-view="sai">Сафа — Марва</button>
+  <button id="play">❚❚ Таваф</button>
+</div>
+<div id="card" role="dialog" aria-live="polite">
+  <button id="close" aria-label="Закрыть">×</button>
+  <div class="tag" id="ctag"></div>
+  <h2 id="ctitle"></h2>
+  <div id="ctext"></div>
+  <div class="nav"><button id="prev">← Назад</button><button id="next">Далее →</button></div>
+  <p class="note">Тексты — по «Гиду паломника» (ханафитский фикх). Схема по картам OpenStreetMap.</p>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+// Точки-подсказки по порядку тавафа (против часовой: Кааба слева), координаты — из OSM, метры от центра Каабы
+const SPOTS = [
+  { key: "black_stone", tag: "Таваф · старт", title: "Чёрный камень",
+    text: `<p>Аль-Хаджар аль-Асвад в серебряной оправе — восточный угол Каабы. От него начинается и им заканчивается каждый из 7 кругов.</p>
+<p><b>Истилям:</b> встаньте лицом к камню, поднимите руку ладонью к нему, скажите — и поцелуйте ладонь. Не пробивайтесь к камню: жест издали засчитывается.</p>
+<p class="dua">Бисмилляхи ва-Ллаху акбар</p>
+<p class="src">аль-Бухари, № 1613; аль-Байхаки от Ибн Умара. ⚑ Сверить: одна правая рука или обе ладони.</p>`, dist: 34 },
+  { key: "green_lamp", tag: "Ориентир", title: "Зелёная лампа",
+    text: `<p>На стене мечети напротив Чёрного камня горит зелёная лампа. В толпе камня часто не видно — ориентируйтесь на неё: поравнялись с ней — круг начался или закончился.</p>
+<p>Оранжевая линия на схеме условная: на полу матафа полосы сейчас нет.</p>`, dist: 70 },
+  { key: "multazam", tag: "Место дуа", title: "Мультазам",
+    text: `<p>Участок стены около 2 м между Чёрным камнем и дверью. Здесь просят Аллаха о самом важном.</p>
+<p>Если свободно — после тавафа можно прижаться к стене грудью и ладонями. Если тесно — делайте дуа, стоя поодаль.</p>`, dist: 30 },
+  { key: "door", tag: "Кааба", title: "Дверь Каабы",
+    text: `<p>Золотая дверь на северо-восточной стене, около 2 м над полом. Её открывают редко — для омовения Каабы.</p>
+<p>Над дверью — расшитый золотом занавес (ситара).</p>`, dist: 30 },
+  { key: "hijr", tag: "Важно для тавафа", title: "Хиджр Исмаила (Хатым)",
+    text: `<p>Полукруглая стена высотой около 1,3 м. Пространство внутри относится к Каабе.</p>
+<p><b>Таваф — только снаружи Хиджра.</b> Круг, пройденный через Хиджр, не засчитывается — его нужно повторить.</p>`, dist: 38 },
+  { key: "mizab", tag: "Кааба", title: "Мизаб ар-Рахма",
+    text: `<p>Золотой водосток на крыше Каабы. Смотрит на Хиджр: дождевая вода стекает именно туда.</p>`, dist: 36 },
+  { key: "yemeni", tag: "Таваф", title: "Йеменский угол",
+    text: `<p>Рукн аль-Ямани — южный угол Каабы, последний перед Чёрным камнем.</p>
+<p>Если свободно — коснитесь его рукой, не целуя. Если тесно — проходите: издали жест не делают.</p>
+<p>От него до Чёрного камня читают:</p><p class="dua">Раббана атина фи-д-дунья хасанатан ва фи-ль-ахырати хасанатан ва кына ‘азаба-н-нар</p>
+<p class="src">Коран 2:201; Абу Дауд, № 1892.</p>`, dist: 30 },
+  { key: "maqam", tag: "После тавафа · ваджиб", title: "Макам Ибрахим",
+    text: `<p>Камень со следами стоп пророка Ибрахима (мир ему) — в золотой оправе.</p>
+<p>После 7 кругов закройте правое плечо и совершите 2 ракаата позади Макама, лицом к Каабе (Коран 2:125). Читают суры «аль-Кафирун» и «аль-Ихлас».</p>
+<p>Тесно — молитесь в любом месте мечети. Если сейчас время, когда намаз запрещён, — подождите, пока оно пройдёт.</p>`, dist: 34 },
+  { key: "safa", tag: "Саи · старт", title: "Сафа",
+    text: `<p>Холм, с которого начинается саи (ваджиб). Подходя, читают Коран 2:158 и:</p>
+<p class="dua">Абда’у бима бада’а-Ллаху бих</p>
+<p class="src">Муслим, № 1218.</p>
+<p>На Сафе встаньте лицом к Каабе, поднимите руки, трижды «Аллаху акбар», «Ля иляха илляллах» — и дуа своими словами.</p>
+<p>Сафа → Марва — 1 проход, обратно — 2-й. Всего 7, около 2,8 км.</p>`, dist: 150 },
+  { key: "marwa", tag: "Саи · финиш", title: "Марва",
+    text: `<p>Седьмой проход заканчивается на Марве. На Марве — то же, что на Сафе: лицом к Каабе, такбир, дуа.</p>
+<p>Между зелёными огнями в галерее мужчины идут быстрым шагом, женщины — обычным:</p>
+<p class="dua">Рабби-гфир ва-рхам, иннака Анта-ль-а‘аззу-ль-акрам</p>
+<p>Вуду для саи желательно, но не обязательно. Устали — можно отдохнуть, есть коляски.</p>`, dist: 150 },
+];
+
+// 8 шагов умры на той же сцене. view: [цель, расстояние, направление]; spots: какие метки видны; fx — эффект шага
+const STEPS = [
+  { title: "Ихрам и намерение", tag: "Шаг 1 · Медина → микат", fx: "ihram", spots: [],
+    text: `<p>В отеле в Медине — гусль, мужчины надевают два белых полотна ихрама.</p>
+<p>На микате Зуль-Хулейфа — 2 ракаата ихрама (сунна; «аль-Кафирун» и «аль-Ихлас»), затем намерение:</p>
+<p class="dua">Аллахумма инни уриду-ль-‘умрата фа-йассирха ли ва-такаббальха минни</p>
+<p>И сразу тальбия — с этого момента действуют запреты ихрама:</p>
+<p class="dua">Ляббайка-Ллахумма ляббайк. Ляббайка ля шарика ляка ляббайк. Инна-ль-хамда ва-н-ни‘мата ляка ва-ль-мульк. Ля шарика лак.</p>
+<p class="src">Намерение — по «аль-Хидае»; тальбия — аль-Бухари, № 1549; Муслим, № 1184. Тальбию читают до начала тавафа.</p>` },
+  { title: "Вход в Харам", tag: "Шаг 2 · мечеть", fx: "enter", spots: [],
+    text: `<p>Запомните номер ворот — сфотографируйте табличку: это ваша точка сбора с группой. Обувь — в пакет с собой.</p>
+<p>Входите правой ногой:</p>
+<p class="dua">Бисмилляхь, ва-с-саляту ва-с-саляму ‘аля расулиллях. Аллахумма-фтах ли абваба рахматик</p>
+<p class="src">Муслим, № 713; Абу Дауд, № 465.</p>
+<p>Увидев Каабу — поднимите руки: «Аллаху акбар, ля иляха илляллах» — и попросите о самом важном.</p>` },
+  { title: "Таваф — 7 кругов", tag: "Шаг 3 · ваджиб и фард", fx: "tawaf", spots: [0, 1, 4, 6],
+    text: `<p>Оранжевая фигурка — это вы. Только с вуду. Мужчины — правое плечо открыто все 7 кругов (идтиба), первые 3 круга — быстрым шагом (рамаль), если позволяет толпа.</p>
+<p>Старт — напротив Чёрного камня (зелёная лампа), Кааба всё время слева, Хиджр — снаружи. На старте каждого круга — истилям.</p>
+<p>Первые 4 круга — фард, ещё 3 — ваджиб. Сбились со счёта — берите меньшее число.</p>
+<p class="src">⚑ Начинать от камня: у ханафитов одни считают это ваджибом, другие — сунной.</p>` },
+  { title: "2 ракаата у Макама", tag: "Шаг 4 · ваджиб", fx: "maqam", spots: [7],
+    text: `<p>Закройте правое плечо. Встаньте так, чтобы Макам Ибрахим был между вами и Каабой (Коран 2:125).</p>
+<p>2 ракаата: «аль-Кафирун» и «аль-Ихлас». Тесно — в любом месте мечети. Время, когда намаз запрещён, — переждите.</p>` },
+  { title: "Вода Замзам", tag: "Шаг 5 · сунна", fx: "zamzam", spots: [],
+    text: `<p>Кулеры с Замзамом стоят по краю матафа. Пейте вдоволь, лицом к Каабе, в три глотка, начиная с «Бисмиллях»; немного воды — на голову и лицо.</p>
+<p class="src">«Вода Замзам — для того, ради чего её пьют» — Ибн Маджа, № 3062.</p>
+<p>Затем — истилям издали в сторону камня (сунна) и к Сафе.</p>` },
+  { title: "Саи — Сафа и Марва", tag: "Шаг 6 · ваджиб", fx: "sai", spots: [8, 9],
+    text: `<p>Оранжевая метка — это вы. Сафа → Марва — 1-й проход, обратно — 2-й… 7-й заканчивается на Марве. Около 2,8 км.</p>
+<p>На Сафе и Марве — лицом к Каабе, руки подняты, трижды такбир, тахлиль, дуа. Между зелёными огнями мужчины идут быстрым шагом.</p>
+<p>Вуду желательно, но не обязательно. Можно отдыхать, есть коляски.</p>` },
+  { title: "Бритьё или стрижка", tag: "Шаг 7 · ваджиб", fx: "halq", spots: [9],
+    text: `<p>Мужчинам лучше побрить голову (халк) или укоротить волосы (таксир) — не меньше длины фаланги пальца, у ханафитов — минимум с четверти головы.</p>
+<p>Женщины только укорачивают — на длину фаланги.</p>
+<p>Только после этого снимаются запреты ихрама.</p>
+<p class="src">аль-Бухари, № 1727; Муслим, № 1302.</p>` },
+  { title: "Умра завершена", tag: "Шаг 8 · аль-хамду ли-Ллях", fx: "finish", spots: [],
+    text: `<p>Запреты ихрама сняты — можно переодеться. Поблагодарите Аллаха и попросите принять умру:</p>
+<p class="dua">Раббана такаббаль минна, иннака Анта-с-Сами‘у-ль-‘Алим</p>
+<p class="src">Коран 2:127.</p>
+<p>Пока вы в Мекке — молитесь в Хараме и совершайте добровольный таваф, сколько хватит сил.</p>` },
+];
+
+const $ = (id) => document.getElementById(id);
+const toV3 = (x, y, z = 0) => new THREE.Vector3(x, z, -y);   // Blender (север = +Y) → three.js
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+if (!renderer.getContext()) { $("fallback").style.display = "block"; throw new Error("no webgl"); }
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x000000, 0);
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+$("bg").after(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.55;
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.5, 5000);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.minDistance = 14; controls.maxDistance = 1100;
+controls.maxPolarAngle = THREE.MathUtils.degToRad(84);
+controls.screenSpacePanning = false;
+
+scene.add(new THREE.HemisphereLight(0xfff4e2, 0x2a3a3a, 1.1));
+const sun = new THREE.DirectionalLight(0xfff1dc, 2.4);
+sun.position.set(-60, 120, 70);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 10, far: 400 });
+sun.shadow.bias = -0.0004;
+scene.add(sun);
+
+// Мягкое свечение (вместо пост-обработки): радиальная текстура для спрайтов и точек
+function glowTex() {
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const g = c.getContext("2d"), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(.25, "rgba(255,255,255,.55)"); r.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+const GLOW = glowTex();
+const glowSprite = (color, size, opacity = 1) => {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color, transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false }));
+  s.scale.setScalar(size); return s;
+};
+
+const [gltf, meta] = await Promise.all([
+  new GLTFLoader().loadAsync("haram.glb"),
+  fetch("haram_meta.json").then((r) => r.json()),
+]);
+$("load").remove();
+
+const occluders = [];
+let startMat = null;
+gltf.scene.traverse((o) => {
+  if (!o.isMesh) return;
+  const m = o.material;
+  m.flatShading = true;
+  if (m.name === "kiswa") { m.color.set(0x0b0c0d); m.roughness = 0.75; m.metalness = 0; }
+  if (m.name === "gold") { m.color.set(0xd4af37); m.metalness = 1; m.roughness = 0.28; m.emissiveIntensity = 0.15; }
+  if (m.name === "start") { startMat = m; m.emissive.set(0xf07a1e); }
+  o.castShadow = ["kiswa", "gold", "marble", "minaret"].includes(m.name);
+  o.receiveShadow = true;
+  occluders.push(o);
+});
+scene.add(gltf.scene);
+
+// Зелёная лампа — ореол
+const gl = meta.spots.green_lamp;
+const lampGlow = glowSprite(0x4dff8a, 9); lampGlow.position.copy(toV3(gl[0], gl[1], gl[2])); scene.add(lampGlow);
+
+// ---------- Таваф: фигурки в ихраме (инстансы) идут против часовой по дорожкам из Blender ----------
+const lanes = meta.lanes.map((l) => {
+  const p = l.pts.map(([x, y]) => new THREE.Vector2(x, y));
+  const cum = [0];
+  for (let i = 1; i <= p.length; i++) cum.push(cum[i - 1] + p[i % p.length].distanceTo(p[i - 1]));
+  return { d: l.d, p, cum, L: cum[cum.length - 1] };
+});
+function along(lane, s, out) {
+  s = ((s % lane.L) + lane.L) % lane.L;
+  let lo = 0, hi = lane.cum.length - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (lane.cum[m] <= s) lo = m; else hi = m; }
+  const a = lane.p[lo], b = lane.p[(lo + 1) % lane.p.length];
+  const t = (s - lane.cum[lo]) / (lane.cum[lo + 1] - lane.cum[lo] || 1);
+  out.set(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+  out.tx = b.x - a.x; out.ty = b.y - a.y;
+  return out;
+}
+let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const walkers = [];
+for (const lane of lanes) {
+  const spacing = 1.55 + 0.035 * lane.d, n = Math.floor(lane.L / spacing), fill = 0.97 - 0.006 * lane.d;
+  for (let i = 0; i < n; i++) if (rnd() < fill)
+    walkers.push({ lane, s0: i * spacing + rnd() * 0.5, off: (rnd() - 0.5) * 0.9, v: 1.15 + rnd() * 0.35 });
+}
+const bodyGeo = new THREE.CylinderGeometry(0.24, 0.4, 1.78, 9).translate(0, 0.89, 0);
+const headGeo = new THREE.SphereGeometry(0.16, 10, 6).translate(0, 1.95, 0);
+const bodies = new THREE.InstancedMesh(bodyGeo, new THREE.MeshStandardMaterial({ color: 0xfbfaf6, roughness: 0.8,
+  emissive: 0xffffff, emissiveIntensity: 0.06, flatShading: true }), walkers.length);
+const heads = new THREE.InstancedMesh(headGeo, new THREE.MeshStandardMaterial({ color: 0xd2ae88, roughness: 0.8 }), walkers.length);
+bodies.castShadow = heads.castShadow = true;
+scene.add(bodies, heads);
+const tmpV = new THREE.Vector2(), mtx = new THREE.Matrix4();
+const SPEED = 1.6;   // ускорено ×1,3 к реальному шагу, чтобы движение читалось
+function placeWalkers(t) {
+  for (let i = 0; i < walkers.length; i++) {
+    const w = walkers[i], p = along(w.lane, w.s0 + t * w.v * SPEED, tmpV);
+    const l = Math.hypot(p.tx, p.ty) || 1, nx = p.ty / l, ny = -p.tx / l;
+    mtx.makeTranslation(p.x + nx * w.off, 0, -(p.y + ny * w.off));
+    bodies.setMatrixAt(i, mtx); heads.setMatrixAt(i, mtx);
+  }
+  bodies.instanceMatrix.needsUpdate = heads.instanceMatrix.needsUpdate = true;
+}
+
+// ---------- Эффекты: медные кометы по кругу + мерцающие искры ----------
+const comets = [0, Math.floor(lanes.length / 2), lanes.length - 2].map((li, k) => {
+  const g = new THREE.Group(), parts = [];
+  for (let j = 0; j < 26; j++) {
+    const s = glowSprite(0xffb76b, 2.6 * (1 - j / 30) * (1 + lanes[li].d / 50), 1 - j / 28);
+    g.add(s); parts.push(s);
+  }
+  scene.add(g);
+  return { lane: lanes[li], parts, phase: k / 3 };
+});
+const SPARKS = 160, sparkPos = new Float32Array(SPARKS * 3), sparkCol = new Float32Array(SPARKS * 3), sparkPh = [];
+const outerD = lanes[lanes.length - 1].d;
+for (let i = 0; i < SPARKS; i++) {
+  const r = 8 + rnd() * (outerD + 10), a = rnd() * Math.PI * 2;
+  sparkPos.set([r * Math.cos(a), 3 + rnd() * 30, -r * Math.sin(a)], i * 3); sparkPh.push(rnd() * Math.PI * 2);
+}
+const sparkGeo = new THREE.BufferGeometry();
+sparkGeo.setAttribute("position", new THREE.BufferAttribute(sparkPos, 3));
+sparkGeo.setAttribute("color", new THREE.BufferAttribute(sparkCol, 3));
+scene.add(new THREE.Points(sparkGeo, new THREE.PointsMaterial({ map: GLOW, size: 1.6, vertexColors: true,
+  transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })));
+
+// ---------- Эффекты шагов ----------
+// «Вы» — оранжевая фигурка с ореолом (таваф) или маяк над галереей (саи)
+const youMat = new THREE.MeshStandardMaterial({ color: 0xf07a1e, emissive: 0xf07a1e, emissiveIntensity: 0.9, roughness: 0.5 });
+const you = new THREE.Group(), youFig = new THREE.Group();
+youFig.add(new THREE.Mesh(bodyGeo, youMat), new THREE.Mesh(headGeo, youMat));
+const youGlow = glowSprite(0xff9a3c, 7, 0.9); youGlow.position.y = 1.2;
+const youDot = new THREE.Mesh(new THREE.SphereGeometry(3.2, 20, 14), youMat);   // на саи — плотный шарик, ореол на светлой крыше слабый
+youDot.position.y = 1.2;
+you.add(youFig, youGlow, youDot); you.visible = false; scene.add(you);
+// старт тавафа — точка дорожки, ближайшая к линии «Чёрный камень → зелёная лампа»
+const youLane = lanes[4];
+const youS0 = (() => {
+  const [A, E] = meta.start, ex = E[0] - A[0], ey = E[1] - A[1], l2 = ex * ex + ey * ey;
+  let best = Infinity, bs = 0;
+  youLane.p.forEach((p, i) => {
+    const t = Math.max(0, ((p.x - A[0]) * ex + (p.y - A[1]) * ey) / l2), dx = p.x - A[0] - ex * t, dy = p.y - A[1] - ey * t;
+    if (dx * dx + dy * dy < best) { best = dx * dx + dy * dy; bs = youLane.cum[i]; }
+  });
+  return bs;
+})();
+const LAP = 6, SAI_LEG = 5;   // секунд на круг / на проход — сжатое время, чтобы показать все 7
+// Кольцо за Макамом — место 2 ракаатов
+const mq = new THREE.Vector2(meta.spots.maqam[0], meta.spots.maqam[1]), mqOut = mq.clone().normalize();
+const ring = new THREE.Mesh(new THREE.RingGeometry(2.0, 2.8, 48).rotateX(-Math.PI / 2),
+  new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+ring.position.copy(toV3(mq.x + mqOut.x * 3.2, mq.y + mqOut.y * 3.2, 2.6)); ring.visible = false; scene.add(ring);
+// Замзам: медная кромка матафа + огоньки кулеров
+const edge = lanes[lanes.length - 1];
+const zamzam = new THREE.Group();
+for (let k = 0; k < 90; k++) {   // медная кромка из огоньков, каждый 6-й — кулер (голубой, крупнее)
+  const c = k % 6 === 0, g = glowSprite(c ? 0x1fa9c9 : 0xf07a1e, c ? 6 : 3);
+  g.material.blending = THREE.NormalBlending;   // на светлом мраморе аддитивное свечение не видно
+  g.position.copy(toV3(...along(edge, k / 90 * edge.L, tmpV).toArray(), c ? 2.5 : 1.2)); g.userData.c = c; zamzam.add(g);
+}
+zamzam.visible = false; scene.add(zamzam);
+// Саи: оранжевая дорожка по крыше Мас'а (в модели это блок высотой 30 м) от Сафы до Марвы
+const saiPath = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(toV3(135.83, -75.36, 30.6), toV3(91.41, 301.79, 30.6)), 8, 1.4, 8),
+  new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, opacity: 0.75, depthWrite: false }));
+saiPath.visible = false; scene.add(saiPath);
+// Завершение: медный салют над Каабой
+const BURST = 180, burstPos = new Float32Array(BURST * 3), burstVel = [];
+for (let i = 0; i < BURST; i++) {
+  const a = rnd() * Math.PI * 2, u = rnd() * 0.9 + 0.1;
+  burstVel.push(new THREE.Vector3(Math.cos(a) * u, 1.2 + rnd() * 0.8, Math.sin(a) * u).multiplyScalar(26 + rnd() * 18));
+}
+const burstGeo = new THREE.BufferGeometry(); burstGeo.setAttribute("position", new THREE.BufferAttribute(burstPos, 3));
+const burstMat = new THREE.PointsMaterial({ map: GLOW, size: 9, color: 0xe9a06a, transparent: true,
+  blending: THREE.AdditiveBlending, depthWrite: false });
+const burst = new THREE.Points(burstGeo, burstMat); burst.visible = false; burst.frustumCulled = false; scene.add(burst);
+
+let fx = null, counterTxt = "";
+function setFx(name) {
+  fx = name;
+  you.visible = name === "tawaf" || name === "sai" || name === "halq";
+  youFig.visible = name === "tawaf"; youDot.visible = name === "sai" || name === "halq";
+  you.scale.setScalar(name === "tawaf" ? 1.3 : 1);
+  youGlow.scale.setScalar(name === "tawaf" ? 7 : 22);
+  youGlow.material.blending = name === "tawaf" ? THREE.AdditiveBlending : THREE.NormalBlending;   // на светлом полу аддитивное не видно
+  saiPath.visible = name === "sai" || name === "halq";
+  ring.visible = name === "maqam"; zamzam.visible = name === "zamzam"; burst.visible = name === "finish";
+  setCounter("");
+}
+function setCounter(t) {
+  if (t === counterTxt) return;
+  counterTxt = t; $("counter").textContent = t; $("counter").style.display = t ? "block" : "none";
+}
+const saiA = new THREE.Vector3(), saiB = new THREE.Vector3(), followV = new THREE.Vector3();
+function updateFx(dt) {
+  if (!fx) return;
+  fxT += dt;
+  const pulse = 0.5 + 0.5 * Math.sin(fxT * 4);
+  if (fx === "tawaf") {
+    const k = Math.min(fxT / LAP, 7), p = along(youLane, youS0 + k * youLane.L, tmpV);
+    you.position.set(p.x, 0, -p.y);
+    youGlow.material.opacity = 0.6 + 0.4 * pulse;
+    setCounter(k >= 7 ? "Таваф завершён — 7 кругов ✓" : `Круг ${Math.floor(k) + 1} из 7${k < 3 ? " · рамаль" : ""}`);
+  } else if (fx === "sai" || fx === "halq") {
+    saiA.copy(safaV).setY(33); saiB.copy(marwaV).setY(33);
+    if (fx === "halq") {   // перед куполом Марвы (он выше крыши Мас'а) — пульсирующая метка
+      you.position.lerpVectors(saiA, saiB, 0.93); you.scale.setScalar(1 + 0.35 * pulse); setCounter("");
+    }
+    else {
+      const k = Math.min(fxT / SAI_LEG, 7), leg = Math.min(Math.floor(k), 6), u = k >= 7 ? 1 : k - leg;
+      you.position.lerpVectors(leg % 2 ? saiB : saiA, leg % 2 ? saiA : saiB, u);
+      setCounter(k >= 7 ? "Саи завершён на Марве ✓" : `Проход ${leg + 1} из 7 · ${leg % 2 ? "Марва → Сафа" : "Сафа → Марва"}`);
+    }
+    youGlow.material.opacity = 0.65 + 0.35 * pulse;
+    if (fx === "sai" && !fly) {   // камера ведёт метку от Сафы к Марве, вращать пальцем можно по-прежнему
+      const d = followV.copy(you.position).sub(controls.target).multiplyScalar(Math.min(1, dt * 2.5));
+      controls.target.add(d); camera.position.add(d);
+    }
+  } else if (fx === "maqam") {
+    ring.scale.setScalar(1 + 0.25 * pulse); ring.material.opacity = 0.45 + 0.5 * pulse;
+  } else if (fx === "zamzam") {
+    zamzam.children.forEach((g, k) => { g.material.opacity = g.userData.c ? 0.55 + 0.45 * pulse : 0.3 + 0.7 * Math.max(0, Math.sin(fxT * 3 - k * 0.35)); });
+  } else if (fx === "finish") {
+    const t = fxT % 3.2;
+    for (let i = 0; i < BURST; i++) {
+      const v = burstVel[i];
+      burstPos.set([v.x * t, 14 + v.y * t - 9 * t * t, v.z * t], i * 3);
+    }
+    burstGeo.attributes.position.needsUpdate = true;
+    burstMat.opacity = Math.max(0, 1 - t / 3.2);
+  }
+}
+
+// ---------- Точки-подсказки и карточки ----------
+const spotEls = SPOTS.map((s, i) => {
+  const b = document.createElement("button");
+  b.className = "spot"; b.textContent = i + 1; b.setAttribute("aria-label", s.title);
+  b.onclick = (e) => { e.stopPropagation(); openCard(i); };
+  $("spots").append(b);
+  const p = meta.spots[s.key];
+  s.pos = toV3(p[0], p[1], p[2] + (["safa", "marwa"].includes(s.key) ? 30 : 0.6));
+  return b;
+});
+let cur = -1, step = -1;   // открытая метка или открытый шаг (одновременно — что-то одно)
+function showCard(tag, title, html) {
+  $("ctag").textContent = tag; $("ctitle").innerHTML = title; $("ctext").innerHTML = html;
+  $("card").scrollTop = 0;
+  $("card").classList.add("open"); $("bar").style.opacity = 0; $("bar").style.pointerEvents = "none";
+}
+function openCard(i) {
+  if (step >= 0) leaveSteps();
+  cur = (i + SPOTS.length) % SPOTS.length;
+  const s = SPOTS[cur];
+  showCard(s.tag, `<b>${cur + 1}</b>${s.title}`, s.text);
+  spotEls.forEach((e, k) => e.classList.toggle("sel", k === cur));
+  flyTo(s.pos, s.dist);
+}
+function closeCard() {
+  $("card").classList.remove("open"); $("bar").style.opacity = 1; $("bar").style.pointerEvents = "";
+  spotEls.forEach((e) => e.classList.remove("sel")); cur = -1;
+  if (step >= 0) leaveSteps();
+}
+$("close").onclick = closeCard;
+$("next").onclick = () => step >= 0 ? openStep(step + 1) : openCard(cur + 1);
+$("prev").onclick = () => step >= 0 ? openStep(step - 1) : openCard(cur - 1);
+
+// ---------- Режим «8 шагов умры» ----------
+const chipEls = STEPS.map((st, i) => {
+  const b = document.createElement("button"); b.textContent = i + 1; b.setAttribute("aria-label", st.title);
+  b.onclick = () => openStep(i); $("chips").append(b); return b;
+});
+const kaabaT = toV3(1, 3, 2), safaV = SPOTS[8].pos, marwaV = SPOTS[9].pos;
+STEPS[0].view = [toV3(-90, 90, 0), 900, new THREE.Vector3(0.5, 0.72, 0.48)];
+STEPS[1].view = [kaabaT, 240, new THREE.Vector3(0.75, 0.45, 0.5)];
+STEPS[2].view = [kaabaT, 88, new THREE.Vector3(0.8, 0.75, -0.05)];
+STEPS[3].view = [toV3(mq.x, mq.y, 2), 42, new THREE.Vector3(mqOut.x, 0.65, -mqOut.y)];
+STEPS[4].view = [kaabaT, 175, new THREE.Vector3(0.55, 0.8, 0.45)];
+STEPS[5].view = [safaV.clone().setY(33), 280, new THREE.Vector3(0.12, 0.8, 0.58)];   // с юга вдоль Мас'а, дальше камера ведёт метку — на телефоне путь идёт вверх по экрану
+STEPS[6].view = [toV3(95, 285, 30), 230, new THREE.Vector3(0.12, 0.85, 0.5)];      // выход у Марвы, где бреют/стригут
+STEPS[7].view = [toV3(-60, 60, 0), 820, new THREE.Vector3(0.5, 0.72, 0.48)];
+
+let fxT = 0;
+function openStep(i) {
+  step = Math.max(0, Math.min(STEPS.length - 1, i)); cur = -1; fxT = 0;
+  const st = STEPS[step];
+  showCard(st.tag, `<b>${step + 1}</b>${st.title}`, st.text);
+  $("prev").style.visibility = step ? "" : "hidden";
+  $("next").textContent = step < STEPS.length - 1 ? "Далее →" : "Готово";
+  $("next").onclick = () => step < STEPS.length - 1 ? openStep(step + 1) : closeCard();
+  chipEls.forEach((e, k) => { e.classList.toggle("sel", k === step); e.classList.toggle("done", k < step); });
+  spotEls.forEach((e) => e.classList.remove("sel"));
+  $("chips").classList.add("on"); $("go").classList.add("on"); $("go").textContent = "Выйти";
+  setFx(st.fx);
+  flyTo(...st.view);
+}
+function leaveSteps() {
+  step = -1; setFx(null);
+  $("chips").classList.remove("on"); $("go").classList.remove("on"); $("go").textContent = "8 шагов умры";
+  $("prev").style.visibility = ""; $("next").textContent = "Далее →";
+  $("next").onclick = () => step >= 0 ? openStep(step + 1) : openCard(cur + 1);
+}
+$("go").onclick = () => step >= 0 ? closeCard() : openStep(0);
+
+// Плавный перелёт камеры: цель и расстояние, направление взгляда сохраняется
+let fly = null;
+function flyTo(target, dist, dir) {
+  const d = dir ? dir.clone().normalize() : camera.position.clone().sub(controls.target).normalize();
+  if (d.y < 0.35) { d.y = 0.35; d.normalize(); }
+  fly = { t0: performance.now(), dur: 1100, fromT: controls.target.clone(), fromC: camera.position.clone(),
+    toT: target.clone(), toC: target.clone().add(d.multiplyScalar(dist)) };
+}
+const VIEWS = {
+  kaaba: [toV3(1, 3, 2), 72, new THREE.Vector3(0.8, 0.58, -0.05)],
+  haram: [toV3(-90, 90, 0), 900, new THREE.Vector3(0.5, 0.72, 0.48)],
+  sai: [toV3(110, 110, 10), 430, new THREE.Vector3(0.85, 0.5, 0.15)],
+};
+document.querySelectorAll("[data-view]").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("[data-view]").forEach((x) => x.classList.toggle("on", x === b));
+  const [t, d, dir] = VIEWS[b.dataset.view]; flyTo(t, d, dir);
+});
+let playing = true;
+$("play").onclick = () => { playing = !playing; $("play").textContent = (playing ? "❚❚" : "▶") + " Таваф"; };
+
+{ const [t, d, dir] = VIEWS.kaaba; controls.target.copy(t); camera.position.copy(t).add(dir.clone().normalize().multiplyScalar(d)); }
+
+// Видимость меток: прячем за зданиями (проверка лучом раз в несколько кадров)
+const ray = new THREE.Raycaster(), proj = new THREE.Vector3();
+let frame = 0;
+function updateSpots() {
+  const w = innerWidth, h = innerHeight, check = frame++ % 8 === 0;
+  const far = camera.position.distanceTo(controls.target) > 260;   // издали метки у Каабы сливаются — оставляем 1, 9, 10
+  SPOTS.forEach((s, i) => {
+    const el = spotEls[i];
+    proj.copy(s.pos).project(camera);
+    if ((step >= 0 ? !STEPS[step].spots.includes(i) : far && i > 0 && i < 8 && cur !== i) || proj.z > 1 || Math.abs(proj.x) > 1.1 || Math.abs(proj.y) > 1.1) { el.classList.add("off"); return; }
+    el.classList.remove("off");
+    el.style.transform = `translate(${(proj.x + 1) / 2 * w}px, ${(1 - proj.y) / 2 * h}px)`;
+    if (check) {
+      const dir = s.pos.clone().sub(camera.position), dist = dir.length();
+      ray.set(camera.position, dir.normalize()); ray.far = dist - 2.5;
+      el.classList.toggle("hid", ray.intersectObjects(occluders, false).length > 0);
+    }
+  });
+}
+
+let simT = 0, last = performance.now(), viewShift = 0;
+const ease = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+renderer.setAnimationLoop((now) => {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (playing) simT += dt;
+  if (fly) {
+    const k = Math.min(1, (now - fly.t0) / fly.dur), e = ease(k);
+    controls.target.lerpVectors(fly.fromT, fly.toT, e); camera.position.lerpVectors(fly.fromC, fly.toC, e);
+    if (k >= 1) fly = null;
+  }
+  const want = $("card").classList.contains("open") ? 0.2 : 0;   // сдвигаем картинку вверх над карточкой
+  if (Math.abs(want - viewShift) > 0.001) {
+    viewShift += (want - viewShift) * Math.min(1, dt * 6);
+    camera.setViewOffset(innerWidth, innerHeight, 0, viewShift * innerHeight, innerWidth, innerHeight);
+  }
+  controls.update();
+  placeWalkers(simT);
+  updateFx(dt);
+  for (const c of comets) {
+    const base = (c.phase + simT / 9) * c.lane.L;
+    c.parts.forEach((s, j) => { const p = along(c.lane, base - j * 0.9, tmpV); s.position.set(p.x, 0.9, -p.y); });
+  }
+  for (let i = 0; i < SPARKS; i++) {
+    const v = Math.max(0, Math.sin(simT * 1.6 + sparkPh[i])) ** 3;
+    sparkCol.set([v, v * 0.93, v * 0.82], i * 3);
+  }
+  sparkGeo.attributes.color.needsUpdate = true;
+  if (startMat) startMat.emissiveIntensity = 1.6 + Math.sin(simT * 3) * 0.9;
+  lampGlow.material.opacity = 0.75 + Math.sin(simT * 2.2) * 0.25;
+  renderer.render(scene, camera);
+  updateSpots();
+});
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight; viewShift += 0.0011; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight);
+});
+renderer.domElement.addEventListener("pointerdown", () => { fly = null; });
+</script>
+</body>
+</html>
