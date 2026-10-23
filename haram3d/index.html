@@ -266,14 +266,13 @@ scene.add(gltf.scene);
 
 // Детальная модель: здания Харама и города по OSM, высоты сверены с 2ГИС/Urbi, минареты и башня с часами.
 // Грузим следом за основной сценой, чтобы страница открывалась сразу; святыни, таваф и шаги остаются из haram.glb.
-// На саи крыша галереи Мас'а закрывает путь — тогда показываем упрощённый Харам (setXray).
+// Галерея Мас'а в ней разборная: на саи и бритье снимаем верхние ярусы и купола — путь Сафа — Марва виден сверху (setCut).
+// Пока детальная модель не загрузилась (или не загрузится), работает упрощённая галерея-блок 30 м и путь по её крыше.
 const LIVE_HARAM = ["mosque", "minaret", "masaa"].map((n) => gltf.scene.getObjectByName(n)).filter(Boolean);
-let detailHaram = [], xray = false;
-function setXray(on) {
-  xray = on;
-  if (!detailHaram.length) return;
-  detailHaram.forEach((o) => o.visible = !on);
-  LIVE_HARAM.forEach((o) => o.visible = on);
+let masaaTop = [], cut = false, saiY = 33;
+function setCut(on) {
+  cut = on;
+  masaaTop.forEach((o) => o.visible = !on);
 }
 new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath("./vendor/draco/")).loadAsync("haram_city.glb").then((city) => {
   const base = city.scene.getObjectByName("L_base");
@@ -283,9 +282,14 @@ new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath("./vendor/draco
     o.receiveShadow = true;
     if (!/Земля/.test(o.parent?.name || o.name)) occluders.push(o);   // метки прячутся и за гостиницами
   });
-  detailHaram = base.children.filter((o) => /Харам|Минарет|Купол/.test(o.name));
+  LIVE_HARAM.forEach((o) => o.visible = false);
+  masaaTop = base.children.filter((o) => /Масъа.*(верх|купол)/.test(o.name));
+  if (masaaTop.length) {   // путь — по полу нижнего яруса галереи
+    saiY = 2; saiPath.position.y = 1 - 30.6;
+    STEPS[5].view[0].setY(saiY); STEPS[6].view[0].setY(8);
+  }
   scene.add(base);
-  setXray(xray);
+  setCut(cut);
 }).catch((e) => console.warn("haram_city.glb:", e));
 
 // Зелёная лампа — ореол
@@ -392,7 +396,7 @@ for (let k = 0; k < 90; k++) {   // медная кромка из огоньк�
   g.position.copy(toV3(...along(edge, k / 90 * edge.L, tmpV).toArray(), c ? 2.5 : 1.2)); g.userData.c = c; zamzam.add(g);
 }
 zamzam.visible = false; scene.add(zamzam);
-// Саи: оранжевая дорожка по крыше Мас'а (в модели это блок высотой 30 м) от Сафы до Марвы
+// Саи: оранжевая дорожка от Сафы до Марвы — по крыше упрощённой галереи (30 м), с детальной моделью — по полу
 const saiPath = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(toV3(135.83, -75.36, 30.6), toV3(91.41, 301.79, 30.6)), 8, 1.4, 8),
   new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, opacity: 0.75, depthWrite: false }));
 saiPath.visible = false; scene.add(saiPath);
@@ -410,7 +414,7 @@ const burst = new THREE.Points(burstGeo, burstMat); burst.visible = false; burst
 let fx = null, counterTxt = "";
 function setFx(name) {
   fx = name;
-  setXray(name === "sai" || name === "halq");
+  setCut(name === "sai" || name === "halq");
   you.visible = name === "tawaf" || name === "sai" || name === "halq";
   youFig.visible = name === "tawaf"; youDot.visible = name === "sai" || name === "halq";
   you.scale.setScalar(name === "tawaf" ? 1.3 : 1);
@@ -435,8 +439,8 @@ function updateFx(dt) {
     youGlow.material.opacity = 0.6 + 0.4 * pulse;
     setCounter(k >= 7 ? "Таваф завершён — 7 кругов ✓" : `Круг ${Math.floor(k) + 1} из 7${k < 3 ? " · рамаль" : ""}`);
   } else if (fx === "sai" || fx === "halq") {
-    saiA.copy(safaV).setY(33); saiB.copy(marwaV).setY(33);
-    if (fx === "halq") {   // перед куполом Марвы (он выше крыши Мас'а) — пульсирующая метка
+    saiA.copy(safaV).setY(saiY); saiB.copy(marwaV).setY(saiY);
+    if (fx === "halq") {   // у Марвы — пульсирующая метка
       you.position.lerpVectors(saiA, saiB, 0.93); you.scale.setScalar(1 + 0.35 * pulse); setCounter("");
     }
     else {
