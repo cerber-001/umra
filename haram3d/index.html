@@ -209,7 +209,7 @@ const STEPS = [
 <p>На Сафе и Марве — лицом к Каабе, руки подняты, трижды такбир, тахлиль, дуа. Между зелёными огнями мужчины идут быстрым шагом.</p>
 <p>Вуду желательно, но не обязательно. Можно отдыхать, есть коляски.</p>` },
   { title: "Бритьё или стрижка", tag: "Шаг 7 · ваджиб", fx: "halq", spots: [9],
-    text: `<p>Не на Марве и не в мечети: сначала выйдите из Харама — к салонам у выхода с Марвы или в отель.</p>
+    text: `<p>Не на Марве и не в мечети: сначала выйдите из Харама через ворота № 25 «Баб аль-Марва» у Марвы. Сразу за ними — салоны, где бреют и стригут.</p>
 <p>Мужчинам лучше побрить голову (халк) или укоротить волосы (таксир) — не меньше длины фаланги пальца, у ханафитов — минимум с четверти головы.</p>
 <p>Женщины только укорачивают — на длину фаланги.</p>
 <p>Только после этого снимаются запреты ихрама.</p>
@@ -550,9 +550,9 @@ const burstMat = new THREE.PointsMaterial({ map: GLOW, size: 9, color: 0xe9a06a,
   blending: THREE.AdditiveBlending, depthWrite: false });
 const burst = new THREE.Points(burstGeo, burstMat); burst.visible = false; burst.frustumCulled = false; scene.add(burst);
 
-// Бритьё — вне мечети: метка уходит от Марвы к салонам за выходом (место условное)
-const HALQ = [toV3(130, 305, 2), toV3(180, 315, 2)];
-const halqTag = label("бритьё — вне мечети (условно)", "#F4EDE1", "#00292C"); halqTag.position.copy(HALQ[1]).setY(16);
+// Бритьё — вне мечети: от Марвы через ворота № 25 «Баб аль-Марва» (OSM, node 4562391840) к салонам за выходом
+const HALQ = [toV3(124, 310, 2), toV3(160, 322, 2)];
+const halqTag = label("салон у выхода с Марвы", "#F4EDE1", "#00292C"); halqTag.position.copy(HALQ[1]).setY(16);
 halqTag.visible = false; scene.add(halqTag);
 // Шкала «Умра: X %» — доля пройденных обрядов, веса этапов по времени и усилию (не мера награды)
 const PROG = { ihram: [0, 5], enter: [5, 15], tawaf: [15, 55], maqam: [55, 62], zamzam: [62, 67], sai: [67, 95], halq: [95, 100], finish: [100, 100] };
@@ -668,7 +668,7 @@ function updateFx(dt) {
       if (u < 0.5) you.position.lerpVectors(saiB, HALQ[0], u * 2); else you.position.lerpVectors(HALQ[0], HALQ[1], u * 2 - 1);
       you.scale.setScalar(u >= 1 ? 1 + 0.35 * pulse : 1);
       pct = setProg(u);
-      setCounter(u >= 1 ? "Бритьё или стрижка — вне мечети ✓" : "Выходим из Харама");
+      setCounter(u >= 1 ? "Бритьё в салоне у выхода с Марвы ✓" : "Выходим через ворота № 25 у Марвы");
     } else {
       const k = Math.min(fxT / SAI_LEG, 7), leg = Math.min(Math.floor(k), 6), u = k >= 7 ? 1 : k - leg;
       you.position.lerpVectors(leg % 2 ? saiB : saiA, leg % 2 ? saiA : saiB, u);
@@ -749,7 +749,7 @@ STEPS[2].view = [kaabaT, 88, new THREE.Vector3(0.8, 0.75, -0.05)];
 STEPS[3].view = [toV3(mq.x, mq.y, 2), 42, new THREE.Vector3(mqOut.x, 0.65, -mqOut.y)];
 STEPS[4].view = [kaabaT, 175, new THREE.Vector3(0.55, 0.8, 0.45)];
 STEPS[5].view = [safaV.clone().setY(33), 260, new THREE.Vector3(0.1, 1.4, 0.45)];   // с юга вдоль Мас'а, дальше камера ведёт метку — на телефоне путь идёт вверх по экрану
-STEPS[6].view = [toV3(95, 285, 30), 230, new THREE.Vector3(0.12, 0.85, 0.5)];      // выход у Марвы, где бреют/стригут
+STEPS[6].view = [toV3(120, 300, 30), 230, new THREE.Vector3(0.12, 0.85, 0.5)];      // выход у Марвы, где бреют/стригут
 STEPS[7].view = [toV3(-60, 60, 0), 820, new THREE.Vector3(0.5, 0.72, 0.48)];
 
 let fxT = 0;
