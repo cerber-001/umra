@@ -89,6 +89,7 @@
   <button data-view="kaaba" class="on">Кааба</button>
   <button data-view="haram">Весь Харам</button>
   <button data-view="sai">Сафа — Марва</button>
+  <button data-view="hotel">Отель → Кааба</button>
   <button id="play">❚❚ Таваф</button>
 </div>
 <div id="card" role="dialog" aria-live="polite">
@@ -109,6 +110,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 // Точки-подсказки по порядку тавафа (против часовой: Кааба слева), координаты — из OSM, метры от центра Каабы
 const SPOTS = [
@@ -151,6 +153,10 @@ const SPOTS = [
 <p>Между зелёными огнями в галерее мужчины идут быстрым шагом, женщины — обычным:</p>
 <p class="dua">Рабби-гфир ва-рхам, иннака Анта-ль-а‘аззу-ль-акрам</p>
 <p>Вуду для саи желательно, но не обязательно. Устали — можно отдохнуть, есть коляски.</p>`, dist: 150 },
+  { key: "hotel", tag: "Наш отель", title: "Address Jabal Omar", p: [-806, -40, 150],
+    text: `<p>Здесь живёт группа. Это две башни, а наверху между ними — мост с молельным залом.</p>
+<p>Оранжевая линия — путь пешком: от отеля до ворот короля Фахда (№ 79) около 570 м, это 8–10 минут. Дальше — через мечеть к Чёрному камню.</p>
+<p>Линия — схема по карте. В толпе проходы иногда перекрывают, поэтому держитесь группы.</p>`, dist: 420 },
 ];
 
 // 8 шагов умры на той же сцене. view: [цель, расстояние, направление]; spots: какие метки видны; fx — эффект шага
@@ -163,7 +169,8 @@ const STEPS = [
 <p class="dua">Ляббайка-Ллахумма ляббайк. Ляббайка ля шарика ляка ляббайк. Инна-ль-хамда ва-н-ни‘мата ляка ва-ль-мульк. Ля шарика лак.</p>
 <p class="src">Намерение — по «аль-Хидае»; тальбия — аль-Бухари, № 1549; Муслим, № 1184. Тальбию читают до начала тавафа.</p>` },
   { title: "Вход в Харам", tag: "Шаг 2 · мечеть", fx: "enter", spots: [],
-    text: `<p>Запомните номер ворот — сфотографируйте табличку: это ваша точка сбора с группой. Обувь — в пакет с собой.</p>
+    text: `<p>Оранжевая линия — путь из нашего отеля Address Jabal Omar до ворот короля Фахда (№ 79), около 570 м, и дальше к Чёрному камню.</p>
+<p>Запомните номер ворот — сфотографируйте табличку: это ваша точка сбора с группой. Обувь — в пакет с собой.</p>
 <p>Входите правой ногой:</p>
 <p class="dua">Бисмилляхь, ва-с-саляту ва-с-саляму ‘аля расулиллях. Аллахумма-фтах ли абваба рахматик</p>
 <p class="src">Муслим, № 713; Абу Дауд, № 465.</p>
@@ -320,23 +327,55 @@ for (const lane of lanes) {
   for (let i = 0; i < n; i++) if (rnd() < fill)
     walkers.push({ lane, s0: i * spacing + rnd() * 0.5, off: (rnd() - 0.5) * 0.9, v: 1.15 + rnd() * 0.35 });
 }
-const bodyGeo = new THREE.CylinderGeometry(0.24, 0.4, 1.78, 9).translate(0, 0.89, 0);
-const headGeo = new THREE.SphereGeometry(0.16, 10, 6).translate(0, 1.95, 0);
-const bodies = new THREE.InstancedMesh(bodyGeo, new THREE.MeshStandardMaterial({ color: 0xfbfaf6, roughness: 0.8,
-  emissive: 0xffffff, emissiveIntensity: 0.06, flatShading: true }), walkers.length);
-const heads = new THREE.InstancedMesh(headGeo, new THREE.MeshStandardMaterial({ color: 0xd2ae88, roughness: 0.8 }), walkers.length);
-bodies.castShadow = heads.castShadow = true;
-scene.add(bodies, heads);
+// Ихрам — два полотна: изар (ниже пояса) и рида (через левое плечо, под правой рукой). Правое плечо открыто (идтиба).
+// Своя система координат фигурки: −z — вперёд по ходу, +x — правая сторона (Кааба слева).
+const cyl = (r0, r1, y0, y1, x = 0, seg = 9) => new THREE.CylinderGeometry(r0, r1, y1 - y0, seg).translate(x, (y0 + y1) / 2, 0);
+const clothGeo = mergeGeometries([
+  cyl(0.27, 0.33, 0.08, 1.03),                                                       // изар
+  cyl(0.255, 0.275, 0.98, 1.27),                                                     // рида вокруг пояса и груди
+  new THREE.BoxGeometry(0.62, 0.15, 0.5).rotateZ(-0.62).translate(-0.04, 1.3, 0),    // перекинута наискось к левому плечу
+  new THREE.BoxGeometry(0.24, 0.2, 0.46).translate(-0.17, 1.42, 0),                  // левое плечо — под тканью
+  cyl(0.085, 0.095, 0.86, 1.42, -0.33, 7),                                           // левая рука в ткани
+]);
+const skinGeo = mergeGeometries([
+  cyl(0.2, 0.24, 1.2, 1.47),                                                         // грудь и правое плечо
+  cyl(0.055, 0.06, 1.46, 1.58, 0, 7),
+  new THREE.SphereGeometry(0.115, 10, 7).translate(0, 1.68, 0),
+  new THREE.SphereGeometry(0.05, 6, 4).translate(-0.33, 0.82, 0),                    // левая кисть
+]);
+const armGeo = mergeGeometries([cyl(0.06, 0.07, -0.6, 0, 0, 7),                   // правая рука, ось вращения — плечо
+  new THREE.BoxGeometry(0.1, 0.17, 0.05).translate(0, -0.68, 0)]);                  // ладонь
+const SHOULDER = new THREE.Vector3(0.28, 1.44, 0);
+const clothMat = new THREE.MeshStandardMaterial({ color: 0xfbfaf6, roughness: 0.8, emissive: 0xffffff, emissiveIntensity: 0.06, flatShading: true });
+const skinMat = new THREE.MeshStandardMaterial({ color: 0xc89a72, roughness: 0.75, flatShading: true });
+const cloths = new THREE.InstancedMesh(clothGeo, clothMat, walkers.length);
+const skins = new THREE.InstancedMesh(skinGeo, skinMat, walkers.length);
+const arms = new THREE.InstancedMesh(armGeo, skinMat, walkers.length);
+cloths.castShadow = skins.castShadow = true;
+scene.add(cloths, skins, arms);
+// Линия Чёрного камня (камень → зелёная лампа): проходя её, каждый поднимает правую руку ладонью к камню (истилям)
+const stoneA = new THREE.Vector2(...meta.start[0]), stoneDir = new THREE.Vector2(...meta.start[1]).sub(stoneA).normalize();
+const raiseAt = (x, y) => {
+  const dx = x - stoneA.x, dy = y - stoneA.y;
+  if (dx * stoneDir.x + dy * stoneDir.y < 0) return 0;
+  return THREE.MathUtils.clamp(1.6 - Math.abs(dx * stoneDir.y - dy * stoneDir.x) / 1.4, 0, 1);
+};
+const I4 = new THREE.Matrix4(), armM = new THREE.Matrix4(), rx = new THREE.Matrix4(), rz = new THREE.Matrix4();
+function armMatrix(body, k, out) {   // k = 0 — рука опущена, 1 — поднята вперёд-вверх и к Каабе
+  rx.makeRotationX(k * 2.5); rz.makeRotationZ(0.08 + k * 0.4);
+  return out.makeTranslation(SHOULDER.x, SHOULDER.y, SHOULDER.z).multiply(rz).multiply(rx).premultiply(body);
+}
 const tmpV = new THREE.Vector2(), mtx = new THREE.Matrix4();
 const SPEED = 1.6;   // ускорено ×1,3 к реальному шагу, чтобы движение читалось
 function placeWalkers(t) {
   for (let i = 0; i < walkers.length; i++) {
     const w = walkers[i], p = along(w.lane, w.s0 + t * w.v * SPEED, tmpV);
-    const l = Math.hypot(p.tx, p.ty) || 1, nx = p.ty / l, ny = -p.tx / l;
-    mtx.makeTranslation(p.x + nx * w.off, 0, -(p.y + ny * w.off));
-    bodies.setMatrixAt(i, mtx); heads.setMatrixAt(i, mtx);
+    const l = Math.hypot(p.tx, p.ty) || 1, nx = p.ty / l, ny = -p.tx / l, x = p.x + nx * w.off, y = p.y + ny * w.off;
+    mtx.makeRotationY(Math.atan2(-p.tx, p.ty)).setPosition(x, 0, -y);
+    cloths.setMatrixAt(i, mtx); skins.setMatrixAt(i, mtx);
+    arms.setMatrixAt(i, armMatrix(mtx, raiseAt(x, y), armM));
   }
-  bodies.instanceMatrix.needsUpdate = heads.instanceMatrix.needsUpdate = true;
+  cloths.instanceMatrix.needsUpdate = skins.instanceMatrix.needsUpdate = arms.instanceMatrix.needsUpdate = true;
 }
 
 // ---------- Эффекты: медные кометы по кругу + мерцающие искры ----------
@@ -365,10 +404,13 @@ scene.add(new THREE.Points(sparkGeo, new THREE.PointsMaterial({ map: GLOW, size:
 // «Вы» — оранжевая фигурка с ореолом (таваф) или маяк над галереей (саи)
 const youMat = new THREE.MeshStandardMaterial({ color: 0xf07a1e, emissive: 0xf07a1e, emissiveIntensity: 0.9, roughness: 0.5 });
 const you = new THREE.Group(), youFig = new THREE.Group();
-youFig.add(new THREE.Mesh(bodyGeo, youMat), new THREE.Mesh(headGeo, youMat));
+const youArm = new THREE.Mesh(armGeo, youMat); youArm.matrixAutoUpdate = false;
+youFig.add(new THREE.Mesh(clothGeo, youMat), new THREE.Mesh(skinGeo, youMat), youArm);
 const youGlow = glowSprite(0xff9a3c, 7, 0.9); youGlow.position.y = 1.2;
-const youDot = new THREE.Mesh(new THREE.SphereGeometry(3.2, 20, 14), youMat);   // на саи — плотный шарик, ореол на светлой крыше слабый
-youDot.position.y = 1.2;
+// на саи — плотный шарик поверх всего: галерею сверху не снять целиком, а метку видно всегда
+const youDot = new THREE.Mesh(new THREE.SphereGeometry(3.2, 20, 14),
+  new THREE.MeshBasicMaterial({ color: 0xf07a1e, depthTest: false, transparent: true }));
+youDot.position.y = 1.2; youDot.renderOrder = 11;
 you.add(youFig, youGlow, youDot); you.visible = false; scene.add(you);
 // старт тавафа — точка дорожки, ближайшая к линии «Чёрный камень → зелёная лампа»
 const youLane = lanes[4];
@@ -398,8 +440,21 @@ for (let k = 0; k < 90; k++) {   // медная кромка из огоньк�
 zamzam.visible = false; scene.add(zamzam);
 // Саи: оранжевая дорожка от Сафы до Марвы — по крыше упрощённой галереи (30 м), с детальной моделью — по полу
 const saiPath = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(toV3(135.83, -75.36, 30.6), toV3(91.41, 301.79, 30.6)), 8, 1.4, 8),
-  new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, opacity: 0.75, depthWrite: false }));
-saiPath.visible = false; scene.add(saiPath);
+  new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, opacity: 0.6, depthWrite: false, depthTest: false }));
+saiPath.visible = false; saiPath.renderOrder = 10; scene.add(saiPath);
+// Путь из отеля Address Jabal Omar: улицы до ворот короля Фахда (№ 79) — обход зданий по карте OSM (route_address.py),
+// дальше внутри мечети к Чёрному камню. Линия видна сквозь здания, по ней бежит огонёк.
+const ROUTE = [[-790, -40], [-768, -40], [-624, -40], [-546, -118], [-284, -122], [-232, -146], [-223, -142],
+  [-140, -80], [-60, -38], [-22, -20], [-2, -12], [8, -6.5], [7.2, -3.4]];
+const routeCurve = new THREE.CatmullRomCurve3(ROUTE.map(([x, y]) => toV3(x, y, 2)), false, "catmullrom", 0.1);
+const route = new THREE.Group();
+route.add(new THREE.Mesh(new THREE.TubeGeometry(routeCurve, 400, 2.2, 8),
+  new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, opacity: 0.85, depthWrite: false, depthTest: false })));
+const runner = glowSprite(0xffd2a0, 22); runner.material.depthTest = false; route.add(runner);
+const gate79 = glowSprite(0xf07a1e, 26); gate79.material.depthTest = false; gate79.position.copy(toV3(-223, -142, 4)); route.add(gate79);
+route.children.forEach((o) => o.renderOrder = 12);
+route.visible = false; scene.add(route);
+let routeOn = false;
 // Завершение: медный салют над Каабой
 const BURST = 180, burstPos = new Float32Array(BURST * 3), burstVel = [];
 for (let i = 0; i < BURST; i++) {
@@ -421,6 +476,8 @@ function setFx(name) {
   youGlow.scale.setScalar(name === "tawaf" ? 7 : 22);
   youGlow.material.blending = name === "tawaf" ? THREE.AdditiveBlending : THREE.NormalBlending;   // на светлом полу аддитивное не видно
   saiPath.visible = name === "sai" || name === "halq";
+  youGlow.material.depthTest = !saiPath.visible;
+  route.visible = routeOn || name === "enter";
   ring.visible = name === "maqam"; zamzam.visible = name === "zamzam"; burst.visible = name === "finish";
   setCounter("");
 }
@@ -430,12 +487,17 @@ function setCounter(t) {
 }
 const saiA = new THREE.Vector3(), saiB = new THREE.Vector3(), followV = new THREE.Vector3();
 function updateFx(dt) {
+  if (route.visible) {
+    runner.position.copy(routeCurve.getPointAt((performance.now() / 14000) % 1)).setY(4);
+    gate79.material.opacity = 0.55 + 0.45 * Math.sin(performance.now() / 260);
+  }
   if (!fx) return;
   fxT += dt;
   const pulse = 0.5 + 0.5 * Math.sin(fxT * 4);
   if (fx === "tawaf") {
     const k = Math.min(fxT / LAP, 7), p = along(youLane, youS0 + k * youLane.L, tmpV);
-    you.position.set(p.x, 0, -p.y);
+    you.position.set(p.x, 0, -p.y); you.rotation.y = Math.atan2(-p.tx, p.ty);
+    armMatrix(I4, raiseAt(p.x, p.y), youArm.matrix);
     youGlow.material.opacity = 0.6 + 0.4 * pulse;
     setCounter(k >= 7 ? "Таваф завершён — 7 кругов ✓" : `Круг ${Math.floor(k) + 1} из 7${k < 3 ? " · рамаль" : ""}`);
   } else if (fx === "sai" || fx === "halq") {
@@ -474,8 +536,8 @@ const spotEls = SPOTS.map((s, i) => {
   b.className = "spot"; b.textContent = i + 1; b.setAttribute("aria-label", s.title);
   b.onclick = (e) => { e.stopPropagation(); openCard(i); };
   $("spots").append(b);
-  const p = meta.spots[s.key];
-  s.pos = toV3(p[0], p[1], p[2] + (["safa", "marwa"].includes(s.key) ? 30 : 0.6));
+  const p = s.p || meta.spots[s.key];
+  s.pos = toV3(p[0], p[1], p[2] + (["safa", "marwa"].includes(s.key) ? 30 : s.p ? 0 : 0.6));
   return b;
 });
 let cur = -1, step = -1;   // открытая метка или открытый шаг (одновременно — что-то одно)
@@ -507,12 +569,19 @@ const chipEls = STEPS.map((st, i) => {
   b.onclick = () => openStep(i); $("chips").append(b); return b;
 });
 const kaabaT = toV3(1, 3, 2), safaV = SPOTS[8].pos, marwaV = SPOTS[9].pos;
+const VIEWS_HOTEL = [toV3(-400, -75, 0), 820, new THREE.Vector3()];   // отель, улицы и ворота № 79 сверху
+function fitHotel() {   // весь путь ~950 м в кадре: на широком экране — слева направо, на узком — снизу (отель) вверх (Кааба)
+  const a = innerWidth / innerHeight;
+  if (a >= 1) { VIEWS_HOTEL[0].copy(toV3(-400, -75, 0)); VIEWS_HOTEL[1] = Math.max(820, 950 / (0.77 * a)); VIEWS_HOTEL[2].set(-0.1, 0.9, 0.45); }
+  else { VIEWS_HOTEL[0].copy(toV3(-500, -60, 0)); VIEWS_HOTEL[1] = 1250; VIEWS_HOTEL[2].set(-0.5, 0.9, 0.08); }
+}
+fitHotel();
 STEPS[0].view = [toV3(-90, 90, 0), 900, new THREE.Vector3(0.5, 0.72, 0.48)];
-STEPS[1].view = [kaabaT, 240, new THREE.Vector3(0.75, 0.45, 0.5)];
+STEPS[1].view = VIEWS_HOTEL;
 STEPS[2].view = [kaabaT, 88, new THREE.Vector3(0.8, 0.75, -0.05)];
 STEPS[3].view = [toV3(mq.x, mq.y, 2), 42, new THREE.Vector3(mqOut.x, 0.65, -mqOut.y)];
 STEPS[4].view = [kaabaT, 175, new THREE.Vector3(0.55, 0.8, 0.45)];
-STEPS[5].view = [safaV.clone().setY(33), 280, new THREE.Vector3(0.12, 0.8, 0.58)];   // с юга вдоль Мас'а, дальше камера ведёт метку — на телефоне путь идёт вверх по экрану
+STEPS[5].view = [safaV.clone().setY(33), 260, new THREE.Vector3(0.1, 1.4, 0.45)];   // с юга вдоль Мас'а, дальше камера ведёт метку — на телефоне путь идёт вверх по экрану
 STEPS[6].view = [toV3(95, 285, 30), 230, new THREE.Vector3(0.12, 0.85, 0.5)];      // выход у Марвы, где бреют/стригут
 STEPS[7].view = [toV3(-60, 60, 0), 820, new THREE.Vector3(0.5, 0.72, 0.48)];
 
@@ -550,9 +619,11 @@ const VIEWS = {
   kaaba: [toV3(1, 3, 2), 72, new THREE.Vector3(0.8, 0.58, -0.05)],
   haram: [toV3(-90, 90, 0), 900, new THREE.Vector3(0.5, 0.72, 0.48)],
   sai: [toV3(110, 110, 10), 430, new THREE.Vector3(0.85, 0.5, 0.15)],
+  hotel: VIEWS_HOTEL,
 };
 document.querySelectorAll("[data-view]").forEach((b) => b.onclick = () => {
   document.querySelectorAll("[data-view]").forEach((x) => x.classList.toggle("on", x === b));
+  routeOn = b.dataset.view === "hotel"; route.visible = routeOn || fx === "enter";
   const [t, d, dir] = VIEWS[b.dataset.view]; flyTo(t, d, dir);
 });
 let playing = true;
@@ -614,7 +685,7 @@ renderer.setAnimationLoop((now) => {
   updateSpots();
 });
 addEventListener("resize", () => {
-  camera.aspect = innerWidth / innerHeight; viewShift += 0.0011; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight; viewShift += 0.0011; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); fitHotel();
 });
 renderer.domElement.addEventListener("pointerdown", () => { fly = null; });
 </script>
