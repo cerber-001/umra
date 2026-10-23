@@ -115,11 +115,48 @@ b{ font-weight:700; }
 .bt b{ font-size:.9rem; line-height:1.2; color:var(--ink); }
 .bt small{ font-size:.75rem; line-height:1.25; color:var(--muted); }
 /* ---------- погода (п.27) ---------- */
-.wx{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
-.wx > div{ background:var(--sand); border-radius:.9rem; padding:.6rem .7rem; display:flex; flex-direction:column; gap:.1rem; }
-.wx b{ font-size:1.5rem; line-height:1.1; color:var(--ink); }
-.wx span{ font-size:.8rem; color:var(--muted); }
-.wx em{ font-style:normal; font-size:.78rem; font-weight:700; color:var(--orange-t); }
+.wx{ display:flex; gap:.5rem; overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -.2rem; padding:.1rem .2rem .3rem; -webkit-overflow-scrolling:touch; }
+.wx button{ flex:0 0 7.4rem; scroll-snap-align:start; text-align:left; background:var(--sand); border:2px solid transparent; border-radius:.9rem; padding:.55rem .65rem; display:flex; flex-direction:column; gap:.05rem; color:var(--ink); min-height:2.75rem; }
+.wx button.now{ border-color:var(--orange); }
+.wx b{ font-size:1.45rem; line-height:1.1; color:var(--ink); }
+.wx .ic{ font-size:1.3rem; line-height:1; }
+.wx span{ font-size:.78rem; color:var(--muted); }
+.wx em{ font-style:normal; font-size:.74rem; font-weight:700; color:var(--orange-t); }
+.wxs .dlg-b{ max-height:88vh; overflow:auto; text-align:left; }
+.wxs .dlg-b > *{ flex:none; }
+.wxs h3{ margin:0 0 .2rem; }
+.wxcity{ display:flex; gap:.35rem; flex-wrap:wrap; margin:.4rem 0 .6rem; }
+.wxcity button{ min-height:2.4rem; padding:0 .7rem; border-radius:2rem; border:2px solid var(--line); background:var(--card); color:var(--ink); font-weight:700; font-size:.82rem; }
+.wxcity button.sel{ border-color:var(--orange); background:var(--sand); }
+.wxdays{ display:flex; gap:.4rem; overflow-x:auto; padding-bottom:.3rem; }
+.wxdays button{ flex:0 0 4.3rem; border-radius:.8rem; border:2px solid var(--line); background:var(--card); color:var(--ink); padding:.4rem .2rem; display:flex; flex-direction:column; align-items:center; gap:.1rem; font-size:.74rem; }
+.wxdays button.trip{ background:var(--sand); }
+.wxdays button.sel{ border-color:var(--orange); }
+.wxdays b{ font-size:.95rem; }
+.wxdays i{ font-style:normal; font-size:1.2rem; }
+.wxsum{ background:var(--sand); border-radius:.9rem; padding:.6rem .7rem; margin:.6rem 0; font-size:.86rem; line-height:1.45; }
+.wxh{ width:100%; border-collapse:collapse; font-size:.84rem; }
+.wxh{ table-layout:fixed; }
+.wxh td{ padding:.32rem .15rem; border-bottom:1px solid var(--line); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wxh td:nth-child(2){ width:auto; }
+.wxh td:nth-child(3){ width:2.4rem; text-align:right; }
+.wxh td:nth-child(4){ width:3.2rem; text-align:right; }
+.wxh td:nth-child(5){ width:2.6rem; text-align:right; }
+.wxh td:first-child{ color:var(--muted); width:3rem; }
+.wxh td.t{ font-weight:800; }
+.wxh td.r{ color:var(--teal-l); }
+
+/* ---------- v2.10: краткий режим (для тех, кто уже был), единый путь ---------- */
+.modeq{ display:flex; flex-direction:column; gap:.4rem; margin:0 0 .75rem; }
+.modeq .kicker{ margin:0; }
+.modeq .btns .btn{ min-width:0; font-size:.9rem; line-height:1.15; padding:.35rem .6rem; flex-direction:column; gap:0; }
+.modeq .btns .btn small{ font-weight:400; font-size:.78rem; color:var(--muted); }
+#progGo{ margin-top:.6rem; width:100%; }
+.map3d{ display:flex; align-items:center; gap:.5rem; min-height:2.75rem; color:var(--teal-d); font-weight:700; text-decoration:none; }
+.map3d svg{ width:1.3rem; height:1.3rem; color:var(--orange); flex:none; }
+.why ul{ margin:0; padding-left:1.1rem; display:flex; flex-direction:column; gap:.35rem; }
+:root.brief #v-umra .acc.info, :root.brief .acc.step .det, :root.brief .acc.step .note, :root.brief .acc.step p.small,
+:root.brief .acc.step .mygo, :root.brief .acc.step .tw-sch, :root.brief .acc.step .dua .src, :root.brief .acc.step .dua .ru{ display:none; }
 /* ---------- шапка ---------- */
 header.app{ position:sticky; top:0; z-index:20; color:#fff; overflow:hidden;
   background:linear-gradient(120deg,#00292C 0%,#004C4E 55%,#005A5C 100%);
@@ -314,6 +351,9 @@ html{ scroll-padding-top:calc(var(--hdr,3.6rem) + .6rem); }
 .tag.sunna{ border:2px solid var(--orange); color:var(--orange-t); }
 .tag.fard{ background:#00292C; color:#fff; box-shadow:inset 0 0 0 2px #F07A1E; }
 .tag.mus{ border:2px dashed var(--muted,#7a9a9a); color:var(--muted,#5b7676); }
+.tag.mub{ border:2px solid var(--line); color:var(--muted); }
+.tag.mak{ border:2px solid var(--orange); color:var(--orange-t); }
+.tag.har{ background:var(--red); color:#fff; }
 .tag i{ font-style:normal; font-weight:500; text-transform:none; letter-spacing:0; }
 ul.do{ list-style:none; display:flex; flex-direction:column; gap:.5rem; }
 ul.do li{ padding-left:1.35rem; position:relative; }
@@ -754,7 +794,8 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
   <div class="tl" id="nowList"></div>
  </div>
  <div class="card reveal" id="wxCard">
-  <div style="display:flex;justify-content:space-between;align-items:baseline"><h3>Погода</h3><span class="small" id="wxNote"></span></div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem"><h3>Погода в пути</h3><span class="small" id="wxNote"></span></div>
+  <p class="small" style="margin:.1rem 0 .5rem">Нажмите на город — прогноз на каждый день и по часам.</p>
   <div class="wx" id="wxBox"></div>
   <p class="small" id="wxTip"></p>
  </div>
@@ -774,11 +815,17 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
   <div class="row"><span class="kicker">Умра · 01.11.2026</span><span class="big" id="progNum">0 из 11</span></div>
   <div class="bar"><i id="progBar"></i></div>
   <div class="next-l" id="progNext"></div>
+  <button class="btn" id="progGo">Открыть текущий шаг</button>
  </div>
- <a class="mygo h3d" href="haram3d/"><svg><use href="#i-tawaf"/></svg><span><b data-i18n="h3d.t">Харам в 3D</b><small data-i18n="h3d.s">Кааба · таваф · Сафа и Марва</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+ <div class="modeq">
+  <div class="kicker">Как показывать шаги</div>
+  <div class="btns"><button class="btn ghost" data-brief-set="0">Подробно<small>первая умра</small></button><button class="btn ghost" data-brief-set="1">Кратко<small>я уже был(а)</small></button></div>
+ </div>
+ <a class="mygo h3d" href="haram3d/"><svg><use href="#i-tawaf"/></svg><span><b data-i18n="h3d.t">Харам в 3D</b><small>Только посмотреть, где что находится. Что делать — в шагах ниже.</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
  <section class="acc info blue">
   <div class="acc-h"><div class="num">?</div><div class="st"><div class="kicker">Бисмилляхи-р-рахмани-р-рахим</div><b>Как пользоваться гидом</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+   <p><b>Главное — шаги ниже, по порядку.</b> Карта 3D — только чтобы заранее увидеть, куда идти. Уже были на умре? Выберите вверху «Кратко» — останутся действия и дуа, без пояснений.</p>
    <p>Нажмите на шаг — откроется, что делать и какие дуа читать. Сделали — нажмите «Сделано». Отметки сохраняются в телефоне и работают без интернета.</p>
   <h3>Метки по ханафитскому мазхабу</h3>
  <div class="tags"><span class="tag fard">Фарз · шарт</span></div>
@@ -789,6 +836,13 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
  <p class="small" style="color:var(--ink)">Так делал Пророк <span class="saw">ﷺ</span>. За неё — награда; пропуск без искупления, но награда упущена.</p>
  <div class="tags"><span class="tag mus">Мустахаб</span></div>
  <p class="small" style="color:var(--ink)">Похвально, хороший адаб. Сделали — хорошо, нет — не грех.</p>
+ <div class="tags"><span class="tag mub">Мубах</span></div>
+ <p class="small" style="color:var(--ink)">Дозволено: ни награды, ни греха. Например, сменить ихрам на чистый, пояс-кошелёк, зонт.</p>
+ <div class="tags"><span class="tag mak">Макрух</span></div>
+ <p class="small" style="color:var(--ink)"><b>Танзихи</b> — нежелательно, лучше не делать, греха нет (мирские разговоры на тавафе). <b>Тахрими</b> — почти запретно, это грех, хотя умра действительна (намаз пока восходит солнце; умышленно оставить ваджиб).</p>
+ <div class="tags"><span class="tag har">Харам</span></div>
+ <p class="small" style="color:var(--ink)">Запрещено, грех. В ихраме — это «Запреты ихрама»: за нарушение нужно искупление, а за умышленное ещё и покаяние.</p>
+ <p class="small">Метки стоят на шагах. Как ставить метки по каждому действию — на сверке у знатока фикха.</p>
  <h3>Как читать дуа</h3>
  <div class="dua">
   <div class="lbl">Пример</div>
@@ -818,13 +872,15 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
 </div></div></div></section>
 <section class="acc step" data-id="ihram"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-ihram"/></svg><i>2</i></div><div class="st"><div class="kicker">Медина · 01.11 · до миката</div><b>Одежда ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
- <div class="tags"><span class="tag must">Ваджиб</span></div>
- <p class="lead">Мужчина надевает два белых несшитых полотна. Войти в ихрам нужно <b>до</b> миката Зуль-Хулейфа.</p>
+ <div class="tags"><span class="tag must">Ваджиб · <i>без шитого, до миката</i></span><span class="tag sunna">Сунна · <i>2 белых полотна</i></span></div>
+ <p class="lead">Сам ихрам — это намерение и тальбия (шаги 4–5). С этой минуты мужчине <b>нельзя шитую одежду</b>, и войти в ихрам нужно <b>до</b> миката Зуль-Хулейфа — это ваджиб. Два белых несшитых полотна — сунна: так одевался Пророк <span class="saw">ﷺ</span>.</p>
+ <div class="note"><b>«Можно не надеть и откупиться жертвой?» — Нет.</b> Ваджиб обязателен. Жертва-дам исправляет умру, если нарушение уже случилось, но не делает его дозволенным: умышленно нарушить ваджиб — грех, нужно ещё и покаяние. Искупление — для ошибки, болезни или вынужденной причины, а не плата заранее.</div>
  <ul class="do">
   <li><b>Изар</b> — нижнее полотно, вокруг пояса, закрывает от пупка до ниже колен.</li>
   <li><b>Рида</b> — верхнее полотно, на плечи.</li>
   <li>Сандалии, открывающие подъём стопы. Пояс-кошелёк можно.</li>
   <li class="no">Нижнее бельё, носки, кепка, шитая одежда.</li>
+  <li><b>Женщины</b> — в своей обычной закрытой одежде, шитая можно, цвет любой. Лицо открыто: ткань не должна касаться лица.</li>
  </ul>
  <details class="det"><summary><span class="mbtn">Подробнее<svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>идтиба, где переодеться</small></summary><div class="det-in">
  <ul class="do">
@@ -1052,7 +1108,7 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
  <ul class="do">
   <li>У ханафитов минимум — <b>четверть головы</b>, но лучше вся голова.</li>
   <li>Только после бритья снимаются запреты ихрама. <b>Умра завершена!</b></li>
-  <li>Имейте при себе <b>≈10–15 риалов</b>: в салонах под башней Замзам (комплекс с часами) обычно дешевле. Лучше — одноразовое лезвие.</li>
+  <li>Цены в салонах разные и меняются — спросите до начала. Лучше — салон с одноразовым лезвием.</li>
  </ul>
  <div class="note">Пророк <span class="saw">ﷺ</span> трижды просил о прощении для обривших голову и один раз — для укоротивших <span class="small">(аль-Бухари 1727, Муслим 1302)</span>.</div>
  <div class="dua">
@@ -1324,6 +1380,20 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
    <p class="small" data-i18n="more.store">Эти записи хранятся только в этом телефоне.</p>
   </div>
  </div>
+ <div class="card why">
+  <h3>Чем гид лучше бумажной брошюры</h3>
+  <p class="small">Текст брошюры здесь целиком — можно пользоваться и тем, и другим. А вот что умеет только телефон:</p>
+  <ul>
+   <li><b>Помнит, где вы остановились</b> — отметили шаг, и сразу открывается следующий.</li>
+   <li><b>Считает круги</b> тавафа и отрезки саи — не нужно держать в голове.</li>
+   <li><b>Ваше личное</b>: номер комнаты, соседи, программа на каждый день.</li>
+   <li><b>Свежие изменения</b>: программа и объявления группы обновляются без перепечатки.</li>
+   <li><b>Погода</b> во всех городах пути и <b>напоминания</b> в календарь телефона.</li>
+   <li><b>«Я потерялся»</b> — телефоны, место сбора, «где я» одной кнопкой.</li>
+   <li><b>Карта Харама в 3D</b> — заранее увидеть, куда идти.</li>
+   <li>Работает <b>без интернета</b>, шрифт можно сделать крупнее, режим «Кратко» — для тех, кто уже был.</li>
+  </ul>
+ </div>
 <div class="card"><div><div class="kicker">Памятка</div><h3 style="font-size:1.25rem">Документы и деньги</h3></div>
  <h3>Документы — всегда при себе</h3>
  <ul class="do">
@@ -1399,6 +1469,8 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
    <button data-theme-set="neon"><i style="background:linear-gradient(135deg,#7B2FF7,#E0179F)"></i>Неон</button>
    <button data-theme-set="cyber"><i style="background:linear-gradient(135deg,#00F0FF,#FCEE0A)"></i>Киберпанк</button>
   </div>
+  <div class="kicker">Шаги умры</div>
+  <div class="btns"><button class="btn ghost" data-brief-set="0">Подробно</button><button class="btn ghost" data-brief-set="1">Кратко · я уже был(а)</button></div>
   <div class="kicker">Анимация</div>
   <div class="btns">
    <button class="btn ghost" data-lite-set="0">Обычная</button>
@@ -1406,7 +1478,7 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
   </div>
   <p class="small" id="langNote" data-i18n="lang.note" hidden></p>
  </div>
- <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.8 · 23.10.2026</p>
+ <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.10 · 24.10.2026</p>
 </section>
 </main>
 
@@ -1449,8 +1521,17 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
 <div id="printArea" aria-hidden="true"></div>
 <div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT"><div class="dlg-b"><p id="dlgT"></p><div class="btns"><button class="btn ghost" id="dlgNo">Отмена</button><button class="btn" id="dlgYes">Да</button></div></div></div>
 <div class="dlg" id="remSheet" role="dialog" aria-modal="true"><div class="dlg-b"><p><b>Напоминание о вылете</b><br><span class="small">Сбор в аэропорту Алматы 28.10 в 03:15. Календарь напомнит за 2 и за 1 час, вечером 27.10 — собрать сумку.</span></p>
- <div class="stack"><a class="btn" id="remIcs" href="umra.ics" target="_blank" rel="noopener">iPhone · Календарь Apple</a><a class="btn ghost" id="remG" target="_blank" rel="noopener">Android · Google Календарь</a><button class="btn ghost" id="remNo">Закрыть</button></div>
+ <div class="stack"><a class="btn" id="remIcs" href="umra.ics">iPhone · Календарь Apple</a><a class="btn ghost" id="remG" target="_blank" rel="noopener">Android · Google Календарь</a><button class="btn ghost" id="remNo">Закрыть</button></div>
  <p class="small">Откроется календарь — нажмите «Добавить». Гид останется открытым.</p></div></div>
+<div class="dlg wxs" id="wxSheet" role="dialog" aria-modal="true" aria-labelledby="wxT"><div class="dlg-b">
+ <h3 id="wxT">Погода</h3><p class="small" id="wxUpd"></p>
+ <div class="wxcity" id="wxCities"></div>
+ <div class="wxdays" id="wxDays"></div>
+ <div class="wxsum" id="wxSum"></div>
+ <table class="wxh" id="wxHours"></table>
+ <p class="small">Прогноз Open-Meteo. Сохраняется в телефоне: без интернета показан последний загруженный, с интернетом обновляется сам.</p>
+ <button class="btn" id="wxClose">Закрыть</button>
+</div></div>
 <div class="dlg" id="phBig"><img alt="Фото ворот"><button class="btn" id="phClose">Закрыть</button></div>
 <nav class="tabs">
  <span class="pill" id="pill"></span>
@@ -1563,6 +1644,15 @@ steps.forEach(function(s){
   $('.donebtn',s).addEventListener('click',function(){ toggle(s); });
 });
 var first=render().next; if(first) openAcc(first,true);
+
+/* v2.10: краткий режим и единый путь */
+function applyBrief(on){ root.classList.toggle('brief',!!on); set('brief',on?1:0); $$('[data-brief-set]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-brief-set')===(on?'1':'0')); }); }
+applyBrief(get('brief',0));
+$$('[data-brief-set]').forEach(function(b){ b.onclick=function(){ buzz(8); applyBrief(b.getAttribute('data-brief-set')==='1'); }; });
+$('#progGo').onclick=function(){ var nx=render().next || steps[steps.length-1]; openAcc(nx,true); setTimeout(function(){ nx.scrollIntoView({behavior:'smooth',block:'start'}); },60); };
+['enter','tawaf','maqam','zamzam','sai','halq'].forEach(function(id){ var s=$('.acc.step[data-id="'+id+'"]'); if(!s) return;
+  var a=document.createElement('a'); a.className='map3d'; a.href='haram3d/'; a.innerHTML='<svg><use href="#i-tawaf"/></svg>Где это — посмотреть на карте 3D';
+  var d=$('.donebtn',s); d.parentNode.insertBefore(a,d); });
 $('#resetBtn').onclick=function(){ ask('Сбросить все отметки шагов и счётчики?',function(){ set('done',{}); $$('.counter').forEach(function(c){ set('cnt-'+c.getAttribute('data-id'),0); paint(c); }); render(); }); };
 
 /* праздник */
@@ -1825,6 +1915,8 @@ var GCAL='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+enc
 function openRem(){ buzz(8); $('#remSheet').classList.add('on'); }
 document.addEventListener('click',function(e){ if(e.target.closest('#remBtn')) openRem(); });
 $('#remG').href=GCAL;
+/* iPhone: .ics открываем в той же вкладке — так Safari показывает «Добавить все» в Календарь; с target=_blank в режиме «на экране Домой» файл молча терялся */
+if(navigator.standalone){ var rh=document.createElement('p'); rh.className='small'; rh.textContent='Если Календарь не открылся — откройте гид в Safari (umra.jurt.kz) и нажмите эту кнопку там.'; $('#remIcs').parentNode.insertBefore(rh,$('#remG')); }
 $('#remNo').onclick=function(){ $('#remSheet').classList.remove('on'); };
 $('#remSheet').addEventListener('click',function(e){ if(e.target===this||e.target.closest('a')) this.classList.remove('on'); });
 function renderCd(){
@@ -1910,26 +2002,91 @@ function renderExtra(D){
 }
 
 /* ---------- погода (п.27): Open-Meteo без ключа, кэш на 3 часа, без интернета — обычные значения сезона ---------- */
-var WXC=[{n:'Медина',la:24.467,lo:39.611,norm:[37,22]},{n:'Мекка',la:21.423,lo:39.826,norm:[37,26]}];
-function wxDraw(w){
-  var box=$('#wxBox'); if(!box) return;
-  var hot=0;
-  box.innerHTML=WXC.map(function(c,i){ var d=w&&w.list&&w.list[i], mx=d?d.mx:c.norm[0], mn=d?d.mn:c.norm[1]; if(mx>=35) hot=1;
-    return '<div><span>'+c.n+'</span><b>'+Math.round(mx)+'°</b><span>ночью '+Math.round(mn)+'°</span>'+(d&&d.uv>=8?'<em>Солнце очень сильное</em>':'')+'</div>'; }).join('');
-  $('#wxNote').textContent = w ? 'сегодня · обновлено '+(w.at||'') : 'обычно в эти даты';
-  $('#wxTip').textContent = (hot?'Жарко: ':'Тепло: ')+'пейте воду и Замзам, носите зонт или кепку вне ихрама, на тавафе днём — бутылка с собой. В Харамах кондиционеры — возьмите лёгкую накидку.';
+/* города маршрута по брошюре: 28.10 Стамбул (транзит), 29–31.10 Медина, 01–04.11 Мекка, 05.11 Дубай (транзит), 06.11 Алматы.
+   Новый транзит = новая строка здесь. norm — обычные макс/мин в эти даты, если прогноза ещё нет. */
+var WXC=[{n:'Стамбул',la:41.008,lo:28.978,d:['2026-10-28'],note:'транзит',norm:[19,13]},
+         {n:'Медина',la:24.467,lo:39.611,d:['2026-10-29','2026-10-30','2026-10-31'],norm:[33,20]},
+         {n:'Мекка',la:21.423,lo:39.826,d:['2026-11-01','2026-11-02','2026-11-03','2026-11-04'],norm:[35,25]},
+         {n:'Дубай',la:25.205,lo:55.271,d:['2026-11-05'],note:'транзит',norm:[32,24]},
+         {n:'Алматы',la:43.238,lo:76.946,d:['2026-11-06'],note:'прилёт',norm:[10,1]}];
+var WXI={0:['☀️','ясно'],1:['🌤️','почти ясно'],2:['⛅','переменная облачность'],3:['☁️','пасмурно'],45:['🌫️','туман'],48:['🌫️','туман'],
+  51:['🌦️','морось'],53:['🌦️','морось'],55:['🌦️','морось'],56:['🌧️','ледяная морось'],57:['🌧️','ледяная морось'],61:['🌧️','небольшой дождь'],63:['🌧️','дождь'],65:['🌧️','сильный дождь'],
+  66:['🌧️','ледяной дождь'],67:['🌧️','ледяной дождь'],71:['🌨️','небольшой снег'],73:['🌨️','снег'],75:['❄️','сильный снег'],77:['🌨️','снежная крупа'],
+  80:['🌦️','ливень'],81:['🌧️','ливни'],82:['⛈️','сильный ливень'],85:['🌨️','снегопад'],86:['❄️','сильный снегопад'],95:['⛈️','гроза'],96:['⛈️','гроза с градом'],99:['⛈️','гроза с градом']};
+function wxI(c){ return WXI[c]||['🌡️','']; }
+var WD=['вс','пн','вт','ср','чт','пт','сб'];
+function wxDate(iso){ var p=iso.split('-'); return p[2]+'.'+p[1]; }
+function wxWd(iso){ return WD[new Date(iso+'T12:00:00').getDay()]; }
+function wxToday(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+/* день для карточки: сегодня, если город сейчас на маршруте, иначе первый день в этом городе */
+function wxDay(c){ var t=wxToday(); return c.d.indexOf(t)>=0?t:c.d[0]; }
+function wxDaily(w,i,iso){ var x=w&&w.c&&w.c[i]; if(!x) return null; var k=x.dd.indexOf(iso); if(k<0) return null;
+  return {mx:x.mx[k],mn:x.mn[k],wc:x.wc[k],pr:x.pr[k],uv:x.uv[k],wi:x.wi[k],sr:x.sr[k],ss:x.ss[k]}; }
+var wxSel={c:0,d:null};
+function wxDraw(){
+  var w=get('wx2',null), box=$('#wxBox'); if(!box) return;
+  var t=wxToday(), hot=0, any=0;
+  box.innerHTML=WXC.map(function(c,i){ var iso=wxDay(c), d=wxDaily(w,i,iso), now=c.d.indexOf(t)>=0;
+    var mx=d?d.mx:c.norm[0], mn=d?d.mn:c.norm[1], ic=d?wxI(d.wc)[0]:'·'; if(d) any=1; if(mx>=35) hot=1;
+    return '<button type="button" data-wx="'+i+'" class="'+(now?'now':'')+'"><span>'+c.n+(c.note?' · '+c.note:'')+'</span>'+
+      '<span>'+(now?'сегодня':wxDate(iso)+(c.d.length>1?'–'+wxDate(c.d[c.d.length-1]):''))+'</span>'+
+      '<div style="display:flex;align-items:center;gap:.35rem"><span class="ic">'+ic+'</span><b>'+Math.round(mx)+'°</b></div>'+
+      '<span>ночью '+Math.round(mn)+'°'+(d?'':' · обычно')+'</span>'+
+      (d&&d.pr>=40?'<em>дождь '+d.pr+'%</em>':(d&&d.uv>=8?'<em>солнце очень сильное</em>':''))+'</button>'; }).join('');
+  $('#wxNote').textContent = w ? 'обновлено '+w.at : 'обычно в эти даты';
+  $('#wxTip').textContent = (hot?'Жарко: ':'')+'пейте воду и Замзам, на тавафе днём — бутылка с собой; в Харамах кондиционеры — лёгкая накидка. В Алматы ночью прилёт — тёплая куртка в ручной клади.';
+  if($('#wxSheet').classList.contains('on')) wxSheet();
 }
-function wxLoad(){
-  var c=get('wx',null); if(c&&Date.now()-c.t<3*36e5) return wxDraw(c.w);
-  wxDraw(c&&c.w);
-  if(!navigator.onLine || !window.fetch) return;
-  var u='https://api.open-meteo.com/v1/forecast?latitude='+WXC.map(function(x){return x.la;}).join(',')+'&longitude='+WXC.map(function(x){return x.lo;}).join(',')+'&daily=temperature_2m_max,temperature_2m_min,uv_index_max&timezone=Asia%2FRiyadh&forecast_days=1';
-  fetch(u).then(function(r){ return r.json(); }).then(function(j){ j=[].concat(j);
-    var n=new Date(), w={list:j.map(function(x){ return {mx:x.daily.temperature_2m_max[0], mn:x.daily.temperature_2m_min[0], uv:x.daily.uv_index_max[0]}; })};
-    w.at=('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2);
-    set('wx',{t:Date.now(),w:w}); wxDraw(w); }).catch(function(){});
+function wxSheet(){
+  var w=get('wx2',null), i=wxSel.c, c=WXC[i], x=w&&w.c&&w.c[i];
+  $('#wxT').textContent='Погода · '+c.n;
+  $('#wxUpd').textContent = w ? 'Обновлено '+w.at+(navigator.onLine?'':' · сейчас без интернета') : 'Прогноз ещё не загружен — подключитесь к интернету один раз.';
+  $('#wxCities').innerHTML=WXC.map(function(o,k){ return '<button type="button" data-wxc="'+k+'" class="'+(k===i?'sel':'')+'">'+o.n+'</button>'; }).join('');
+  if(!x){ $('#wxDays').innerHTML=''; $('#wxHours').innerHTML='';
+    $('#wxSum').innerHTML='Обычно в эти даты: днём <b>'+c.norm[0]+'°</b>, ночью <b>'+c.norm[1]+'°</b>.'; return; }
+  var t=wxToday(), days=x.dd.filter(function(d){ return d>=t; });
+  if(!wxSel.d||days.indexOf(wxSel.d)<0) wxSel.d=days.indexOf(wxDay(c))>=0?wxDay(c):days[0];
+  $('#wxDays').innerHTML=days.map(function(iso){ var d=wxDaily(w,i,iso), trip=c.d.indexOf(iso)>=0;
+    return '<button type="button" data-wxd="'+iso+'" class="'+(trip?'trip ':'')+(iso===wxSel.d?'sel':'')+'"><span>'+(iso===t?'сегодня':wxWd(iso)+' '+wxDate(iso))+'</span>'+
+      '<i>'+wxI(d.wc)[0]+'</i><b>'+Math.round(d.mx)+'°</b><span>'+Math.round(d.mn)+'°</span></button>'; }).join('');
+  var sb=$('#wxDays .sel'), dl=$('#wxDays'); if(sb) dl.scrollLeft+=sb.getBoundingClientRect().left-dl.getBoundingClientRect().left-8;
+  var d=wxDaily(w,i,wxSel.d), trip=c.d.indexOf(wxSel.d)>=0;
+  $('#wxSum').innerHTML='<b>'+wxWd(wxSel.d)+', '+wxDate(wxSel.d)+'</b>'+(trip?' · вы в этом городе':'')+'<br>'+wxI(d.wc)[0]+' '+wxI(d.wc)[1]+
+    ' · днём до <b>'+Math.round(d.mx)+'°</b>, ночью <b>'+Math.round(d.mn)+'°</b><br>Дождь: '+(d.pr==null?'—':d.pr+'%')+' · ветер до '+Math.round(d.wi)+' км/ч · УФ '+Math.round(d.uv)+
+    (d.uv>=8?' (очень сильное солнце)':'')+'<br>Восход '+d.sr+' · закат '+d.ss;
+  var k0=x.ht.indexOf(wxSel.d+'T00:00'), rows='';
+  if(k0>=0) for(var k=k0;k<k0+24&&k<x.ht.length;k+=1){
+    if(x.ht[k].slice(0,10)===t && +x.ht[k].slice(11,13)<new Date().getHours()) continue;
+    rows+='<tr><td>'+x.ht[k].slice(11,16)+'</td><td>'+wxI(x.hc[k])[0]+' '+wxI(x.hc[k])[1]+'</td><td class="t">'+Math.round(x.hT[k])+'°</td>'+
+      '<td class="r">'+(x.hp[k]>=20?'💧'+x.hp[k]+'%':'')+'</td><td>'+(x.hw[k]>=25?'💨'+Math.round(x.hw[k]):'')+'</td></tr>'; }
+  $('#wxHours').innerHTML=rows||'<tr><td colspan="5">По часам — только на ближайшие 7 дней.</td></tr>';
 }
-wxLoad(); addEventListener('online', wxLoad);
+function wxOpen(i){ wxSel={c:i,d:null}; buzz(8); $('#wxSheet').classList.add('on'); wxSheet(); }
+document.addEventListener('click',function(e){ var b=e.target.closest('[data-wx]'); if(b) wxOpen(+b.getAttribute('data-wx'));
+  b=e.target.closest('[data-wxc]'); if(b){ wxSel={c:+b.getAttribute('data-wxc'),d:null}; wxSheet(); }
+  b=e.target.closest('[data-wxd]'); if(b){ wxSel.d=b.getAttribute('data-wxd'); wxSheet(); } });
+$('#wxClose').onclick=function(){ $('#wxSheet').classList.remove('on'); };
+$('#wxSheet').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('on'); });
+/* загрузка: все города сразу, 16 дней по дням + 7 дней по часам; хранится в телефоне и обновляется при каждом подключении (не чаще раза в час) */
+var wxBusy=false;
+function wxLoad(force){
+  wxDraw();
+  var w=get('wx2',null);
+  if(wxBusy || !navigator.onLine || !window.fetch || (!force && w && Date.now()-w.t<36e5)) return;
+  wxBusy=true;
+  var u='https://api.open-meteo.com/v1/forecast?latitude='+WXC.map(function(x){return x.la;}).join(',')+'&longitude='+WXC.map(function(x){return x.lo;}).join(',')+
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,wind_speed_10m_max,sunrise,sunset'+
+    '&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m&forecast_days=16&forecast_hours=168&timezone=auto';
+  fetch(u).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ j=[].concat(j);
+    var n=new Date(), hm=function(v){ return String(v||'').slice(11,16); };
+    var o={t:Date.now(), at:('0'+n.getDate()).slice(-2)+'.'+('0'+(n.getMonth()+1)).slice(-2)+' в '+('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2),
+      c:j.map(function(x){ var D=x.daily, H=x.hourly; return {dd:D.time, mx:D.temperature_2m_max, mn:D.temperature_2m_min, wc:D.weather_code,
+        pr:D.precipitation_probability_max, uv:D.uv_index_max, wi:D.wind_speed_10m_max, sr:D.sunrise.map(hm), ss:D.sunset.map(hm),
+        ht:H.time, hT:H.temperature_2m, hc:H.weather_code, hp:H.precipitation_probability, hw:H.wind_speed_10m}; })};
+    set('wx2',o); wxDraw(); }).catch(function(){}).then(function(){ wxBusy=false; });
+}
+wxLoad(); addEventListener('online', function(){ wxLoad(true); });
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) wxLoad(); });
 /* высота шапки → отступ прокрутки к якорям */
 var hdr=$('header.app'); function setHdr(){ root.style.setProperty('--hdr',hdr.offsetHeight+'px'); }
 setHdr(); if('ResizeObserver' in window) new ResizeObserver(setHdr).observe(hdr); else addEventListener('resize',setHdr);
