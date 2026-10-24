@@ -210,6 +210,38 @@ h2.grp{ font-size:1.1rem; color:var(--teal-d); margin:.6rem .1rem -.2rem; }
 .ann .ic{ font-size:1.4rem; line-height:1; animation:ring 2.4s ease-in-out 1s 2; }
 @keyframes ring{ 0%,100%{ transform:rotate(0) } 10%,30%{ transform:rotate(-14deg) } 20%,40%{ transform:rotate(14deg) } 50%{ transform:rotate(0) } }
 .ann small{ display:block; opacity:.9; font-size:.75rem; margin-top:.2rem; }
+/* голосование группы */
+#pollBox{ display:flex; flex-direction:column; gap:.8rem; }
+#pollBox:empty{ display:none; }
+.poll{ background:var(--card); color:var(--ink); border:1px solid var(--line); border-left:.4rem solid var(--teal); border-radius:1.1rem; padding:.9rem 1rem; display:flex; flex-direction:column; gap:.6rem; box-shadow:var(--shadow); animation:annIn .6s var(--ease); scroll-margin-top:1rem; }
+.poll.open{ border-left-color:var(--orange); }
+.poll .plh{ display:flex; align-items:center; gap:.5rem; font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--orange-t); }
+.poll .plh span{ margin-left:auto; text-transform:none; letter-spacing:0; font-weight:700; font-size:.8rem; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.poll .plq{ font-size:1.08rem; font-weight:800; color:var(--teal-d); line-height:1.3; }
+.plos{ display:flex; flex-direction:column; gap:.45rem; }
+.plo{ position:relative; overflow:hidden; display:flex; align-items:center; gap:.6rem; width:100%; min-height:3rem; padding:.55rem .85rem; border-radius:.9rem; border:2px solid var(--teal); background:var(--card); color:var(--ink); font-weight:700; text-align:left; transition:transform .15s var(--ease), border-color .3s; }
+div.plo{ border-color:var(--line); }
+button.plo:active{ transform:scale(.98); }
+.plo i{ position:absolute; left:0; top:0; bottom:0; width:0; background:var(--mint); transition:width .7s var(--ease); }
+.plo b, .plo em{ position:relative; }
+.plo b{ flex:1; font-weight:700; line-height:1.3; }
+.plo em{ font-style:normal; font-weight:800; font-size:.85rem; color:var(--teal-d); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.plo.me{ border-color:var(--orange); }
+.plo.me i{ background:color-mix(in srgb, var(--orange) 22%, var(--card)); }
+.plo.win{ border-color:var(--done); }
+.plo.win b{ font-weight:800; }
+.poll.busy .plos{ opacity:.55; pointer-events:none; }
+.poll.busy .plo.wait{ opacity:1; animation:pollWait 1s ease-in-out infinite; }
+@keyframes pollWait{ 50%{ border-color:var(--line) } }
+.plm{ font-size:.82rem; color:var(--muted); }
+.plm b{ color:var(--ink); }
+.plb{ position:relative; height:.45rem; border-radius:1rem; background:var(--line); margin:.1rem 0 .2rem; }
+.plb i{ display:block; height:100%; border-radius:1rem; background:var(--teal); transition:width .7s var(--ease); }
+.plb s{ position:absolute; top:-.25rem; bottom:-.25rem; width:3px; margin-left:-1.5px; border-radius:2px; background:var(--orange); }
+.pln{ font-size:.85rem; line-height:1.4; color:var(--muted); }
+.pln b{ color:var(--ink); }
+.pln.plr{ font-size:.95rem; color:var(--ink); font-weight:700; }
+nav.tabs button.dot::after{ content:""; position:absolute; top:.35rem; left:calc(50% + .45rem); width:.62rem; height:.62rem; border-radius:50%; background:var(--orange); box-shadow:0 0 0 2px var(--card); animation:annIn .4s var(--ease); }
 .tiles{ display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
 .tile{ background:var(--card); border-radius:1.1rem; box-shadow:var(--shadow); padding:.9rem; display:flex; flex-direction:column; gap:.35rem; text-align:left; min-height:6.4rem; transition:transform .15s var(--ease); text-decoration:none; color:var(--ink); }
 .tile:active{ transform:scale(.97); }
@@ -792,6 +824,7 @@ img{ -webkit-user-drag:none; }
   <div class="chips" id="heroChips"></div>
  </div>
  <div id="annBox"></div>
+ <div id="pollBox"></div>
  <div id="regBox"></div>
  <div class="banner" id="installBanner" hidden>
   <b>Установите гид на телефон</b>
@@ -1492,7 +1525,7 @@ img{ -webkit-user-drag:none; }
   </div>
   <p class="small" id="langNote" data-i18n="lang.note" hidden></p>
  </div>
- <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.11 · 24.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
+ <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.12 · 24.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
 </section>
 </main>
 
@@ -1730,7 +1763,7 @@ function renderMine(){ $('#myList').innerHTML=MY.map(function(m){
     return '<div class="mine'+(m.d?' done':'')+'" data-id="'+m.id+'"><button class="mchk" data-a="chk" aria-label="'+t('my.mark')+'"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="mb" data-a="edit"><b>'+esc(m.t)+'</b>'+(m.x?'<span>'+esc(m.x)+'</span>':'')+'</button></div>';
   }).join(''); mineStat(); }
 function toast(text, fn){ var t=$('#toast'); $('#toastT').textContent=text; t.classList.add('on'); clearTimeout(toastT);
-  $('#toastBtn').onclick=function(){ t.classList.remove('on'); clearTimeout(toastT); fn(); };
+  $('#toastBtn').hidden=!fn; $('#toastBtn').onclick=function(){ t.classList.remove('on'); clearTimeout(toastT); if(fn) fn(); };
   toastT=setTimeout(function(){ t.classList.remove('on'); undo=null; },6000); }
 function removeMy(i){ var m=MY.splice(i,1)[0]; saveMy(); renderMine(); undo={m:m,i:i};
   toast('Удалено: «'+m.t+'»', function(){ if(!undo) return; MY.splice(Math.min(undo.i,MY.length),0,undo.m); undo=null; saveMy(); renderMine(); }); }
@@ -1989,6 +2022,7 @@ function renderData(){
   /* объявление */
   var a=D&&D.announcement;
   $('#annBox').innerHTML = a ? '<div class="ann"><div class="ic">📣</div><div><b>Объявление</b><br>'+esc(a.text)+'<small>'+esc(a.at||'')+' · Чингис</small></div></div>' : '';
+  renderPolls(D);
   /* сейчас и далее */
   var t=today(), dates=[], by={};
   prog.forEach(function(r){ if(!by[r.date]){ by[r.date]=[]; dates.push(r.date); } by[r.date].push(r); });
@@ -2157,13 +2191,88 @@ $('#codeSave').onclick=function(){ var c=parseCode($('#codeIn').value);
   if(!c){ $('#codeMsg').textContent='Не похоже на код. Вставьте ссылку из сообщения Чингиса целиком.'; return; }
   useCode(c); $('#codeIn').value=''; lastFetch=0; renderData(); load(); };
 $('#codeReset').onclick=function(){ ask('Убрать имя и номера комнат с этого телефона?',function(){ useCode(''); renderData(); }); };
+/* голосование группы: карточка на главной, голос по личной ссылке, точка на вкладке «Главная» и на иконке */
+var pollSig='', pollBusy=false, wantVote=false;
+function plural(n,a,b,c){ n=Math.abs(n)%100; var m=n%10; return n>10&&n<20?c:m===1?a:m>1&&m<5?b:c; }
+function leftTxt(ms){ var m=Math.max(1,Math.ceil(ms/60000)); if(m<60) return 'осталось '+m+' мин';
+  var h=Math.floor(m/60); if(h<6&&m%60) return 'осталось '+h+' ч '+(m%60)+' мин'; if(h<48) return 'осталось '+h+' ч';
+  var d=Math.floor(h/24); return 'осталось '+d+' '+plural(d,'день','дня','дней'); }
+function pollLive(p,now){ return p.open && (now||Date.now())<p.ends; }
+function pollWin(c){ if(!c) return []; var mx=Math.max.apply(null,c), w=[]; if(!mx) return w; c.forEach(function(n,i){ if(n===mx) w.push(i); }); return w; }
+function pollHtml(p, code){
+  var now=Date.now(), open=pollLive(p,now), stale=p.open&&!open, c=stale?null:p.counts, sum=p.voted||0, mine=p.mine, q=p.quorum||0, tot=p.total||0;
+  var w=open?[]:pollWin(c), one=w.length===1&&!(q&&sum<q);
+  var head='<div class="plh">🗳 '+(open?'Голосование группы<span data-left="'+p.ends+'">'+leftTxt(p.ends-now)+'</span>':'Итоги голосования<span>завершено</span>')+'</div>';
+  var opts=p.opts.map(function(o,i){
+    var n=c?(c[i]||0):0, pct=c&&sum?Math.round(n*100/sum):0, cls='plo'+(i===mine?' me':'')+(one&&w[0]===i?' win':'');
+    var inner='<i style="width:'+pct+'%"></i><b>'+(i===mine?'✓ ':'')+esc(o)+'</b>'+(c?'<em>'+n+' · '+pct+'%</em>':'');
+    return open&&code ? '<button class="'+cls+'" data-poll="'+esc(p.id)+'" data-v="'+i+'" aria-pressed="'+(i===mine)+'">'+inner+'</button>' : '<div class="'+cls+'">'+inner+'</div>';
+  }).join('');
+  var meta='<div class="plm">Проголосовали <b>'+sum+'</b> из '+tot+(q?' · для решения нужно '+q:'')+'</div>'+
+    (tot?'<div class="plb" aria-hidden="true"><i style="width:'+Math.min(100,Math.round(sum*100/tot))+'%"></i>'+(q?'<s style="left:'+Math.min(100,q*100/tot)+'%"></s>':'')+'</div>':'');
+  var foot;
+  if(open){
+    if(!code) foot='<p class="pln">Голосовать можно по личной ссылке от Чингиса — так каждый голос считается один раз.</p><div class="btns"><button class="btn ghost" data-go-code>Ввести личную ссылку</button></div>';
+    else if(mine>=0) foot='<p class="pln">Ваш голос: <b>«'+esc(p.opts[mine])+'»</b>. Передумали — нажмите другой вариант до '+esc(p.endsTxt)+'.'+(c?'':' Итоги покажем после завершения.')+'</p>';
+    else foot='<p class="pln">Нажмите вариант. Голос можно изменить до '+esc(p.endsTxt)+'.'+(p.after?' Итоги покажем после завершения.':' После голоса увидите, как голосует группа.')+'</p>';
+  } else {
+    var v = stale ? 'Голосование завершено — итоги загружаются…'
+      : !c ? 'Итоги загрузятся при подключении к интернету.'
+      : (q&&sum<q) ? 'Кворум не набран: проголосовали '+sum+' из '+q+' нужных. Решение не принято — Чингис сообщит, как поступим.'
+      : !w.length ? 'Никто не проголосовал.'
+      : w.length>1 ? 'Ничья: '+w.map(function(i){ return '«'+esc(p.opts[i])+'»'; }).join(' и ')+'. Чингис сообщит, как поступим.'
+      : 'Решение группы: <b>«'+esc(p.opts[w[0]])+'»</b>';
+    foot='<p class="pln plr">'+v+'</p><p class="pln">Завершено '+esc(p.endsTxt)+(mine>=0?' · ваш голос: «'+esc(p.opts[mine])+'»':'')+'</p>';
+  }
+  return '<div class="poll'+(open?' open':'')+'" id="poll-'+esc(p.id)+'">'+head+'<div class="plq">'+esc(p.q)+'</div><div class="plos">'+opts+'</div>'+meta+foot+'</div>';
+}
+function renderPolls(D){
+  var list=(D&&D.polls)||[], code=(get('code','')&&D&&D.me)?get('code',''):'', now=Date.now();
+  var sig=JSON.stringify([list,code,list.map(function(p){ return pollLive(p,now); })]);
+  if(sig!==pollSig){ pollSig=sig; $('#pollBox').innerHTML=list.map(function(p){ return pollHtml(p,code); }).join(''); }
+  else $$('#pollBox [data-left]').forEach(function(s){ s.textContent=leftTxt(Number(s.getAttribute('data-left'))-now); });
+  if(wantVote&&curTab==='home') toPoll();
+  /* дедлайн прошёл, а данные ещё «идёт» — подтягиваем итоги */
+  if(list.some(function(p){ return p.open&&!pollLive(p,now); }) && Date.now()-lastFetch>15000){ lastFetch=0; setTimeout(load,1500); }
+  var need=!!code && list.some(function(p){ return pollLive(p,now)&&p.mine<0; });
+  $('nav.tabs button[data-tab="home"]').classList.toggle('dot',need);
+  try{ if(need&&navigator.setAppBadge) navigator.setAppBadge(1).catch(function(){}); else if(!need&&navigator.clearAppBadge) navigator.clearAppBadge().catch(function(){}); }catch(e){}
+}
+$('#pollBox').addEventListener('click',function(e){
+  if(e.target.closest('[data-go-code]')){ show('more','myCard'); setTimeout(function(){ try{ $('#codeIn').focus({preventScroll:true}); }catch(x){} },500); return; }
+  var b=e.target.closest('button[data-poll]'); if(!b||pollBusy) return;
+  var D=get('data',null), id=b.getAttribute('data-poll'), v=Number(b.getAttribute('data-v'));
+  var p=((D&&D.polls)||[]).filter(function(x){ return x.id===id; })[0]; if(!p) return;
+  if(p.mine===v){ toast('Этот вариант уже выбран'); return; }
+  if(!navigator.onLine){ toast('Нет интернета — голос не отправлен. Нажмите ещё раз, когда появится связь.'); return; }
+  pollBusy=true; buzz(10); var box=b.closest('.poll'); box.classList.add('busy'); b.classList.add('wait');
+  var code=get('code','');
+  fetch(API,{method:'POST',body:JSON.stringify({a:'vote',p:code,id:id,v:v})}) /* text/plain — без предварительного CORS-запроса */
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      var D2=get('data',null);
+      if(j&&j.polls&&D2&&code===get('code','')){ D2.polls=j.polls; set('data',D2); }
+      pollSig=''; renderPolls(D2);
+      if(j&&j.ok){ buzz([12,60,12]); toast(p.mine>=0?'Голос изменён':'Голос принят. Джазакаллаху хайран!'); }
+      else toast((j&&j.error)||'Не получилось. Попробуйте ещё раз.');
+    })
+    .catch(function(){ pollSig=''; renderPolls(get('data',null)); toast('Голос не отправлен: нет связи с сервером. Попробуйте ещё раз.'); })
+    .then(function(){ pollBusy=false; });
+});
+function toPoll(){ var a=$('#pollBox .poll.open')||$('#pollBox .poll'); if(a){ wantVote=false; setTimeout(function(){ a.scrollIntoView({behavior:'smooth',block:'start'}); },350); } }
+/* ссылка …#vote из WhatsApp: главная → карточка голосования (если данных ещё нет — после загрузки) */
+function goVote(){ if(!/^#vote/.test(location.hash)) return; show('home'); wantVote=true;
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  toPoll(); }
+window.addEventListener('hashchange',goVote);
 renderData(); load();
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible'){ renderData(); load(); } });
 window.addEventListener('online',load);
 setInterval(function(){ if(document.visibilityState==='visible') renderData(); },60000);
-setInterval(function(){ if(document.visibilityState==='visible') renderCd(); },30000);
+setInterval(function(){ if(document.visibilityState==='visible'){ renderCd(); renderPolls(get('data',null)); } },30000);
 
 show(get('tab','home'));
+goVote();
 
 /* установка */
 var ua=navigator.userAgent, isIOS=/iPhone|iPad|iPod/.test(ua) || (ua.indexOf('Mac')>=0 && 'ontouchend' in document);

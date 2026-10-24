@@ -59,7 +59,7 @@ p + p{ margin-top:.4rem; }
 .btn.red{ background:var(--redbg); color:var(--red); }
 .btn.sm{ font-size:.8rem; padding:.42rem .7rem; border-radius:10px; }
 .btn:disabled{ opacity:.5; cursor:default; }
-textarea, input{ font:inherit; font-size:16px; color:var(--ink); background:var(--sand); border:1px solid var(--line); border-radius:12px;
+textarea, input, select.in{ font:inherit; font-size:16px; color:var(--ink); background:var(--sand); border:1px solid var(--line); border-radius:12px;
   padding:.6rem .7rem; width:100%; }
 textarea{ min-height:7.5rem; resize:vertical; }
 input:focus, textarea:focus{ outline:2px solid var(--teal); outline-offset:1px; }
@@ -95,6 +95,31 @@ label.f > span{ display:block; font-size:.82rem; font-weight:600; color:var(--mu
   background:#00292C; color:#F4EDE1; border-radius:12px; padding:.7rem 1rem; font-size:.9rem; box-shadow:0 6px 24px rgba(0,0,0,.25); z-index:20; }
 #toast.err{ background:var(--red); color:#fff; }
 .load{ text-align:center; color:var(--muted); padding:2rem 0; }
+/* голосования */
+.grid3{ display:grid; grid-template-columns:1.2fr .8fr 1fr; gap:0 .7rem; }
+@media (max-width:520px){ .grid3{ grid-template-columns:1fr 1fr; } .grid3 > :first-child{ grid-column:1 / -1; } }
+.chips{ display:flex; gap:.4rem; flex-wrap:wrap; }
+.chips label{ display:flex; align-items:center; gap:.35rem; background:var(--sand); border:1px solid var(--line); border-radius:10px; padding:.45rem .7rem; font-size:.88rem; cursor:pointer; }
+.chips input{ width:auto; accent-color:var(--teal); }
+.preview{ font-size:.84rem; color:var(--teal-d); margin-top:.35rem; min-height:1.2em; }
+.poll{ border-top:1px solid var(--line); padding:.9rem 0 .4rem; }
+.poll:first-of-type{ border-top:0; padding-top:.2rem; }
+.poll h3{ font-size:1rem; margin:0 0 .15rem; }
+.poll .meta{ font-size:.8rem; color:var(--muted); }
+.opt{ margin-top:.55rem; }
+.opt .t{ display:flex; gap:.5rem; font-size:.9rem; }
+.opt .t b{ flex:1; font-weight:600; }
+.opt .t span{ color:var(--muted); font-variant-numeric:tabular-nums; }
+.opt.win .t b{ color:var(--teal-d); }
+.bar{ height:.5rem; background:var(--mint); border-radius:99px; overflow:hidden; margin-top:.2rem; }
+.bar i{ display:block; height:100%; background:var(--teal); border-radius:99px; }
+.opt.win .bar i{ background:var(--orange); }
+.opt small{ display:block; font-size:.76rem; color:var(--muted); margin-top:.15rem; }
+.turn{ margin-top:.7rem; font-size:.86rem; }
+.turn .ok{ color:var(--done); font-weight:700; }
+details.wait{ margin-top:.6rem; font-size:.88rem; }
+details.wait summary{ cursor:pointer; font-weight:600; color:var(--teal-d); }
+.tag.go{ background:var(--orange); color:#fff; }
 </style>
 </head>
 <body>
@@ -105,6 +130,7 @@ label.f > span{ display:block; font-size:.82rem; font-weight:600; color:var(--mu
 </div></header>
 <nav id="nav" hidden><div class="row">
   <button data-t="ann" class="on">Объявление</button>
+  <button data-t="vote">Голосование</button>
   <button data-t="rooms">Комнаты</button>
   <button data-t="links">Ссылки</button>
   <button data-t="group">Группа</button>
@@ -138,6 +164,35 @@ label.f > span{ display:block; font-size:.82rem; font-weight:600; color:var(--mu
       <p class="small" style="margin-top:.5rem">«Отправить в WhatsApp» откроет WhatsApp с готовым текстом — выберете чат группы и нажмёте «Отправить» сами.</p>
     </div>
     <div class="card"><h3>Прошлые объявления</h3><div id="annHist"></div></div>
+  </section>
+
+  <!-- голосование -->
+  <section data-p="vote" hidden>
+    <div class="card" id="vOld" hidden>
+      <h2>Нужно обновить сервер</h2>
+      <p class="small">Админка уже умеет голосования, а сервер (Apps Script) ещё старый. Вставьте новый Code.gs и создайте новую версию развёртывания — адрес останется прежним.</p>
+    </div>
+    <div class="card" id="vForm">
+      <h2>Новое голосование</h2>
+      <p class="small">Паломники увидят его на главной странице гида и проголосуют одним нажатием. Голосует только тот, кто открыл гид по личной ссылке, — один человек, один голос; до дедлайна голос можно изменить.</p>
+      <label class="f"><span>Вопрос</span><input id="vQ" maxlength="300" placeholder="Например: Куда едем в свободный день, 03.11?"></label>
+      <label class="f"><span>Варианты — каждый с новой строки (от 2 до 8)</span><textarea id="vOpts" maxlength="1200" style="min-height:6rem" placeholder="Таиф&#10;Джидда, набережная&#10;Остаёмся в Мекке"></textarea></label>
+      <div class="grid3">
+        <label class="f"><span>Голосуем до (дата)</span><input id="vDate" type="date"></label>
+        <label class="f"><span>Время</span><input id="vTime" type="time" value="21:00"></label>
+        <label class="f"><span>По времени</span><select id="vZone" class="in"><option value="3">Мекки</option><option value="5">Алматы</option></select></label>
+      </div>
+      <div class="preview" id="vWhen"></div>
+      <div class="grid2">
+        <label class="f"><span>Кворум — сколько человек должны ответить</span><input id="vQuorum" type="number" min="0" inputmode="numeric"></label>
+        <div class="f" style="margin-top:.7rem"><span class="small" style="display:block;font-weight:600;margin-bottom:.25rem">Счёт голосов паломники видят</span>
+          <div class="chips"><label><input type="radio" name="vAfter" value="0" checked>сразу после голоса</label><label><input type="radio" name="vAfter" value="1">только в конце</label></div></div>
+      </div>
+      <p class="small" id="vQHint" style="margin-top:.3rem"></p>
+      <div class="btns"><button class="btn orange" id="vGo">Запустить голосование</button></div>
+      <p class="small" style="margin-top:.5rem">После запуска нажмите «Текст в чат группы» — откроется WhatsApp с готовым сообщением. Кто как проголосовал, видите только вы (здесь и в таблице); паломникам гид показывает только числа.</p>
+    </div>
+    <div class="card"><h2>Голосования группы</h2><div id="vList"></div></div>
   </section>
 
   <!-- комнаты -->
@@ -241,7 +296,7 @@ function render(){
   var sel=$('#grp');
   sel.innerHTML=S.groups.map(function(g){ return '<option value="'+esc(g.code)+'"'+(g.code===S.g?' selected':'')+'>'+esc(g.code+(g.name?' · '+g.name:''))+(g.on?'':' (скрыта)')+'</option>'; }).join('');
   sel.hidden=false;
-  renderAnn(); renderRooms(); renderLinks(); renderGroup(); renderExport();
+  renderAnn(); renderVote(); renderRooms(); renderLinks(); renderGroup(); renderExport();
   tab(TAB);
 }
 function grp(){ for(var i=0;i<S.groups.length;i++) if(S.groups[i].code===S.g) return S.groups[i]; return {}; }
@@ -307,6 +362,73 @@ function renderGroup(){
   $('#gCodeBox').hidden=!newGroup; $('#gCancel').hidden=!newGroup; $('#gNew').hidden=newGroup;
   ['code','name','chat','dep','ret','medina','mecca','flights','sheet'].forEach(function(k){ $('#g-'+k).value=g[k]||''; });
 }
+/* ---------- голосования ---------- */
+var ZONES={3:'по Мекке',5:'по Алматы'};
+function pad(n){ return ('0'+n).slice(-2); }
+/* сдвиги фиксированные (Мекка UTC+3, Алматы UTC+5) — от часового пояса телефона не зависят */
+function zPart(ms,off){ var d=new Date(ms+off*3600000); return {d:pad(d.getUTCDate())+'.'+pad(d.getUTCMonth()+1), t:pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())}; }
+function whenTxt(ms){ var m=zPart(ms,3), a=zPart(ms,5); return m.d+', '+m.t+' по Мекке ('+(a.d!==m.d?a.d+', ':'')+a.t+' по Алматы)'; }
+function vEnds(){
+  var d=$('#vDate').value, t=$('#vTime').value, off=+$('#vZone').value;
+  var md=d.match(/^(\d{4})-(\d\d)-(\d\d)$/), mt=t.match(/^(\d\d):(\d\d)/);
+  if(!md||!mt) return 0;
+  return Date.UTC(+md[1],md[2]-1,+md[3],+mt[1],+mt[2])-off*3600000;
+}
+function vPreview(){
+  var e=vEnds(), el=$('#vWhen');
+  if(!e){ el.textContent=''; return; }
+  var h=(e-Date.now())/3600000;
+  el.innerHTML='⏰ '+esc(whenTxt(e))+(h<0?' — <span class="warn">это время уже прошло</span>':h<0.1?' — <span class="warn">слишком скоро</span>':h<48?' · через '+Math.round(h*10)/10+' ч':' · через '+Math.round(h/24)+' дн.');
+}
+function vOpts(){ var seen={}, out=[]; $('#vOpts').value.split('\n').forEach(function(o){ o=o.replace(/\s+/g,' ').trim(); if(o&&!seen[o.toLowerCase()]){ seen[o.toLowerCase()]=1; out.push(o); } }); return out; }
+function pollWin(p){ var mx=Math.max.apply(null,p.counts), w=[]; if(!mx) return []; p.counts.forEach(function(c,i){ if(c===mx) w.push(i); }); return w; }
+function pollVerdict(p){
+  var w=pollWin(p), q=p.voted>=p.quorum;
+  if(!p.voted) return 'никто не проголосовал';
+  var s=w.length>1?'ничья: '+w.map(function(i){ return p.opts[i]; }).join(' / '):'«'+p.opts[w[0]]+'»';
+  return (q?'':'кворум не набран · ')+'больше всего голосов — '+s;
+}
+function chatText(p){
+  return '🗳 Голосование группы\n\n'+p.q+'\n\n'+p.opts.map(function(o,i){ return (i+1)+') '+o; }).join('\n')+
+    '\n\nГолосуйте в гиде паломника до '+p.endsTxt+': https://umra.jurt.kz/#vote\n'+
+    'Голос засчитывается, если гид открыт по вашей личной ссылке. Передумали — можно изменить до дедлайна.';
+}
+function resultText(p){
+  return '🗳 Итоги голосования\n\n'+p.q+'\n\n'+p.opts.map(function(o,i){ return o+' — '+p.counts[i]; }).join('\n')+
+    '\n\nПроголосовали '+p.voted+' из '+p.total+(p.quorum?' (кворум '+p.quorum+(p.voted>=p.quorum?' набран':' не набран')+')':'')+'.\n'+
+    (p.voted?'Больше всего голосов: '+pollWin(p).map(function(i){ return p.opts[i]; }).join(' / '):'');
+}
+function renderVote(){
+  var old=!S.polls; $('#vOld').hidden=!old; $('#vForm').hidden=old;
+  var tot=S.total||0, q=$('#vQuorum');
+  if(!q.value && !q.dataset.touched) q.value=tot?Math.floor(tot/2)+1:'';
+  q.max=tot; $('#vQHint').textContent='В группе '+tot+' чел. (без отказавшихся). Больше половины — '+(Math.floor(tot/2)+1)+'. 0 — без кворума.';
+  if(!$('#vDate').value){ var n=new Date(Date.now()+(+$('#vZone').value)*3600000+86400000); $('#vDate').value=n.getUTCFullYear()+'-'+pad(n.getUTCMonth()+1)+'-'+pad(n.getUTCDate()); }
+  vPreview();
+  var list=S.polls||[];
+  $('#vList').innerHTML = old?'<p class="empty">Появятся после обновления сервера.</p>':!list.length?'<p class="empty">Пока не было.</p>':list.map(function(p,k){
+    var w=p.voted?pollWin(p):[], mx=Math.max(1,p.voted);
+    var tag=p.status==='идёт'?'<span class="tag go">идёт</span>':p.status==='скрыт'?'<span class="tag off">скрыто</span>':'<span class="tag">закрыто</span>';
+    var html='<div class="poll"><h3>'+esc(p.q)+tag+'</h3><div class="meta">'+(p.open?'до ':'закрыто · дедлайн ')+esc(p.endsTxt)+(p.after?' · счёт виден только в конце':'')+(p.created?' · создано '+esc(p.created):'')+'</div>'+
+      p.opts.map(function(o,i){ var c=p.counts[i];
+        return '<div class="opt'+(!p.open&&w.indexOf(i)>=0?' win':'')+'"><div class="t"><b>'+esc(o)+'</b><span>'+c+' · '+Math.round(c*100/mx)+'%</span></div><div class="bar"><i style="width:'+(c*100/mx)+'%"></i></div>'+
+          (p.voters[i].length?'<small>'+esc(p.voters[i].join(', '))+'</small>':'')+'</div>'; }).join('')+
+      '<div class="turn">Проголосовали <b>'+p.voted+' из '+p.total+'</b>'+(p.quorum?' · кворум '+p.quorum+' — '+(p.voted>=p.quorum?'<span class="ok">набран</span>':'<span class="warn">не набран</span>'):' · без кворума')+'</div>'+
+      (!p.open&&p.status!=='скрыт'?'<div class="turn"><b>Итог:</b> '+esc(pollVerdict(p))+'</div>':'');
+    if(p.open && p.waiting.length) html+='<details class="wait"><summary>Ещё не голосовали — '+p.waiting.length+'</summary>'+p.waiting.map(function(x){
+        return '<div class="lrow"><b>'+esc(x.name)+'</b>'+(x.wa?'<a class="btn wa sm" href="'+esc(x.wa)+'" target="_blank" rel="noopener">Напомнить</a>':'<span class="small">нет телефона</span>')+'</div>'; }).join('')+'</details>';
+    html+='<div class="btns">';
+    if(p.open) html+='<a class="btn wa sm" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(chatText(p))+'">Текст в чат группы</a>'+
+      '<button class="btn ghost sm" data-v="'+k+'" data-do="h">+1 час</button><button class="btn ghost sm" data-v="'+k+'" data-do="d">+1 день</button>'+
+      '<button class="btn red sm" data-v="'+k+'" data-do="close">Закрыть сейчас</button>';
+    else if(p.status==='закрыт') html+='<a class="btn wa sm" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(resultText(p))+'">Итоги в чат</a>'+
+      '<button class="btn ghost sm" data-v="'+k+'" data-do="h">Открыть ещё на 1 час</button><button class="btn ghost sm" data-v="'+k+'" data-do="d">на 1 день</button>';
+    if(p.status!=='скрыт') html+='<button class="btn ghost sm" data-v="'+k+'" data-do="hide">Скрыть из гида</button>';
+    else html+='<button class="btn ghost sm" data-v="'+k+'" data-do="show">Вернуть в гид</button>';
+    return html+'</div></div>';
+  }).join('');
+}
+
 function renderExport(){ $('#xSheet').href=S.sheetUrl; $('#xXlsx').href=S.xlsx; $('#xHub').href=S.hubUrl; }
 
 /* ---------- действия ---------- */
@@ -319,6 +441,27 @@ $('#annPub').onclick=function(){ var t=$('#annText').value.trim(); if(!t){ toast
   act(this,'ann',{text:t},'Опубликовано — паломники увидят его в течение минуты').then(function(){ if(S&&S.ann&&S.ann.text===t){ $('#annText').value=''; annWa(); } }); };
 $('#annOff').onclick=function(){ if(confirm('Убрать объявление из гида?')) act(this,'ann',{text:''},'Объявление убрано'); };
 $('#annHist').onclick=function(e){ var b=e.target.closest('[data-re]'); if(!b) return; $('#annText').value=S.history[+b.getAttribute('data-re')].text; annWa(); $('#annText').focus(); };
+['#vDate','#vTime','#vZone'].forEach(function(s){ $(s).oninput=$(s).onchange=vPreview; });
+$('#vQuorum').oninput=function(){ this.dataset.touched='1'; };
+$('#vGo').onclick=function(){
+  var q=$('#vQ').value.trim(), o=vOpts(), e=vEnds(), qu=$('#vQuorum').value.trim();
+  if(q.length<3){ toast('Напишите вопрос', true); $('#vQ').focus(); return; }
+  if(o.length<2||o.length>8){ toast('Нужно от 2 до 8 разных вариантов — каждый с новой строки', true); $('#vOpts').focus(); return; }
+  if(!e||e<Date.now()+5*60000){ toast('Поставьте дедлайн хотя бы через 5 минут', true); return; }
+  var after=$('input[name=vAfter]:checked').value==='1';
+  if(!confirm('Запустить голосование?\n\n'+q+'\n'+o.map(function(x){ return '• '+x; }).join('\n')+'\n\nДо '+whenTxt(e)+(qu&&+qu?'\nКворум: '+qu+' чел.':'')+(after?'\nСчёт — только в конце':''))) return;
+  act(this,'poll',{q:q, opts:o, ends:e, quorum:+qu||0, after:after},'Голосование запущено. Теперь «Текст в чат группы»')
+    .then(function(){ if(S&&S.made){ $('#vQ').value=''; $('#vOpts').value=''; delete $('#vQuorum').dataset.touched; $('#vQuorum').value=''; renderVote(); $('#vList').scrollIntoView({behavior:'smooth'}); } });
+};
+$('#vList').onclick=function(e){
+  var b=e.target.closest('[data-do]'); if(!b) return;
+  var p=S.polls[+b.getAttribute('data-v')], d=b.getAttribute('data-do'), now=Date.now();
+  if(d==='close'){ if(confirm('Закрыть голосование сейчас? Голосовать больше будет нельзя, итоги увидят все.')) act(b,'pollSet',{id:p.id,status:'закрыт'},'Закрыто — итоги видны в гиде'); return; }
+  if(d==='hide'){ if(confirm('Скрыть голосование из гида? Голоса останутся в таблице.')) act(b,'pollSet',{id:p.id,status:'скрыт'},'Скрыто из гида'); return; }
+  if(d==='show'){ act(b,'pollSet',{id:p.id,status:p.ends>now?'идёт':'закрыт'},'Снова в гиде'); return; }
+  var ends=Math.max(now,p.ends)+(d==='h'?3600000:86400000);
+  act(b,'pollSet',{id:p.id,status:'идёт',ends:ends},'Голосуем до '+whenTxt(ends));
+};
 $('#roomRows').oninput=roomDirty;
 $('#roomUndo').onclick=function(){ renderRooms(); };
 $('#roomSave').onclick=function(){
