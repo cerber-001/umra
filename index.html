@@ -159,6 +159,15 @@ b{ font-weight:700; }
 .why ul{ margin:0; padding-left:1.1rem; display:flex; flex-direction:column; gap:.35rem; }
 :root.brief #v-umra .acc.info, :root.brief .acc.step .det, :root.brief .acc.step .note, :root.brief .acc.step p.small,
 :root.brief .acc.step .mygo, :root.brief .acc.step .tw-sch, :root.brief .acc.step .dua .src, :root.brief .acc.step .dua .ru{ display:none; }
+/* ---------- v2.13: первая / уже был(а) / ещё одна из Мекки ---------- */
+:root:not(.fromMecca) .only-mecca, :root.fromMecca .not-mecca, :root:not(.repeat) .only-repeat{ display:none !important; }
+:root.brief .acc.step .note.keep{ display:block; }
+.modeq .btns{ flex-wrap:nowrap; }
+.modeq .btns .btn{ flex:1 1 0; padding:.35rem .25rem; white-space:nowrap; font-size:.86rem; }
+.modeq .btns .btn.sel{ border-color:var(--teal); box-shadow:inset 0 0 0 1px var(--teal); }
+.modeq details{ font-size:.92rem; }
+.modeq details summary{ cursor:pointer; color:var(--teal-d); font-weight:700; min-height:2.2rem; display:flex; align-items:center; }
+.modeq details ul{ margin:.2rem 0 .3rem; padding-left:1.1rem; display:flex; flex-direction:column; gap:.35rem; }
 /* ---------- шапка ---------- */
 header.app{ position:sticky; top:0; z-index:20; color:#fff; overflow:hidden;
   background:linear-gradient(120deg,#00292C 0%,#004C4E 55%,#005A5C 100%);
@@ -778,6 +787,72 @@ img{ -webkit-user-drag:none; }
 /* ---------- фокус-группа v2.8: пальцы пожилых и мелкий текст ---------- */
 .call{ min-height:2.75rem; min-width:2.75rem; justify-content:center; padding:0 .3rem; margin:-.5rem 0; vertical-align:middle; }
 #installHide, #nowMore, #resetBtn{ min-height:2.75rem; padding:0 .6rem; margin:-.6rem -.6rem -.6rem 0; }
+/* ---------- v2.13: время намаза и кибла ---------- */
+.prt .nw{white-space:nowrap}
+.pr-top{ display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; }
+.pr-top button{ font:inherit; font-size:.8rem; color:var(--teal-d); font-weight:700; background:none; border:0; padding:.4rem 0; text-align:right; min-height:2.75rem; margin:-.6rem 0; }
+.pr-next{ display:flex; align-items:baseline; gap:.15rem .55rem; flex-wrap:wrap; margin:.15rem 0 .55rem; }
+.pr-next span{ color:var(--muted); font-size:.85rem; }
+.pr-next b{ font-size:1.5rem; color:var(--teal-d); line-height:1.15; }
+.pr-next em{ font-style:normal; font-weight:800; color:var(--orange-t); }
+.prg{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem; }
+.prg div{ background:var(--sand); border-radius:.8rem; padding:.4rem .55rem; display:flex; flex-direction:column; border:2px solid transparent; }
+.prg span{ font-size:.76rem; color:var(--muted); }
+.prg b{ font-size:1.12rem; color:var(--ink); }
+.prg div.now{ border-color:var(--orange); }
+.prg div.past b{ color:var(--muted); font-weight:600; }
+#prAsr{ margin:.5rem 0 0; }
+.pr-btns{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-top:.65rem; }
+.pr-btns .btn{ min-width:0; font-size:.92rem; padding:.4rem .5rem; }
+.prs-g .kicker{ margin:0 0 .1rem; }
+.prs-g .wxcity{ margin:.3rem 0 .2rem; }
+.prday{ display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.prday button{ min-width:2.75rem; min-height:2.75rem; border-radius:.8rem; border:2px solid var(--line); background:var(--card); color:var(--ink); font-size:1.3rem; font-weight:800; }
+.prday b{ text-align:center; }
+.prt{ width:100%; border-collapse:collapse; font-size:.9rem; table-layout:fixed; }
+.prt td, .prt th{ padding:.38rem .2rem; border-bottom:1px solid var(--line); text-align:right; }
+.prt td:first-child, .prt th:first-child{ text-align:left; color:var(--muted); }
+.prt th{ font-size:.7rem; line-height:1.15; color:var(--muted); font-weight:700; vertical-align:bottom; }
+.prt th.sel, .prt td.sel{ color:var(--teal-d); font-weight:800; }
+.prt tr.now td{ font-weight:800; color:var(--teal-d); }
+.prt tr.now td:first-child{ color:var(--orange-t); }
+#prTab td:last-child{ font-size:1.05rem; }
+/* кибла: циферблат */
+.qbdial{ position:relative; width:min(15rem,72vw); margin:0 auto; }
+.qbdial svg{ width:100%; height:auto; display:block; overflow:visible; }
+.qbdial .rim{ fill:var(--sand); stroke:var(--line); stroke-width:2; }
+.qbdial .tk{ stroke:var(--muted); stroke-width:1.5; }
+.qbdial .tk.b{ stroke:var(--ink); stroke-width:2.5; }
+.qbdial text{ fill:var(--muted); font:700 15px/1 "Exo 2",system-ui,sans-serif; text-anchor:middle; dominant-baseline:central; }
+.qbdial text.n{ fill:var(--red); font-size:18px; }
+.qbdial .ql{ stroke:var(--orange); stroke-width:5; stroke-linecap:round; }
+.qbdial .kb{ fill:#1B1B1B; stroke:#fff; stroke-width:1.5; }
+.qbdial .kbb{ fill:#D4A537; }
+.qbdial .me{ fill:var(--teal); }
+.qbdial.ok .rim{ fill:var(--mint); stroke:var(--done); stroke-width:5; }
+.qbdial.ok .me{ fill:var(--done); }
+.qbdeg{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); text-align:center; line-height:1.1; pointer-events:none; }
+.qbdeg b{ display:block; font-size:1.7rem; color:var(--ink); }
+.qbdeg span{ font-size:.72rem; color:var(--muted); }
+.qbsay{ text-align:center; font-weight:800; font-size:1.05rem; color:var(--teal-d); min-height:1.4em; margin:0; }
+.qbdial.ok + .qbsay{ color:var(--done); }
+/* кибла: карта OpenStreetMap */
+.qbmap{ position:relative; height:15rem; border-radius:.9rem; overflow:hidden; border:2px solid var(--line); touch-action:none; cursor:grab;
+  background:var(--sand) repeating-linear-gradient(0deg,transparent 0 39px,var(--line) 39px 40px),repeating-linear-gradient(90deg,transparent 0 39px,var(--line) 39px 40px); }
+.qbmv{ position:absolute; inset:0; will-change:transform; }
+.qbmv img{ position:absolute; width:256px; height:256px; max-width:none; user-select:none; -webkit-user-drag:none; }
+:root[data-theme="dark"] .qbmv img, :root[data-theme="neon"] .qbmv img, :root[data-theme="cyber"] .qbmv img{ filter:brightness(.8) contrast(1.1); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme]) .qbmv img{ filter:brightness(.8) contrast(1.1); } }
+.qbmv svg{ position:absolute; left:0; top:0; overflow:visible; }
+.qbmv .gl{ fill:none; stroke:#F07A1E; stroke-width:5; stroke-linecap:round; stroke-linejoin:round; }
+.qbmv .gl0{ fill:none; stroke:#fff; stroke-width:9; stroke-linecap:round; stroke-linejoin:round; opacity:.85; }
+.qbz{ position:absolute; right:.4rem; top:.4rem; display:flex; flex-direction:column; gap:.3rem; }
+.qbz button{ width:2.75rem; height:2.75rem; border-radius:.7rem; border:2px solid var(--line); background:var(--card); color:var(--ink); font-size:1.3rem; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.qbn{ position:absolute; left:.45rem; top:.45rem; width:2.2rem; height:2.2rem; border-radius:50%; background:var(--card); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.8rem; color:var(--red); }
+.qbatt{ position:absolute; right:0; bottom:0; font-size:.68rem; background:rgba(255,255,255,.85); color:#333; padding:.1rem .35rem; border-top-left-radius:.4rem; }
+.qbatt a{ color:#333; }
+.qboff{ position:absolute; left:.5rem; right:3.6rem; bottom:1.4rem; margin:0; font-size:.78rem; background:var(--card); color:var(--ink); border-radius:.6rem; padding:.35rem .5rem; display:none; }
+.qbmap.off .qboff{ display:block; }
 </style>
 </head>
 <body>
@@ -846,6 +921,13 @@ img{ -webkit-user-drag:none; }
   <div class="wx" id="wxBox"></div>
   <p class="small" id="wxTip"></p>
  </div>
+ <div class="card reveal" id="prCard">
+  <div class="pr-top"><h3>Намаз и кибла</h3><button type="button" id="prWhere" aria-label="Место и источник времени"></button></div>
+  <div class="pr-next" id="prNext"></div>
+  <div class="prg" id="prGrid"></div>
+  <p class="small" id="prAsr"></p>
+  <div class="pr-btns"><button class="btn" type="button" id="qbOpen">Кибла · компас</button><button class="btn ghost" type="button" id="prOpen">Место и источник</button></div>
+ </div>
  <div class="tiles reveal">
   <button class="tile" data-go="umra"><div class="ringp"><svg viewBox="0 0 60 60"><circle class="bg" cx="30" cy="30" r="25"/><circle class="fg" id="tileRing" cx="30" cy="30" r="25" stroke-dasharray="157" stroke-dashoffset="157"/></svg><em id="tileNum">0/11</em></div><b data-i18n="tab.umra">Умра</b><span id="tileNext">шаг за шагом</span></button>
   <button class="tile" data-go="dua"><svg><use href="#i-heart"/></svg><b data-i18n="tile.dua">Дуа</b><span data-i18n="tile.duaS">дуа гида, свой список, зикр</span></button>
@@ -865,14 +947,24 @@ img{ -webkit-user-drag:none; }
   <button class="btn" id="progGo">Открыть текущий шаг</button>
  </div>
  <div class="modeq">
-  <div class="kicker">Как показывать шаги</div>
-  <div class="btns"><button class="btn ghost" data-brief-set="0">Подробно<small>первая умра</small></button><button class="btn ghost" data-brief-set="1">Кратко<small>я уже был(а)</small></button></div>
+  <div class="kicker">Ваша умра</div>
+  <div class="btns"><button class="btn ghost" data-kind="first">Первая<small>подробно</small></button><button class="btn ghost" data-kind="again">Уже был(а)<small>кратко</small></button><button class="btn ghost" data-kind="mecca">Ещё одна<small>из Мекки</small></button></div>
+  <details><summary>Что меняется?</summary>
+   <ul>
+    <li><b>Обряды те же</b> для всех: ихрам, таваф, саи, бритьё — в том же порядке.</li>
+    <li><b>«Уже был(а)»</b> — шаги кратко: действия и дуа, без пояснений. Подробности можно вернуть в «Ещё» → «Шаги умры».</li>
+    <li><b>«Ещё одна из Мекки»</b> — ихрам надевают <b>за границей Харама</b>: обычно в Тан'име (Масджид Аиши, ≈ 7,5 км от Харама, на такси), можно и в другом месте за границей, например в Джиъране. Шаги 1–5 покажут это.</li>
+    <li><b>Бритьё:</b> если голова уже обрита — снова провести бритвой по голове (у ханафитов это требуется). Женщины снова укорачивают волосы на длину фаланги.</li>
+    <li>Награду умры можно посвятить другому, например умершему родителю, — у ханафитов это допустимо (Хидая).</li>
+    <li>Отметки прошлой умры — кнопка «Сбросить отметки умры» внизу вкладки.</li>
+   </ul>
+  </details>
  </div>
  <a class="mygo h3d" href="haram3d/?from=medina"><svg><use href="#i-tawaf"/></svg><span><b data-i18n="h3d.t">Харам в 3D</b><small>Только посмотреть, где что находится. Что делать — в шагах ниже.</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
  <section class="acc info blue">
   <div class="acc-h"><div class="num">?</div><div class="st"><div class="kicker">Бисмилляхи-р-рахмани-р-рахим</div><b>Как пользоваться гидом</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
-   <p><b>Главное — шаги ниже, по порядку.</b> Карта 3D — только чтобы заранее увидеть, куда идти. Уже были на умре? Выберите вверху «Кратко» — останутся действия и дуа, без пояснений.</p>
+   <p><b>Главное — шаги ниже, по порядку.</b> Карта 3D — только чтобы заранее увидеть, куда идти. Уже были на умре? Выберите вверху «Уже был(а)» — останутся действия и дуа, без пояснений. Ещё одна умра, уже из Мекки, — «Ещё одна»: шаги 1–5 покажут микат за границей Харама.</p>
    <p>Нажмите на шаг — откроется, что делать и какие дуа читать. Сделали — нажмите «Сделано». Отметки сохраняются в телефоне и работают без интернета.</p>
   <h3>Метки по ханафитскому мазхабу</h3>
  <div class="tags"><span class="tag fard">Фарз · шарт</span></div>
@@ -901,12 +993,12 @@ img{ -webkit-user-drag:none; }
  <div class="flag"><b>⚑ Сверить</b> — пункт, по которому у учёных есть разные мнения.</div>
   </div></div></div>
  </section>
-<section class="acc step" data-id="ghusl"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-ghusl"/></svg><i>1</i></div><div class="st"><div class="kicker">Гусль · Медина · 01.11 · в отеле</div><b>Подготовка к умре</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="ghusl"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-ghusl"/></svg><i>1</i></div><div class="st"><div class="kicker"><span class="not-mecca">Гусль · Медина · 01.11 · в отеле</span><span class="only-mecca">Гусль · Мекка · в отеле</span></div><b>Подготовка к умре</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <p class="lead">Полное омовение перед ихрамом — для чистоты, а не для снятия скверны.</p>
  <ul class="do">
-  <li class="s">Накануне (31.10): подстричь ногти, усы, удалить волосы под мышками и в паху.</li>
+  <li class="s"><span class="not-mecca">Накануне (31.10)</span><span class="only-mecca">Перед выездом</span>: подстричь ногти, усы, удалить волосы под мышками и в паху.</li>
   <li class="s">Сделать гусль: прополоскать рот, промыть нос, омыть всё тело.</li>
   <li class="s">Нанести благовоние <b>на тело</b> (не на ткань ихрама).</li>
  </ul>
@@ -917,10 +1009,10 @@ img{ -webkit-user-drag:none; }
  </div></details>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="ihram"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-ihram"/></svg><i>2</i></div><div class="st"><div class="kicker">Медина · 01.11 · до миката</div><b>Одежда ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="ihram"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-ihram"/></svg><i>2</i></div><div class="st"><div class="kicker"><span class="not-mecca">Медина · 01.11 · до миката</span><span class="only-mecca">Мекка · в отеле</span></div><b>Одежда ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag must">Ваджиб · <i>без шитого, до миката</i></span><span class="tag sunna">Сунна · <i>2 белых полотна</i></span></div>
- <p class="lead">Сам ихрам — это намерение и тальбия (шаги 4–5). С этой минуты мужчине <b>нельзя шитую одежду</b>, и войти в ихрам нужно <b>до</b> миката Зуль-Хулейфа — это ваджиб. Два белых несшитых полотна — сунна: так одевался Пророк <span class="saw">ﷺ</span>.</p>
+ <p class="lead">Сам ихрам — это намерение и тальбия (шаги 4–5). С этой минуты мужчине <b>нельзя шитую одежду</b>, и войти в ихрам нужно <span class="not-mecca"><b>до</b> миката Зуль-Хулейфа</span><span class="only-mecca"><b>за границей Харама</b> — ближе всего Тан'им (Масджид Аиши)</span> — это ваджиб. Два белых несшитых полотна — сунна: так одевался Пророк <span class="saw">ﷺ</span>.</p>
  <div class="note"><b>«Можно не надеть и откупиться жертвой?» — Нет.</b> Ваджиб обязателен. Жертва-дам исправляет умру, если нарушение уже случилось, но не делает его дозволенным: умышленно нарушить ваджиб — грех, нужно ещё и покаяние. Искупление — для ошибки, болезни или вынужденной причины, а не плата заранее.</div>
  <ul class="do">
   <li><b>Изар</b> — нижнее полотно, вокруг пояса, закрывает от пупка до ниже колен.</li>
@@ -929,6 +1021,7 @@ img{ -webkit-user-drag:none; }
   <li class="no">Нижнее бельё, носки, кепка, шитая одежда.</li>
   <li><b>Женщины</b> — в своей обычной закрытой одежде, шитая можно, цвет любой. Лицо открыто: ткань не должна касаться лица.</li>
  </ul>
+ <div class="note keep only-mecca"><b>Ещё одна умра из Мекки.</b> Одежду ихрама надеваете в отеле, затем такси до Тан'има (Масджид Аиши, ≈ 7,5 км от Харама) — там 2 ракаата, намерение и тальбия, потом обратно в Харам на таваф. Внутри границы Харама в ихрам для умры не входят — это нарушение ваджиба. Если так вышло, до начала тавафа выйдите за границу и произнесите тальбию там; подробности — у знатока ханафитского фикха.</div>
  <details class="det"><summary><span class="mbtn">Подробнее<svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>идтиба, где переодеться</small></summary><div class="det-in">
  <ul class="do">
   <li class="s">Перед тавафом — <b>идтиба</b>: правое плечо открыто, рида под правой рукой.</li>
@@ -937,7 +1030,7 @@ img{ -webkit-user-drag:none; }
  </div></details>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="rakat"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-prayer-mat"/></svg><i>3</i></div><div class="st"><div class="kicker">Микат Зуль-Хулейфа</div><b>2 ракаата ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="rakat"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-prayer-mat"/></svg><i>3</i></div><div class="st"><div class="kicker"><span class="not-mecca">Микат Зуль-Хулейфа</span><span class="only-mecca">Тан'им · Масджид Аиши</span></div><b>2 ракаата ихрама</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag sunna">Сунна</span></div>
  <p class="lead">Два ракаата с намерением «намаз ихрама». Ихрам ещё не начат — голову можно покрыть.</p>
@@ -954,12 +1047,12 @@ img{ -webkit-user-drag:none; }
  <details class="det"><summary><span class="mbtn">Подробнее<svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>время намаза</small></summary><div class="det-in">
  <ul class="do">
   <li>Если время намаза-фарда (зухр) — можно совершить зухр вместо них.</li>
-  <li><b>Когда нельзя молиться:</b> пока восходит солнце (≈20 мин после восхода), в зенит (≈10 мин до зухра), пока заходит (≈20 мин до магриба). Нежелательно также после фаджра до восхода и после асра до заката. Подождите — и совершите. Время намазов — в приложении «Мой день».</li>
+  <li><b>Когда нельзя молиться:</b> пока восходит солнце (≈20 мин после восхода), в зенит (≈10 мин до зухра), пока заходит (≈20 мин до магриба). Нежелательно также после фаджра до восхода и после асра до заката. Подождите — и совершите. Время намаза по вашему месту и кибла — <button class="linkbtn" type="button" data-go="home" data-anchor="prCard">на «Главной»</button>.</li>
  </ul>
  </div></details>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="niyya"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-dua"/></svg><i>4</i></div><div class="st"><div class="kicker">Микат · после 2 ракаатов</div><b>Намерение</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="niyya"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-dua"/></svg><i>4</i></div><div class="st"><div class="kicker"><span class="not-mecca">Микат</span><span class="only-mecca">Тан'им</span> · после 2 ракаатов</div><b>Намерение</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag fard">Фарз · <i>шарт (условие)</i></span></div>
  <p class="lead">Намерение — в сердце. Произнести вслух желательно.</p>
@@ -973,7 +1066,7 @@ img{ -webkit-user-drag:none; }
  <div class="note">Сразу после намерения — <b>тальбия</b> (шаг 5). С этого момента вы в ихраме и действуют запреты (карточка «Запреты ихрама» ниже).</div>
 <button class="donebtn"></button>
 </div></div></div></section>
-<section class="acc step" data-id="talbiya"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-pilgrim"/></svg><i>5</i></div><div class="st"><div class="kicker">Микат → Мекка · всю дорогу</div><b>Тальбия</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<section class="acc step" data-id="talbiya"><div class="acc-h"><div class="num"><svg class="pic"><use href="#b-pilgrim"/></svg><i>5</i></div><div class="st"><div class="kicker"><span class="not-mecca">Микат → Мекка</span><span class="only-mecca">Тан'им → Харам</span> · всю дорогу</div><b>Тальбия</b></div><span class="chk" role="button" aria-label="Отметить шаг"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
 <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
  <div class="tags"><span class="tag fard">Фарз · <i>1 раз с намерением</i></span><span class="tag sunna">Сунна · <i>повторять</i></span></div>
  <div class="dua">
@@ -1157,6 +1250,7 @@ img{ -webkit-user-drag:none; }
   <li>Только после бритья снимаются запреты ихрама. <b>Умра завершена!</b></li>
   <li>Цены в салонах разные и меняются — спросите до начала. Лучше — салон с одноразовым лезвием.</li>
  </ul>
+ <div class="note keep only-repeat"><b>Повторная умра.</b> Если голова уже обрита — снова провести бритвой по всей голове (у ханафитов это требуется). Женщины снова укорачивают волосы на длину фаланги пальца.</div>
  <div class="note">Пророк <span class="saw">ﷺ</span> трижды просил о прощении для обривших голову и один раз — для укоротивших <span class="small">(аль-Бухари 1727, Муслим 1302)</span>.</div>
  <div class="dua">
   <div class="lbl">После умры</div>
@@ -1525,7 +1619,7 @@ img{ -webkit-user-drag:none; }
   </div>
   <p class="small" id="langNote" data-i18n="lang.note" hidden></p>
  </div>
- <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.12 · 24.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
+ <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.13 · 25.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
 </section>
 </main>
 
@@ -1580,6 +1674,30 @@ img{ -webkit-user-drag:none; }
  <p class="small">Прогноз Open-Meteo. Сохраняется в телефоне: без интернета показан последний загруженный, с интернетом обновляется сам.</p>
  <button class="btn" id="wxClose">Закрыть</button>
 </div></div>
+<div class="dlg wxs" id="prSheet" role="dialog" aria-modal="true" aria-labelledby="prT"><div class="dlg-b">
+ <h3 id="prT">Время намаза</h3>
+ <div class="prs-g"><div class="kicker">Где вы</div><div class="wxcity" id="prPlaces"></div><p class="small" id="prGeo"></p></div>
+ <div class="prs-g"><div class="kicker">Чьё расписание</div><div class="wxcity" id="prSrcs"></div></div>
+ <div class="wxsum" id="prAbout"></div>
+ <div class="prday"><button type="button" id="prPrev" aria-label="Предыдущий день">‹</button><b id="prDay"></b><button type="button" id="prNextD" aria-label="Следующий день">›</button></div>
+ <table class="prt" id="prTab"></table>
+ <div class="prs-g"><div class="kicker">Все источники в этот день</div><table class="prt" id="prCmp"></table></div>
+ <p class="small" id="prFoot"></p>
+ <button class="btn" id="prClose">Закрыть</button>
+</div></div>
+<div class="dlg wxs" id="qbSheet" role="dialog" aria-modal="true" aria-labelledby="qbT"><div class="dlg-b">
+ <h3 id="qbT">Кибла</h3><p class="small" id="qbWhere"></p>
+ <div class="qbdial" id="qbDial"><svg viewBox="-125 -125 250 250" aria-hidden="true"><g id="qbRose"></g><path class="me" d="M0,-124 L-11,-104 L11,-104Z"/></svg><div class="qbdeg" id="qbDeg"></div></div>
+ <p class="qbsay" id="qbSay" aria-live="polite"></p>
+ <div class="btns"><button class="btn" type="button" id="qbOn">Включить компас</button><button class="btn ghost" type="button" id="qbGps">Моё место · GPS</button></div>
+ <p class="small" id="qbHint"></p>
+ <div class="qbmap" id="qbMap" aria-label="Карта: линия на Каабу"><div class="qbmv" id="qbMv"></div><span class="qbn" aria-hidden="true">С</span>
+  <div class="qbz"><button type="button" id="qbZin" aria-label="Приблизить">+</button><button type="button" id="qbZout" aria-label="Отдалить">−</button><button type="button" id="qbHome" aria-label="К моему месту">⌖</button></div>
+  <p class="qboff">Нет интернета — карта не загрузилась. Линия всё равно верная: север сверху.</p>
+  <span class="qbatt">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span></div>
+ <p class="small">Оранжевая линия — кратчайший путь до Каабы. Сверьте её с улицами и зданиями вокруг: так точнее, чем компас телефона.</p>
+ <button class="btn" id="qbClose">Закрыть</button>
+</div></div>
 <div class="dlg" id="phBig"><img alt="Фото ворот"><button class="btn" id="phClose">Закрыть</button></div>
 <nav class="tabs">
  <span class="pill" id="pill"></span>
@@ -1590,6 +1708,7 @@ img{ -webkit-user-drag:none; }
  <button data-tab="more"><svg><use href="#i-dome"/></svg><span data-i18n="tab.more">Ещё</span></button>
 </nav>
 
+<script src="prayer.js"></script>
 <script>
 (function(){
 var API='https://script.google.com/macros/s/AKfycbx5I0M0ZfnLQalWMZ34qYKOz280DJBQQ5lZumsZtHtqpcAAmrMlDACfmzS0eFVBGyTD/exec';
@@ -1697,6 +1816,12 @@ var first=render().next; if(first) openAcc(first,true);
 function applyBrief(on){ root.classList.toggle('brief',!!on); set('brief',on?1:0); $$('[data-brief-set]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-brief-set')===(on?'1':'0')); }); }
 applyBrief(get('brief',0));
 $$('[data-brief-set]').forEach(function(b){ b.onclick=function(){ buzz(8); applyBrief(b.getAttribute('data-brief-set')==='1'); }; });
+/* какая умра: первая — подробно; уже был(а) — кратко; ещё одна из Мекки — кратко и микат за границей Харама */
+function applyKind(k){ if(['first','again','mecca'].indexOf(k)<0) k='first'; set('umraKind',k);
+  root.classList.toggle('repeat',k!=='first'); root.classList.toggle('fromMecca',k==='mecca');
+  $$('[data-kind]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-kind')===k); }); }
+applyKind(get('umraKind',get('brief',0)?'again':'first'));
+$$('[data-kind]').forEach(function(b){ b.onclick=function(){ buzz(8); var k=b.getAttribute('data-kind'); applyKind(k); applyBrief(k!=='first'); }; });
 $('#progGo').onclick=function(){ var nx=render().next || steps[steps.length-1]; openAcc(nx,true); setTimeout(function(){ nx.scrollIntoView({behavior:'smooth',block:'start'}); },60); };
 ['enter','tawaf','maqam','zamzam','sai','halq'].forEach(function(id){ var s=$('.acc.step[data-id="'+id+'"]'); if(!s) return;
   var a=document.createElement('a'); a.className='map3d'; a.href='haram3d/?from=medina'; a.innerHTML='<svg><use href="#i-tawaf"/></svg>Где это — посмотреть на карте 3D';
@@ -2136,6 +2261,208 @@ function wxLoad(force){
 }
 wxLoad(); addEventListener('online', function(){ wxLoad(true); });
 document.addEventListener('visibilitychange', function(){ if(!document.hidden) wxLoad(); });
+/* ---------- v2.13: время намаза и кибла (расчёт в prayer.js — работает без интернета) ----------
+   Место: «Авто» — город маршрута по дате (как у погоды), или выбранный город, или GPS. В Медине и Мекке точка — у отеля.
+   dec — магнитное склонение, градусы к востоку (поправка компаса). Новый город = новая строка. */
+var PRP=[{k:'almaty',n:'Алматы',la:43.238,lo:76.946,tz:5,src:'dumk',dec:5.2},
+         {k:'istanbul',n:'Стамбул',la:41.008,lo:28.978,tz:3,src:'diyanet',dec:6.1},
+         {k:'medina',n:'Медина',la:24.4735,lo:39.6116,tz:3,src:'mkk',dec:3.9,at:'Медина'},
+         {k:'mecca',n:'Мекка',la:21.4221,lo:39.8184,tz:3,src:'mkk',dec:3.5,at:'Мекка'},
+         {k:'dubai',n:'Дубай',la:25.205,lo:55.271,tz:4,src:'dubai',dec:2.2}];
+var PRS={
+  mkk:{n:'Умм аль-Кура',s:'Умм аль-Кура · Саудовская Аравия',t:'Официальный календарь Саудовской Аравии — по нему звучит азан в Масджид аль-Харам и в Мечети Пророка ﷺ. Фаджр — солнце на 18,5° под горизонтом, иша — через 90 минут после магриба (в Рамадан — через 120), аср — по одной тени.'},
+  dumk:{n:'ДУМК',s:'ДУМК · muftyat.kz',t:'Расписание Духовного управления мусульман Казахстана (muftyat.kz). Фаджр и иша — солнце на 15° под горизонтом, аср — по Абу Ханифе (тень вдвое длиннее предмета), к восходу, зухру, асру и магрибу — по 3 минуты для надёжности. Сверено с расписанием Алматы на 2026 год: расхождение не больше минуты.'},
+  diyanet:{n:'Диянет',s:'Диянет · Турция',t:'Официальное расписание Управления по делам религии Турции — по нему азан в мечетях Стамбула. Фаджр — 18°, иша — 17°, аср — по одной тени, с турецкими поправками для надёжности (темкин).'},
+  dubai:{n:'Дубай',s:'Дубай · ОАЭ',t:'Официальное расписание Дубая. Фаджр и иша — солнце на 18,2° под горизонтом, аср — по одной тени, к зухру и магрибу +3 минуты.'}};
+var PRN={fajr:'Фаджр',sunrise:'Восход',dhuhr:'Зухр',asr:'Аср',maghrib:'Магриб',isha:'Иша'};
+function prAuto(){ var t=wxToday(), c=WXC.filter(function(x){ return x.d.indexOf(t)>=0; })[0];
+  return PRP.filter(function(p){ return c&&p.n===c.n; })[0]||PRP[0]; }
+function prNear(la,lo){ var b=null, bd=1e9; PRP.forEach(function(p){ var d=JurtPrayer.km(la,lo,p.la,p.lo); if(d<bd){ bd=d; b=p; } }); return {p:b,d:bd}; }
+function prPlace(){
+  var k=get('prPlace','auto'), g=get('prGps',null);
+  if(k==='gps'&&g){ var nr=prNear(g.la,g.lo), near=nr.d<600;
+    /* у города маршрута — его местное время; далеко — пояс телефона и расписание по нему (+5 — Казахстан) */
+    var src=near?nr.p.src:(g.tz===5?'dumk':g.tz===4?'dubai':g.tz===3&&g.la>36?'diyanet':'mkk');
+    return {k:'gps',n:'Моё место',la:g.la,lo:g.lo,tz:near?nr.p.tz:g.tz,src:src,dec:nr.d<1500?nr.p.dec:null,near:nr,acc:g.acc}; }
+  var p=PRP.filter(function(x){ return x.k===k; })[0];
+  if(p) return p;
+  p=prAuto(); return {k:p.k,n:p.n,la:p.la,lo:p.lo,tz:p.tz,src:p.src,dec:p.dec,at:p.at,auto:true};
+}
+function prSrc(pl){ var s=get('prSrc','auto'); return PRS[s]?s:pl.src; }
+/* полдень местного дня места (+off дней) — от него prayer.js берёт дату */
+function prDate(tz,off){ var l=new Date(Date.now()+tz*36e5); return new Date(Date.UTC(l.getUTCFullYear(),l.getUTCMonth(),l.getUTCDate()+(off||0),12)-tz*36e5); }
+function prNowMin(tz){ return ((Date.now()/6e4+tz*60)%1440+1440)%1440; }
+function prLeft(m){ var h=Math.floor(m/60); return (h?h+' ч ':'')+(m%60)+' мин'; }
+function prTzNote(pl){ var dev=-new Date().getTimezoneOffset()/60, d=dev-pl.tz; if(!d) return '';
+  var a=Math.abs(d), w=a===1?'час':a<5?'часа':'часов';
+  return 'Время — местное (UTC+'+pl.tz+'). На вашем телефоне сейчас на '+a+' '+w+' '+(d>0?'больше':'меньше')+'.'; }
+function prAsrNote(t,src){
+  return PRS[src]&&JurtPrayer.METHODS[src].asr===2
+    ? 'Аср по одной тени (имамы Абу Юсуф и Мухаммад) — с '+JurtPrayer.hhmm(t.asr1)+'.'
+    : 'Аср по Абу Ханифе (тень вдвое длиннее предмета) — с '+JurtPrayer.hhmm(t.asr2)+'; так считает и ДУМК.'; }
+function prDraw(){
+  if(!$('#prGrid')||!window.JurtPrayer) return;
+  var J=JurtPrayer, pl=prPlace(), src=prSrc(pl), tz=pl.tz, nm=prNowMin(tz);
+  var t=J.times(prDate(tz,0),pl.la,pl.lo,tz,src), day=nm>=t.isha?1:0;
+  if(day) t=J.times(prDate(tz,1),pl.la,pl.lo,tz,src);
+  var nx=J.next(new Date(),pl.la,pl.lo,tz,src), fri=new Date(prDate(tz,day).getTime()+tz*36e5).getUTCDay()===5;
+  $('#prWhere').textContent=pl.n+' · '+PRS[src].n+' ›';
+  $('#prNext').innerHTML=nx?'<span>'+(day?'Завтра':'Следующий')+'</span><b>'+((nx.key==='dhuhr'&&nx.friday)?'Джума':PRN[nx.key])+' '+J.hhmm(nx.min)+'</b><em>через '+prLeft(nx.left)+'</em>':'';
+  $('#prGrid').innerHTML=J.ORDER.map(function(k){ var past=!day&&t[k]<=nm, now=nx&&nx.key===k;
+    return '<div class="'+(now?'now':past?'past':'')+'"><span>'+((k==='dhuhr'&&fri)?'Джума':PRN[k])+'</span><b>'+J.hhmm(t[k])+'</b></div>'; }).join('');
+  var n=[prAsrNote(t,src)];
+  if(pl.at&&src==='mkk') n.push('В Харамах общий намаз — по их азану (календарь Умм аль-Кура).');
+  var tzn=prTzNote(pl); if(tzn) n.push(tzn);
+  $('#prAsr').textContent=n.join(' ');
+  $('#qbOpen').textContent=J.km(pl.la,pl.lo)<1.5?'Кибла · компас':'Кибла '+Math.round(J.qibla(pl.la,pl.lo))+'° · компас';
+  if($('#prSheet').classList.contains('on')) prSheet();
+}
+var prOff=0;
+function prDayTxt(tz,off){ var d=new Date(prDate(tz,off).getTime()+tz*36e5), s=('0'+d.getUTCDate()).slice(-2)+'.'+('0'+(d.getUTCMonth()+1)).slice(-2)+' · '+WD[d.getUTCDay()];
+  return (off===0?'Сегодня, ':off===1?'Завтра, ':off===-1?'Вчера, ':'')+s; }
+function prSheet(){
+  var J=JurtPrayer, pl=prPlace(), src=prSrc(pl), k=get('prPlace','auto'), sk=get('prSrc','auto'), tz=pl.tz;
+  var chip=function(a,v,sel,txt){ return '<button type="button" '+a+'="'+v+'"'+(sel?' class="sel"':'')+'>'+esc(txt)+'</button>'; };
+  $('#prPlaces').innerHTML=chip('data-prp','auto',k==='auto','Авто · по маршруту')+PRP.map(function(p){ return chip('data-prp',p.k,k===p.k,p.n); }).join('')+chip('data-prp','gps',k==='gps','Моё место · GPS');
+  var geo=pl.auto?'Сейчас — '+pl.n+': город берётся по датам маршрута (28.10 Стамбул, 29–31.10 Медина, 01–04.11 Мекка, 05.11 Дубай), в остальные дни — Алматы.':'';
+  if(pl.at) geo+=(geo?' ':'')+'Точка — у отеля '+HOTELS[pl.at].name+'; в пределах города разница меньше минуты.';
+  if(pl.k==='gps') geo='По GPS'+(pl.acc?' ±'+Math.round(pl.acc)+' м':'')+(pl.near.d<600?' · рядом '+pl.near.p.n+' ('+Math.round(pl.near.d)+' км)':'')+'. Часовой пояс — как на телефоне в момент определения (UTC+'+tz+').';
+  $('#prGeo').textContent=geo;
+  $('#prSrcs').innerHTML=chip('data-prs','auto',!PRS[sk],'Авто · '+PRS[pl.src].n)+Object.keys(PRS).map(function(s){ return chip('data-prs',s,sk===s,PRS[s].s); }).join('');
+  $('#prAbout').innerHTML='<b>'+esc(PRS[src].s)+'.</b> '+esc(PRS[src].t)+'<br><br>У ханафитов время асра — по Абу Ханифе: когда тень вдвое длиннее предмета (так и в расписании ДУМК). Имамы Абу Юсуф и Мухаммад считали по одной тени — так звучит азан в Хараме, Турции и ОАЭ. Какое время брать в вашем случае — уточните у знающего ханафитского учёного.';
+  var t=J.times(prDate(tz,prOff),pl.la,pl.lo,tz,src), nx=prOff===0&&J.next(new Date(),pl.la,pl.lo,tz,src), nm=prNowMin(tz);
+  var fri=new Date(prDate(tz,prOff).getTime()+tz*36e5).getUTCDay()===5;
+  $('#prDay').textContent=prDayTxt(tz,prOff);
+  $('#prPrev').disabled=prOff<=-7; $('#prNextD').disabled=prOff>=60;
+  var two=J.METHODS[src].asr===2, rows=J.ORDER.map(function(k){ var now=nx&&nx.key===k&&nx.min>=nm;
+    return '<tr'+(now?' class="now"':'')+'><td>'+((k==='dhuhr'&&fri)?'Джума (зухр)':PRN[k])+(k==='asr'?(two?' · 2 тени':' · 1 тень'):'')+'</td><td>'+J.hhmm(t[k])+'</td></tr>'; });
+  rows.splice(4,0,'<tr><td>Аср · '+(two?'1 тень':'2 тени, Абу Ханифа')+'</td><td>'+J.hhmm(two?t.asr1:t.asr2)+'</td></tr>');
+  $('#prTab').innerHTML=rows.join('');
+  var S=Object.keys(PRS), all={}; S.forEach(function(s){ all[s]=J.times(prDate(tz,prOff),pl.la,pl.lo,tz,s); });
+  $('#prCmp').innerHTML='<tr><th></th>'+S.map(function(s){ return '<th'+(s===src?' class="sel"':'')+'>'+esc(PRS[s].n).replace(/(\S+-\S+)/,'<span class="nw">$1</span>')+'</th>'; }).join('')+'</tr>'+
+    J.ORDER.map(function(k){ return '<tr><td>'+PRN[k]+'</td>'+S.map(function(s){ return '<td'+(s===src?' class="sel"':'')+'>'+J.hhmm(all[s][k])+'</td>'; }).join('')+'</tr>'; }).join('');
+  $('#prFoot').textContent=(prTzNote(pl)?prTzNote(pl)+' ':'')+'Расчёт астрономический и работает без интернета; с печатным календарём расходится не больше чем на 1–2 минуты. Если привыкли к Sajda или другому приложению — в его настройках указан метод расчёта; выберите здесь такой же.';
+}
+function prOpen(){ prOff=0; buzz(8); $('#prSheet').classList.add('on'); prSheet(); }
+function prGps(after){ locate(function(ok){
+  if(ok&&lostPos){ set('prGps',{la:lostPos.lat,lo:lostPos.lng,acc:lostPos.acc,tz:-new Date().getTimezoneOffset()/60,t:Date.now()}); set('prPlace','gps'); prDraw(); }
+  if(after) after(ok); }); }
+$('#prOpen').onclick=prOpen; $('#prWhere').onclick=prOpen;
+$('#prSheet').addEventListener('click',function(e){ if(e.target===this){ this.classList.remove('on'); return; }
+  var b=e.target.closest('[data-prp]');
+  if(b){ var v=b.getAttribute('data-prp'); buzz(8);
+    if(v==='gps'){ b.textContent='Определяю…'; prGps(function(ok){ if(!ok) $('#prGeo').textContent=$('#lostGeo').textContent; prSheet(); }); return; }
+    set('prPlace',v); prOff=0; prDraw(); prSheet(); return; }
+  b=e.target.closest('[data-prs]'); if(b){ buzz(8); set('prSrc',b.getAttribute('data-prs')); prDraw(); prSheet(); } });
+$('#prPrev').onclick=function(){ prOff=Math.max(-7,prOff-1); prSheet(); };
+$('#prNextD').onclick=function(){ prOff=Math.min(60,prOff+1); prSheet(); };
+$('#prClose').onclick=function(){ $('#prSheet').classList.remove('on'); };
+prDraw(); setInterval(function(){ if(!document.hidden) prDraw(); },30000);
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) prDraw(); });
+
+/* ---------- кибла: циферблат + компас телефона + карта OpenStreetMap ----------
+   Компас: iOS — webkitCompassHeading (разрешение по нажатию), Android — deviceorientationabsolute (360−alpha).
+   Оба дают магнитный север → + склонение места → истинный север. Карта не зависит от компаса: север сверху. */
+var qb={on:false,h:null,got:false,ok:false,z:16,c:null,raf:0,to:0,ev:''};
+var QBW=['север','северо-восток','восток','юго-восток','юг','юго-запад','запад','северо-запад'];
+function qbRose(q){ var s='<circle class="rim" r="118"/>';
+  for(var a=0;a<360;a+=10){ var b=a%30===0, r=b?100:108; s+='<line class="tk'+(b?' b':'')+'" x1="0" y1="-118" x2="0" y2="'+(-r)+'" transform="rotate('+a+')"/>'; }
+  ['С','В','Ю','З'].forEach(function(l,i){ var a=i*90*Math.PI/180; s+='<text'+(i?'':' class="n"')+' x="'+(84*Math.sin(a)).toFixed(1)+'" y="'+(-84*Math.cos(a)).toFixed(1)+'">'+l+'</text>'; });
+  s+='<g transform="rotate('+q.toFixed(1)+')"><line class="ql" x1="0" y1="-44" x2="0" y2="-92"/><rect class="kb" x="-10" y="-116" width="20" height="20" rx="2"/><rect class="kbb" x="-10" y="-111" width="20" height="4"/></g>';
+  $('#qbRose').innerHTML=s; }
+function qbHint(s){ $('#qbHint').textContent=s||''; }
+function qbDraw(){ qb.raf=0;
+  var J=JurtPrayer, pl=prPlace(), q=J.qibla(pl.la,pl.lo), d=J.km(pl.la,pl.lo), dial=$('#qbDial'), h=qb.on?qb.h:null;
+  $('#qbRose').setAttribute('transform',h==null?'':'rotate('+(-h).toFixed(1)+')');
+  $('.me',dial).style.display=h==null?'none':'';
+  if(d<1.5){ dial.classList.remove('ok'); $('#qbDeg').innerHTML='<b>🕋</b><span>рядом</span>';
+    $('#qbSay').textContent='Вы рядом с Каабой: в Хараме кибла — сама Кааба. В номере отеля обычно есть наклейка-указатель кибли.'; return; }
+  if(h==null){ dial.classList.remove('ok'); qb.ok=false;
+    $('#qbDeg').innerHTML='<b>'+Math.round(q)+'°</b><span>от севера</span>';
+    $('#qbSay').textContent='Кибла — на '+QBW[Math.round(q/45)%8]+' · '+Math.round(q)+'° по часовой от севера'; return; }
+  var df=((q-h)%360+540)%360-180, ok=Math.abs(df)<=3;
+  dial.classList.toggle('ok',ok); if(ok&&!qb.ok) buzz(40); qb.ok=ok;
+  $('#qbDeg').innerHTML=ok?'<b>✓</b><span>кибла</span>':'<b>'+Math.round(Math.abs(df))+'°</b><span>'+(df>0?'вправо':'влево')+'</span>';
+  $('#qbSay').textContent=ok?'Вы смотрите на киблу ✓':'Поверните '+(df>0?'вправо':'влево')+' на '+Math.round(Math.abs(df))+'°';
+}
+function qbAll(){ var J=JurtPrayer, pl=prPlace(), d=J.km(pl.la,pl.lo);
+  $('#qbWhere').textContent=pl.n+(pl.at?' · у отеля '+HOTELS[pl.at].name:'')+(pl.k==='gps'&&pl.acc?' · GPS ±'+Math.round(pl.acc)+' м':'')+(d>=1.5?' · до Каабы '+Math.round(d).toLocaleString('ru-RU')+' км':'');
+  qbRose(J.qibla(pl.la,pl.lo)); qbDraw(); qbMap(); }
+function qbEv(e){
+  var h=null;
+  if(typeof e.webkitCompassHeading==='number'&&!isNaN(e.webkitCompassHeading)){ h=e.webkitCompassHeading;
+    if(e.webkitCompassAccuracy<0||e.webkitCompassAccuracy>20) qbHint('Компас неточный. Покачайте телефон восьмёркой и отойдите от металла и колонок.'); }
+  else if(e.alpha!=null&&(e.absolute||qb.ev==='deviceorientationabsolute')) h=360-e.alpha;
+  if(h==null) return;
+  var pl=prPlace(), so=(screen.orientation&&screen.orientation.angle)||window.orientation||0;
+  h=((h+(pl.dec||0)+so)%360+360)%360;
+  if(!qb.got){ qb.got=true; qb.h=h; qbHint('Держите телефон ровно, экраном вверх, подальше от металла. Погрешность компаса — 5–10°: сверьте с картой ниже.'+(pl.dec==null?' Магнитное склонение здесь не учтено.':'')); }
+  else qb.h=(qb.h+(((h-qb.h)%360+540)%360-180)*.25+360)%360;
+  if(!qb.raf) qb.raf=requestAnimationFrame(qbDraw); }
+function qbStart(){
+  if(qb.on){ qbStop(); return; }
+  var D=window.DeviceOrientationEvent;
+  if(!D){ qbHint('Этот телефон не даёт компас браузеру. Пользуйтесь циферблатом и картой: север сверху.'); return; }
+  function go(){ qb.on=true; qb.got=false; qb.h=null;
+    qb.ev='ondeviceorientationabsolute' in window?'deviceorientationabsolute':'deviceorientation';
+    addEventListener(qb.ev,qbEv,true); $('#qbOn').textContent='Выключить компас'; qbHint('Включаю компас…');
+    clearTimeout(qb.to); qb.to=setTimeout(function(){ if(qb.on&&!qb.got) qbHint('Компас не отвечает. На компьютере его нет; на телефоне — покачайте его восьмёркой. Без компаса: циферблат и карта, север сверху.'); },3000); }
+  if(typeof D.requestPermission==='function') D.requestPermission().then(function(r){ if(r==='granted') go(); else qbHint('Доступ к компасу не разрешён. iPhone: закройте и снова откройте гид, нажмите «Включить компас» и выберите «Разрешить».'); }).catch(function(){ qbHint('Не удалось включить компас. Пользуйтесь картой: север сверху.'); });
+  else go(); }
+function qbStop(){ if(qb.ev) removeEventListener(qb.ev,qbEv,true); clearTimeout(qb.to);
+  qb.on=false; qb.h=null; qb.ok=false; $('#qbOn').textContent='Включить компас'; qbHint(''); qbDraw(); }
+/* карта: веб-Меркатор, плитки 256 px; линия — большой круг до Каабы, гуще у начала */
+var QT=256, QD=Math.PI/180;
+function qbMerc(la,lo,z){ var n=QT*Math.pow(2,z), s=Math.sin(la*QD); return {x:(lo+180)/360*n, y:(.5-Math.log((1+s)/(1-s))/(4*Math.PI))*n}; }
+function qbUnmerc(x,y,z){ var n=QT*Math.pow(2,z); return {lo:x/n*360-180, la:Math.atan(Math.sinh(Math.PI*(1-2*y/n)))/QD}; }
+function qbArc(la1,lo1,la2,lo2){ var v=function(la,lo){ return [Math.cos(la*QD)*Math.cos(lo*QD),Math.cos(la*QD)*Math.sin(lo*QD),Math.sin(la*QD)]; };
+  var A=v(la1,lo1), B=v(la2,lo2), d=Math.acos(Math.max(-1,Math.min(1,A[0]*B[0]+A[1]*B[1]+A[2]*B[2]))), out=[];
+  for(var i=0;i<=80;i++){ var f=Math.pow(i/80,2), a=d?Math.sin((1-f)*d)/Math.sin(d):1-f, b=d?Math.sin(f*d)/Math.sin(d):f;
+    var x=a*A[0]+b*B[0], y=a*A[1]+b*B[1], z=a*A[2]+b*B[2]; out.push([Math.atan2(z,Math.sqrt(x*x+y*y))/QD, Math.atan2(y,x)/QD]); }
+  return out; }
+/* отрезок в рамке (Лиан — Барски), чтобы SVG не получал координаты в миллионы пикселей */
+function qbClip(p,q,x0,y0,x1,y1){ var t0=0,t1=1,dx=q[0]-p[0],dy=q[1]-p[1],P=[-dx,dx,-dy,dy],Q=[p[0]-x0,x1-p[0],p[1]-y0,y1-p[1]];
+  for(var i=0;i<4;i++){ if(!P[i]){ if(Q[i]<0) return null; continue; } var r=Q[i]/P[i]; if(P[i]<0){ if(r>t1) return null; if(r>t0) t0=r; } else { if(r<t0) return null; if(r<t1) t1=r; } }
+  return [[p[0]+t0*dx,p[1]+t0*dy],[p[0]+t1*dx,p[1]+t1*dy]]; }
+function qbMap(){
+  var box=$('#qbMap'), mv=$('#qbMv'), W=box.clientWidth, H=box.clientHeight; if(!W||!H) return;
+  var J=JurtPrayer, pl=prPlace(), z=qb.z, c=qb.c||{la:pl.la,lo:pl.lo}, C=qbMerc(c.la,c.lo,z), x0=C.x-W/2, y0=C.y-H/2, n=Math.pow(2,z), h='';
+  for(var tx=Math.floor(x0/QT); tx<=Math.floor((x0+W)/QT); tx++) for(var ty=Math.floor(y0/QT); ty<=Math.floor((y0+H)/QT); ty++){
+    if(ty<0||ty>=n) continue;
+    h+='<img alt="" draggable="false" src="https://tile.openstreetmap.org/'+z+'/'+(((tx%n)+n)%n)+'/'+ty+'.png" style="left:'+(tx*QT-x0).toFixed(0)+'px;top:'+(ty*QT-y0).toFixed(0)+'px">'; }
+  var pt=function(la,lo){ var m=qbMerc(la,lo,z); return [m.x-x0,m.y-y0]; }, M=J.MAKKAH, d='', last=null, pts=qbArc(pl.la,pl.lo,M[0],M[1]).map(function(a){ return pt(a[0],a[1]); });
+  for(var i=1;i<pts.length;i++){ var s=qbClip(pts[i-1],pts[i],-60,-60,W+60,H+60); if(!s) { last=null; continue; }
+    if(!last||Math.abs(last[0]-s[0][0])>.5||Math.abs(last[1]-s[0][1])>.5) d+='M'+s[0][0].toFixed(1)+' '+s[0][1].toFixed(1);
+    d+='L'+s[1][0].toFixed(1)+' '+s[1][1].toFixed(1); last=s[1]; }
+  var me=pt(pl.la,pl.lo), kb=pt(M[0],M[1]), inV=function(p){ return p[0]>-20&&p[0]<W+20&&p[1]>-20&&p[1]<H+20; };
+  h+='<svg width="'+W+'" height="'+H+'" aria-hidden="true">'+(d?'<path class="gl0" d="'+d+'"/><path class="gl" d="'+d+'"/>':'')+
+    (inV(kb)?'<rect x="'+(kb[0]-8).toFixed(1)+'" y="'+(kb[1]-8).toFixed(1)+'" width="16" height="16" rx="2" fill="#1B1B1B" stroke="#fff" stroke-width="2"/><rect x="'+(kb[0]-8).toFixed(1)+'" y="'+(kb[1]-4).toFixed(1)+'" width="16" height="3" fill="#D4A537"/>':'')+
+    (inV(me)?'<circle cx="'+me[0].toFixed(1)+'" cy="'+me[1].toFixed(1)+'" r="8" fill="#005A5C" stroke="#fff" stroke-width="3"/>':'')+'</svg>';
+  mv.style.transform=''; mv.innerHTML=h;
+  box.classList.toggle('off',navigator.onLine===false); }
+$('#qbMv').addEventListener('error',function(e){ if(e.target.tagName==='IMG'){ e.target.style.visibility='hidden'; $('#qbMap').classList.add('off'); } },true);
+$('#qbMv').addEventListener('load',function(e){ if(e.target.tagName==='IMG'){ e.target.style.visibility=''; $('#qbMap').classList.remove('off'); } },true);
+(function(){ var box=$('#qbMap'), mv=$('#qbMv'), st=null;
+  box.addEventListener('pointerdown',function(e){ if(e.target.closest('button,a')) return; st={x:e.clientX,y:e.clientY,id:e.pointerId,dx:0,dy:0}; try{ box.setPointerCapture(e.pointerId); }catch(_){ } box.style.cursor='grabbing'; });
+  box.addEventListener('pointermove',function(e){ if(!st||e.pointerId!==st.id) return; st.dx=e.clientX-st.x; st.dy=e.clientY-st.y; mv.style.transform='translate('+st.dx+'px,'+st.dy+'px)'; });
+  function end(e){ if(!st||e.pointerId!==st.id) return; var s=st; st=null; box.style.cursor='';
+    if(Math.abs(s.dx)+Math.abs(s.dy)<3){ mv.style.transform=''; return; }
+    var pl=prPlace(), c=qb.c||{la:pl.la,lo:pl.lo}, C=qbMerc(c.la,c.lo,qb.z); qb.c=qbUnmerc(C.x-s.dx,C.y-s.dy,qb.z); qbMap(); }
+  box.addEventListener('pointerup',end); box.addEventListener('pointercancel',end); })();
+$('#qbZin').onclick=function(){ qb.z=Math.min(18,qb.z+1); buzz(6); qbMap(); };
+$('#qbZout').onclick=function(){ qb.z=Math.max(3,qb.z-1); buzz(6); qbMap(); };
+$('#qbHome').onclick=function(){ qb.c=null; qb.z=16; buzz(6); qbMap(); };
+$('#qbOn').onclick=function(){ buzz(8); qbStart(); };
+$('#qbGps').onclick=function(){ var b=this; buzz(8); b.textContent='Определяю…';
+  prGps(function(ok){ b.textContent='Моё место · GPS'; if(!ok) qbHint($('#lostGeo').textContent); qb.c=null; qbAll(); }); };
+function qbClose(){ $('#qbSheet').classList.remove('on'); qbStop(); }
+$('#qbOpen').onclick=function(){ buzz(8); qb.c=null; qb.z=16; $('#qbSheet').classList.add('on'); qbHint(''); qbAll(); requestAnimationFrame(qbMap); };
+$('#qbClose').onclick=qbClose;
+$('#qbSheet').addEventListener('click',function(e){ if(e.target===this) qbClose(); });
+addEventListener('resize',function(){ if($('#qbSheet').classList.contains('on')) qbMap(); });
+addEventListener('online',function(){ if($('#qbSheet').classList.contains('on')) qbMap(); });
+document.addEventListener('keydown',function(e){ if(e.key!=='Escape') return;
+  if($('#qbSheet').classList.contains('on')) qbClose(); else if($('#prSheet').classList.contains('on')) $('#prSheet').classList.remove('on'); });
 /* высота шапки → отступ прокрутки к якорям */
 var hdr=$('header.app'); function setHdr(){ root.style.setProperty('--hdr',hdr.offsetHeight+'px'); }
 setHdr(); if('ResizeObserver' in window) new ResizeObserver(setHdr).observe(hdr); else addEventListener('resize',setHdr);
