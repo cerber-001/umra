@@ -69,7 +69,8 @@
     }
     return null;
   }
-  const hhmm = (m) => String(Math.floor(fix(m, 1440) / 60)).padStart(2, "0") + ":" + String(Math.round(fix(m, 60))).padStart(2, "0");
+  const hhmm = (m) => { const r = fix(Math.round(m), 1440);   // сначала целая минута, иначе 10:59,6 → «10:60»
+    return String(Math.floor(r / 60)).padStart(2, "0") + ":" + String(r % 60).padStart(2, "0"); };
 
   window.JurtPrayer = { times, next, hhmm, ORDER, MAKKAH: [21.42251716, 39.82619418], MADINAH: [24.46726, 39.61113] };
 })();

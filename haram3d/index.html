@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noai, noimageai">
+<meta name="copyright" content="© 2026 JURT Group. Все права защищены">
 <title>Харам 3D — JURT</title>
 <link rel="preload" href="../exo2-semibold.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -455,7 +457,9 @@ new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath("./vendor/draco
 
 // Зелёная лампа — ореол
 const gl = meta.spots.green_lamp;
-const lampGlow = glowSprite(0x4dff8a, 9); lampGlow.position.copy(toV3(gl[0], gl[1], gl[2])); scene.add(lampGlow);
+const glOut = new THREE.Vector2(-gl[0], -gl[1]).normalize();   // от стены — к Каабе
+const glAt = (d, z = gl[2]) => toV3(gl[0] + glOut.x * d, gl[1] + glOut.y * d, z);
+const lampGlow = glowSprite(0x4dff8a, 11); lampGlow.position.copy(glAt(1.3)); lampGlow.renderOrder = 6; scene.add(lampGlow);
 
 // ---------- Таваф: фигурки в ихраме (инстансы) идут против часовой по дорожкам из Blender ----------
 const lanes = meta.lanes.map((l) => {
@@ -607,16 +611,7 @@ function placeWalkers(t) {
   for (const m of [cloths, skins, hairs, beards, wCloths, wHijabs, wFaces, arms, fores]) m.instanceMatrix.needsUpdate = true;
 }
 
-// ---------- Эффекты: медные кометы по кругу + мерцающие искры ----------
-const comets = [0, Math.floor(lanes.length / 2), lanes.length - 2].map((li, k) => {
-  const g = new THREE.Group(), parts = [];
-  for (let j = 0; j < 26; j++) {
-    const s = glowSprite(0xffb76b, 2.6 * (1 - j / 30) * (1 + lanes[li].d / 50), 1 - j / 28);
-    g.add(s); parts.push(s);
-  }
-  scene.add(g);
-  return { lane: lanes[li], parts, phase: k / 3 };
-});
+// ---------- Эффекты: мерцающие искры (вращающиеся «кометы» убраны в v3.3 — в Хараме их нет) ----------
 const SPARKS = 160, sparkPos = new Float32Array(SPARKS * 3), sparkCol = new Float32Array(SPARKS * 3), sparkPh = [];
 const outerD = lanes[lanes.length - 1].d;
 for (let i = 0; i < SPARKS; i++) {
@@ -969,10 +964,12 @@ function syncSai() {   // путь саи и зелёные огни — на ш
   setCut(on || fx === "halq"); saiPath.visible = on || fx === "halq"; green.visible = on;
 }
 // Зелёная лампа — светящаяся панель на стене матафа, обращена к Каабе (по линии Чёрного камня)
-{ const p = toV3(gl[0], gl[1], gl[2]), r = kaabaDir(gl[0], gl[1]);
-  const lamp = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 0.25), new THREE.MeshStandardMaterial({ color: 0x4dff8a, emissive: 0x4dff8a, emissiveIntensity: 2.2 }));
-  const back = new THREE.Mesh(new THREE.BoxGeometry(1.75, 1.0, 0.18), new THREE.MeshStandardMaterial({ color: 0x2b2b2b, roughness: 0.6 }));
-  back.position.z = 0.12; lamp.add(back); lamp.position.copy(p); lamp.rotation.y = r; scene.add(lamp); }
+//   v3.3: панель выдвинута из-под карниза колоннады (раньше тонула в стене и была закрыта крышей сверху), крупнее и с кронштейном
+{ const p = glAt(0.7), r = kaabaDir(gl[0], gl[1]);
+  const lamp = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 0.3), new THREE.MeshStandardMaterial({ color: 0x4dff8a, emissive: 0x4dff8a, emissiveIntensity: 2.6 }));
+  const back = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.4, 0.2), new THREE.MeshStandardMaterial({ color: 0x2b2b2b, roughness: 0.6 }));
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 1.0), back.material);
+  back.position.z = 0.2; arm.position.z = 0.75; lamp.add(back, arm); lamp.position.copy(p); lamp.rotation.y = r; scene.add(lamp); }
 // Мизаб: вода стекает из золотого жёлоба на крыше в сторону Хиджра (показываем, когда открыта метка 6)
 // струя начинается с кончика жёлоба (замер по haram.glb) и падает по параболе в Хиджр
 const mz = [-5.06, 6.09, 13.0], MZ_N = 140, mzPos = new Float32Array(MZ_N * 3), mzPh = Array.from({ length: MZ_N }, () => rnd());
@@ -1003,6 +1000,7 @@ const xParts = () => ({
   kneel: new THREE.BoxGeometry(0.52, 0.4, 0.78).translate(0, 0.2, 0.12),   // ноги подогнуты под себя
   cloth: [cyl(0.255, 0.275, 0.98, 1.27), new THREE.BoxGeometry(0.62, 0.15, 0.5).rotateZ(-0.62).translate(-0.04, 1.3, 0),
     new THREE.BoxGeometry(0.24, 0.2, 0.46).translate(-0.17, 1.42, 0), cyl(0.085, 0.095, 0.86, 1.42, -0.33, 7)],
+  cover: new THREE.BoxGeometry(0.27, 0.21, 0.49).translate(0.16, 1.42, 0),   // правое плечо под ридой (вне тавафа)
   skin: [cyl(0.2, 0.24, 1.2, 1.47), cyl(0.055, 0.06, 1.46, 1.58, 0, 7), new THREE.SphereGeometry(0.115, 10, 7).translate(0, 1.68, 0),
     new THREE.SphereGeometry(0.05, 6, 4).translate(-0.33, 0.82, 0)],
   // женщина в той же позе: абая, химар (одним цветом), открыты лицо и левая кисть
@@ -1015,11 +1013,13 @@ const xIM = (geo, mat) => { const m = new THREE.InstancedMesh(geo, mat, X_MAX); 
 const xMeshes = XPOSE.map(([bend, drop, kn]) => {
   const P = xParts(), up = new THREE.Matrix4().makeTranslation(0, 1 + drop, 0).multiply(new THREE.Matrix4().makeRotationX(bend)).multiply(new THREE.Matrix4().makeTranslation(0, -1, 0));
   const U = (g) => g.applyMatrix4(up);
-  const cloth = xIM(mergeGeometries([kn ? P.kneel : P.legs, ...P.cloth.map(U)]), clothMat), skin = xIM(mergeGeometries(P.skin.map(U)), skinMat);
+  const cl = P.cloth.map((g) => g.clone());   // копия до поворота: U меняет геометрию на месте
+  const cloth = xIM(mergeGeometries([kn ? P.kneel : P.legs, ...P.cloth.map(U)]), clothMat);
+  const ccloth = xIM(mergeGeometries([kn ? P.kneel : P.legs, ...cl.map(U), U(P.cover)]), clothMat), skin = xIM(mergeGeometries(P.skin.map(U)), skinMat);
   const wcloth = xIM(mergeGeometries([kn ? P.wkneel : P.wlegs, ...P.wcloth.map(U)]), clothMat), wface = xIM(mergeGeometries(P.wface.map(U)), skinMat);
-  cloth.castShadow = skin.castShadow = wcloth.castShadow = true;
+  cloth.castShadow = ccloth.castShadow = skin.castShadow = wcloth.castShadow = true;
   // frustumCulled выключен: люди раскиданы от Каабы до Марвы — общая рамка считается один раз и прятала саи
-  return { cloth, skin, wcloth, wface, up, hair: new THREE.Matrix4().makeTranslation(0, 1.68, 0).premultiply(up) };
+  return { cloth, ccloth, skin, wcloth, wface, up, hair: new THREE.Matrix4().makeTranslation(0, 1.68, 0).premultiply(up) };
 });
 // руки (два звена), волосы и бороды — для всех поз, по матрице позы
 const xArms = xIM(armGeo, skinMat), xFores = xIM(foreGeo, skinMat), xHairs = xIM(hairGeo, skinMat), xBeards = xIM(beardGeo, skinMat);
@@ -1104,13 +1104,13 @@ for (let n = 0; n < QN; n++) xPerson((t) => {
     xq.x += Math.sin(t * 2.3 + n * 1.9) * 0.1; xq.y += Math.cos(t * 1.9 + n * 1.3) * 0.08;
     if (sl < 3) xq.arm = 0.45 + 0.15 * Math.sin(t * 3 + n);
   }
-}, { woman: false });
+}, { woman: false, idt: true });   // у камня — на тавафе: правое плечо открыто
 // у самого камня — несколько человек напирают сбоку, тянутся руками, покачиваются вместе с толпой
 for (let k = 0; k < 5; k++) xPerson((t, p) => {
   const a = -0.5 + k * 0.45 + Math.sin(t * 1.3 + p.ph * 6) * 0.12, r = 1.35 + Math.sin(t * 1.7 + p.ph * 5) * 0.2;
   const ca = Math.cos(a), sa = Math.sin(a), ox = ST_O.x * ca - ST_O.y * sa, oy = ST_O.x * sa + ST_O.y * ca;
   xq.x = KE.x + ox * r; xq.y = KE.y + oy * r; xq.r = faceTo(-ox, -oy); xq.arm = 0.5 + 0.2 * Math.sin(t * 2.5 + p.ph * 7);
-}, { woman: false });
+}, { woman: false, idt: true });
 // 5. У каждого кулера Замзама — двое пьют лицом к Каабе
 zamzam.children.filter((g) => g.userData.c).forEach((g) => {
   const cx = g.position.x, cy = -g.position.z, l = Math.hypot(cx, cy), tx = -cy / l, ty = cx / l, ix = -cx / l, iy = -cy / l;
@@ -1270,8 +1270,10 @@ $("clock").addEventListener("click", () => {   // перемотка: к бли�
   if (CL.phase === 0) { const nx = JP.next(new Date(CL.ms), JP.MAKKAH[0], JP.MAKKAH[1]); if (nx) CL.ms += Math.max(0, nx.left - 9) * 60000; }
   else CL.ms += 30 * 60000;
 });
-// --- ряды намаза на матафе: мужчины по дорожкам тавафа, женщины — в двух секторах за барьерами (от 22 м от Каабы)
-const WSEC = [[95, 17], [200, 17]].map(([a, h]) => [a * Math.PI / 180, h * Math.PI / 180]);   // [центр, полуширина] в радианах
+// --- ряды намаза на матафе: мужчины по дорожкам тавафа, женщины — в двух секторах за барьерами, на задних рядах
+// (за мужскими рядами, от ~34 м от Каабы до края матафа); барьер спереди — по дорожке WL
+const WL = 16;
+const WSEC = [[95, 18], [200, 18]].map(([a, h]) => [a * Math.PI / 180, h * Math.PI / 180]);   // [центр, полуширина] в радианах
 const angDiff = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
 const rimAt = (ang) => { let b = rimOut[0], bd = 9; for (const q of rimOut) { const d = angDiff(Math.atan2(q[1], q[0]), ang); if (d < bd) { bd = d; b = q; } } return b; };
 const nearestAng = (lane, e) => { let b = lane.p[0], bd = 9; for (const q of lane.p) { const d = angDiff(Math.atan2(q.y, q.x), e); if (d < bd) { bd = d; b = q; } } return b; };
@@ -1282,8 +1284,8 @@ for (let li = 1; li < lanes.length; li++) {
     const q = along(ln, s, tmpV), x = q.x + (rnd() - 0.5) * 0.3, y = q.y + (rnd() - 0.5) * 0.3, ang = Math.atan2(y, x);
     const dx = x - mq.x, dy = y - mq.y, u = dx * mqOut.x + dy * mqOut.y, v = -dx * mqOut.y + dy * mqOut.x;
     if (u > 3.4 && u < 8.8 && Math.abs(v) < 4.6) continue;   // за Макамом уже молятся (сцена 1)
-    const sec = li >= 10 ? WSEC.find(([a, h]) => angDiff(ang, a) < h + 1.2 / ln.d) : null;
-    if (sec) { if (li >= 11 && angDiff(ang, sec[0]) < sec[1] - 1.3 / ln.d && rnd() < 0.55) WSLOTS.push([x, y]); }
+    const sec = li >= WL ? WSEC.find(([a, h]) => angDiff(ang, a) < h + 1.2 / ln.d) : null;
+    if (sec) { if (li > WL && angDiff(ang, sec[0]) < sec[1] - 1.3 / ln.d && rnd() < 0.55) WSLOTS.push([x, y]); }
     else if (rnd() < Math.max(0.12, 0.34 - 0.005 * ln.d)) MSLOTS.push([x, y]);
   }
 }
@@ -1344,19 +1346,33 @@ function mover(dx, dy) {
 for (let k = 0; k < 20 && WROWS.length; k++) { const [x, y] = WROWS.pop(); mover(x, y); }
 for (const [x, y] of MROWS) rowPerson(x, y, false);
 for (const [x, y] of WROWS) rowPerson(x, y, true);
-// временные барьеры: белые пластиковые секции по лучам сектора (дорожки 10–24) и по передней кромке (дорожка 10) с проходом 2 м
+// временные барьеры: белые пластиковые секции 1,4 м встык — сплошной цепью по обоим лучам сектора (от дорожки WL до края
+// матафа) и по передней дуге (дорожка WL) с проходом 2 м посередине, где стоит полицейский
 const barGeo = mergeGeometries([new THREE.BoxGeometry(1.4, 1.0, 0.06).translate(0, 0.55, 0), new THREE.BoxGeometry(0.5, 0.08, 0.4).translate(0, 0.04, 0)]);
 const barriers = new THREE.InstancedMesh(barGeo, new THREE.MeshStandardMaterial({ color: 0xf2f2f0, roughness: 0.7 }), 300);
 barriers.frustumCulled = false; barriers.castShadow = true; scene.add(barriers);
 let nBars = 0;
+const BAR = 1.45;   // шаг: секция 1,4 м + стык
+const putBar = (x, y, dx, dy) => { if (nBars < 300) barriers.setMatrixAt(nBars++, mtx.makeRotationY(Math.atan2(dy, dx)).setPosition(x, 0, -y)); };
 for (const [a, h] of WSEC) {
-  for (const e of [a - h, a + h]) for (let li = 10; li < lanes.length && nBars < 300; li++) {
-    const q = nearestAng(lanes[li], e); barriers.setMatrixAt(nBars++, mtx.makeRotationY(e).setPosition(q.x, 0, -q.y));
+  for (const e of [a - h, a + h]) {   // луч: ломаная через точки дорожек на этом угле, плюс 1,5 м за последней — к краю
+    const P = []; for (let li = WL; li < lanes.length; li++) { const q = nearestAng(lanes[li], e); P.push(new THREE.Vector2(q.x, q.y)); }
+    const n2 = P.length; P.push(P[n2 - 1].clone().addScaledVector(P[n2 - 1].clone().sub(P[n2 - 2]).normalize(), 1.5));
+    for (let i = 1, rest = BAR / 2; i < P.length; i++) {
+      const A = P[i - 1], B = P[i], L = A.distanceTo(B), dx = B.x - A.x, dy = B.y - A.y;
+      for (; rest <= L; rest += BAR) putBar(A.x + dx * rest / L, A.y + dy * rest / L, dx, dy);
+      rest -= L;
+    }
   }
-  const ln = lanes[10];
-  for (let s = 0; s < ln.L && nBars < 300; s += 1.5) {
-    const q = along(ln, s, tmpV), ang = Math.atan2(q.y, q.x), d = angDiff(ang, a);
-    if (d < h && d * ln.d > 1.1) barriers.setMatrixAt(nBars++, mtx.makeRotationY(ang + Math.PI / 2).setPosition(q.x, 0, -q.y));
+  const ln = lanes[WL], inArc = (s) => { const q = along(ln, s, tmpV), r = Math.hypot(q.x, q.y), d = angDiff(Math.atan2(q.y, q.x), a); return d < h && d * r > 1.0; };
+  for (let s = 0, run = -1; s < ln.L + 0.1; s += 0.1) {   // передняя дуга: два куска (слева и справа от прохода), каждый — от своего края
+    const on = s < ln.L && inArc(s);
+    if (on && run < 0) run = s;
+    if (!on && run >= 0) {
+      const n3 = Math.max(1, Math.round((s - run) / BAR)), st = (s - run) / n3;
+      for (let k = 0; k < n3; k++) { const q = along(ln, run + st * (k + 0.5), tmpV); putBar(q.x, q.y, q.tx, q.ty); }
+      run = -1;
+    }
   }
 }
 barriers.instanceMatrix.needsUpdate = true; barriers.count = 0;
@@ -1404,7 +1420,7 @@ for (const off of [0, 0.9]) {   // патруль: двое идут по дор
   signed(police((t, p) => { xq.x = g.x; xq.y = g.y; xq.h = saiY - 1.2; xq.r = scan(r, t); showSign(p, t); }), ["Проходите, не стойте"], 15, 5);
 }
 for (const [a, h] of WSEC) {   // у прохода в женский сектор — только когда идёт сбор на намаз
-  const q = nearestAng(lanes[9], a), r = faceTo(Math.cos(a), Math.sin(a));
+  const q = nearestAng(lanes[WL - 1], a), r = faceTo(Math.cos(a), Math.sin(a));
   signed(police((t, p) => { if (!CL.phase) { xq.hide = true; return; } xq.x = q.x; xq.y = q.y; xq.r = scan(r, t, a); showSign(p, t, CL.phase < 3); }),
     ["Сёстры — в свой сектор", "Проходите, не стойте"], 12, a);
 }
@@ -1529,7 +1545,7 @@ const xCol = new THREE.Color();
 const ARM_POSE = [1, 0, 0, 1, 1, 1];   // руки показываем стоя, сидя (на коленях), у камня и на бегу; в руку и суджуде — нет
 const flush = (m, cnt) => { m.count = cnt; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; };
 function placeExtras(t) {
-  const n = [0, 0, 0, 0, 0, 0], nw = [0, 0, 0, 0, 0, 0], nt = [0, 0, 0, 0]; let na = 0, nc = 0, nh = 0, nb = 0;
+  const n = [0, 0, 0, 0, 0, 0], nw = [0, 0, 0, 0, 0, 0], ni = [0, 0, 0, 0, 0, 0], nv = [0, 0, 0, 0, 0, 0], nt = [0, 0, 0, 0]; let na = 0, nc = 0, nh = 0, nb = 0;
   const salah = CL.phase === 3;
   for (const p of XP) {
     xq.pose = 0; xq.arm = 0; xq.h = 0; xq.hide = false; xq.chair = false; xq.guide = false; xq.sw = 0; xq.bend = 0; xq.tool = 0; xq.toolSw = 0;
@@ -1543,7 +1559,9 @@ function placeExtras(t) {
     mtx.makeRotationY(xq.r).setPosition(xq.x, xq.h, -xq.y);
     if (p.woman) { const i = nw[xq.pose]++; M.wcloth.setMatrixAt(i, mtx); M.wface.setMatrixAt(i, mtx); M.wcloth.setColorAt(i, p.c); M.wface.setColorAt(i, p.s); }
     else {
-      const i = n[xq.pose]++; M.cloth.setMatrixAt(i, mtx); M.skin.setMatrixAt(i, mtx); M.cloth.setColorAt(i, p.c); M.skin.setColorAt(i, p.s);
+      // идтиба (правое плечо открыто) — только на тавафе и пока не начался намаз; остальные: рида на оба плеча, тоба, форма
+      const i = n[xq.pose]++, C = p.idt && !salah ? M.cloth : M.ccloth, j = C === M.cloth ? ni[xq.pose]++ : nv[xq.pose]++;
+      C.setMatrixAt(j, mtx); C.setColorAt(j, p.c); M.skin.setMatrixAt(i, mtx); M.skin.setColorAt(i, p.s);
       if (p.hs && nh < X_MAX) { xHairs.setMatrixAt(nh, xHair.makeScale(1, p.hs, 1).premultiply(M.hair).premultiply(mtx)); xHairs.setColorAt(nh++, p.hc); }
       if (p.bc && nb < X_MAX) { xBeards.setMatrixAt(nb, xUp.copy(M.up).premultiply(mtx)); xBeards.setColorAt(nb++, p.bc); }
     }
@@ -1555,12 +1573,13 @@ function placeExtras(t) {
     if (ARM_POSE[xq.pose] && na < X_MAX) {
       xUp.copy(M.up).premultiply(mtx);
       xArms.setMatrixAt(na, armMatrix(xUp, xq.arm, armM, 0, xq.sw)); xFores.setMatrixAt(na, foreMatrix(armM, xq.arm, foreM, xq.bend));
-      xArms.setColorAt(na, p.woman ? p.c : p.s); xFores.setColorAt(na++, p.woman ? p.c : p.s);
+      const ac = p.woman || p.street ? p.c : p.s;   // у абаи, тобы и формы — рукава
+      xArms.setColorAt(na, ac); xFores.setColorAt(na++, ac);
     }
     if (xq.chair) { mtx.makeRotationY(xq.r).setPosition(xq.x, 0, -xq.y); chairs.setMatrixAt(nc++, mtx); }
     if (xq.guide) { flag.position.set(xq.x, 0, -xq.y); flag.rotation.y = xq.r; flag.children[1].rotation.y = Math.sin(t * 4) * 0.35; }
   }
-  xMeshes.forEach((M, k) => { flush(M.cloth, n[k]); flush(M.skin, n[k]); flush(M.wcloth, nw[k]); flush(M.wface, nw[k]); });
+  xMeshes.forEach((M, k) => { flush(M.cloth, ni[k]); flush(M.ccloth, nv[k]); flush(M.skin, n[k]); flush(M.wcloth, nw[k]); flush(M.wface, nw[k]); });
   flush(xArms, na); flush(xFores, na); flush(xHairs, nh); flush(xBeards, nb);
   for (let k = 1; k <= 3; k++) for (const m of TOOLS[k]) flush(m, nt[k]);
   chairs.count = nc; chairs.instanceMatrix.needsUpdate = true;
@@ -1942,6 +1961,9 @@ scene.add(kaabaDecor);
     g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(toV3(p.x, p.y, 1.2), toV3(q.x, q.y, 1.2)), 1, 0.25, 6), m));
   }
   const c = a.clone().lerp(b, 0.5), t = label(`≈ ${Math.round(a.distanceTo(b) / 5) * 5} м`, "#1f8a4c", "#fff"); t.position.copy(toV3(c.x, c.y, 6)); g.add(t);
+  const beacon = glowSprite(0x4dff8a, 0.07); beacon.material.sizeAttenuation = false; beacon.material.depthTest = false;   // маяк постоянного размера на экране
+  const core = glowSprite(0xeaffef, 0.025); core.material.sizeAttenuation = false; core.material.depthTest = false;
+  beacon.position.copy(glAt(1.3)); core.position.copy(glAt(1.3)); beacon.renderOrder = core.renderOrder = 12; g.add(beacon, core);
   spotFx.green_lamp = g;
 }
 Object.values(spotFx).forEach((g) => { g.visible = false; g.renderOrder = 11; scene.add(g); });
@@ -1984,8 +2006,10 @@ const NE_OUT = new THREE.Vector3(0.831, 0.42, -0.556);   // перед стен�
 const SPOT_CAM = {
   green_lamp: (s) => {   // от камня — вдоль линии к лампе — отъезд, чтобы видеть оба и подпись «≈ 65 м»
     const a = toV3(...meta.start[0], 2), back = new THREE.Vector3(-0.935, 0.5, -0.355), mid = toV3(36.5, -13.5, 3);
-    flyTo(a, 14, back, 1300, 500);
-    flyQ = [[s.pos, 24, back, 3200, 400], [mid, 105, new THREE.Vector3(0.355, 1.1, -0.935), 1800]];
+    // первый кадр — сбоку от камня, с северо-востока (снаружи Каабы): «из-за камня» камера попадала внутрь Каабы
+    flyTo(a, 16, new THREE.Vector3(-0.18, 0.55, -0.93), 1300, 500);
+    const narrow = camera.aspect < 1;   // телефон стоя: смотрим из-за камня вдоль линии — камень внизу кадра, лампа вверху
+    flyQ = [[s.pos, 24, back, 3200, 400], narrow ? [mid, 95, new THREE.Vector3(-0.52, 1.0, -0.2), 1800] : [mid, 105, new THREE.Vector3(0.355, 1.1, -0.935), 1800]];
   },
   multazam: (s) => flyTo(s.pos, 12, NE_OUT),
   door: () => flyTo(toV3(...onWall(0.264).toArray(), 3.9), 15, NE_OUT),
@@ -2194,10 +2218,6 @@ renderer.setAnimationLoop((now) => {
   updateClock(dt);   // часы Мекки: намаз останавливает таваф и толпу (crowdT стоит), птицы и часы живут по simT
   placeWalkers(crowdT); placeExtras(crowdT);
   updateDusk(dt); updateBirds(simT); updateClockChip();
-  for (const c of comets) {
-    const base = (c.phase + simT / 9) * c.lane.L;
-    c.parts.forEach((s, j) => { const p = along(c.lane, base - j * 0.9, tmpV); s.position.set(p.x, 0.9, -p.y); });
-  }
   for (let i = 0; i < SPARKS; i++) {
     const v = Math.max(0, Math.sin(simT * 1.6 + sparkPh[i])) ** 3;
     sparkCol.set([v, v * 0.93, v * 0.82], i * 3);
