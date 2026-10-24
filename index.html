@@ -821,7 +821,7 @@ html[data-fs="1"] .dseg button, html[data-fs="2"] .dseg button{ font-size:.8rem;
   <div class="kicker">Как показывать шаги</div>
   <div class="btns"><button class="btn ghost" data-brief-set="0">Подробно<small>первая умра</small></button><button class="btn ghost" data-brief-set="1">Кратко<small>я уже был(а)</small></button></div>
  </div>
- <a class="mygo h3d" href="haram3d/"><svg><use href="#i-tawaf"/></svg><span><b data-i18n="h3d.t">Харам в 3D</b><small>Только посмотреть, где что находится. Что делать — в шагах ниже.</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+ <a class="mygo h3d" href="haram3d/?from=medina"><svg><use href="#i-tawaf"/></svg><span><b data-i18n="h3d.t">Харам в 3D</b><small>Только посмотреть, где что находится. Что делать — в шагах ниже.</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
  <section class="acc info blue">
   <div class="acc-h"><div class="num">?</div><div class="st"><div class="kicker">Бисмилляхи-р-рахмани-р-рахим</div><b>Как пользоваться гидом</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
@@ -1651,7 +1651,7 @@ applyBrief(get('brief',0));
 $$('[data-brief-set]').forEach(function(b){ b.onclick=function(){ buzz(8); applyBrief(b.getAttribute('data-brief-set')==='1'); }; });
 $('#progGo').onclick=function(){ var nx=render().next || steps[steps.length-1]; openAcc(nx,true); setTimeout(function(){ nx.scrollIntoView({behavior:'smooth',block:'start'}); },60); };
 ['enter','tawaf','maqam','zamzam','sai','halq'].forEach(function(id){ var s=$('.acc.step[data-id="'+id+'"]'); if(!s) return;
-  var a=document.createElement('a'); a.className='map3d'; a.href='haram3d/'; a.innerHTML='<svg><use href="#i-tawaf"/></svg>Где это — посмотреть на карте 3D';
+  var a=document.createElement('a'); a.className='map3d'; a.href='haram3d/?from=medina'; a.innerHTML='<svg><use href="#i-tawaf"/></svg>Где это — посмотреть на карте 3D';
   var d=$('.donebtn',s); d.parentNode.insertBefore(a,d); });
 $('#resetBtn').onclick=function(){ ask('Сбросить все отметки шагов и счётчики?',function(){ set('done',{}); $$('.counter').forEach(function(c){ set('cnt-'+c.getAttribute('data-id'),0); paint(c); }); render(); }); };
 
