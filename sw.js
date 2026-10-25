@@ -1,8 +1,8 @@
 /* Гид паломника JURT — офлайн-кэш. Версия меняется автоматически при каждой сборке. */
-var CACHE = 'jurt-umra-2870f2ed6b';
+var CACHE = 'jurt-umra-0533ccf92e';
 var ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'amiri-400.woff2',
   'exo2-regular.woff2', 'exo2-semibold.woff2', 'exo2-bold.woff2', 'logo-white.svg', 'umra.ics',
-  'icon-mark.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png',
+  'icon-mark.png', 'favicon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png',
   'haram3d/', 'haram3d/bg.webp', 'haram3d/haram.glb', 'haram3d/haram_city.glb', 'haram3d/haram_meta.json', 'haram3d/index.html', 'haram3d/poster.webp', 'haram3d/vendor/draco/draco_decoder.wasm', 'haram3d/vendor/draco/draco_wasm_wrapper.js', 'haram3d/vendor/three/addons/controls/OrbitControls.js', 'haram3d/vendor/three/addons/environments/RoomEnvironment.js', 'haram3d/vendor/three/addons/loaders/DRACOLoader.js', 'haram3d/vendor/three/addons/loaders/GLTFLoader.js', 'haram3d/vendor/three/addons/utils/BufferGeometryUtils.js', 'haram3d/vendor/three/three.module.min.js', 'haram3d/walk_route.json', 'haram3d/layers.json', 'haram3d/streets.json',  // 3D-сцена Харама — тоже офлайн
   'prayer.js'];  // время намаза (Умм аль-Кура) — общий файл для 3D
 

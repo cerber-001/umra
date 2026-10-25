@@ -6,6 +6,9 @@
 <meta name="robots" content="noai, noimageai">
 <meta name="copyright" content="© 2026 JURT Group. Все права защищены">
 <title>Харам 3D — JURT</title>
+<meta name="theme-color" content="#00292C">
+<link rel="icon" href="../favicon.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="preload" href="../exo2-semibold.woff2" as="font" type="font/woff2" crossorigin>
 <style>
   /* Exo 2 локально (те же файлы, что в «Гиде паломника»), лицензия OFL */
@@ -185,7 +188,7 @@
     <div class="lg"><span class="k dot">3</span>шаги умры — нажмите, откроется карточка</div>
     <div class="lg"><span class="k" style="background:#F07A1E;color:#fff">№ 79 · короля Фахда</span>главные ворота</div>
     <div class="lg"><span class="k" style="background:#005A5C;color:#F4EDE1">№ 12</span>остальные ворота</div>
-    <div class="lg"><span class="k" style="background:#1559B7;color:#fff">WC м</span>туалеты: м — мужские, ж — женские</div>
+    <div class="lg"><span class="k" style="background:#1559B7;color:#fff">WC м</span><span class="k" style="background:#B0306A;color:#fff">WC ж</span><span class="k" style="background:#5C6B6D;color:#fff">WC</span>туалеты: мужские, женские, не указано</div>
     <div class="lg"><span class="k" style="background:#111;color:#FFD23F">⇅</span><span class="k" style="background:#111;color:#FFD23F">лифт</span>эскалаторы и лифты</div>
     <div class="lg"><span class="k" style="background:#F4EDE1;color:#00292C">дом Абу Джахля</span>исторические места</div>
   </div>
@@ -1053,7 +1056,14 @@ const prayPose = (tau) => {   // поза в цикле: 2 ракаата и 3 �
   while (i < PRAYER.length - 1 && t > PRAYER[i][1]) t -= PRAYER[i++][1];
   return { r: 1, s: 2, j: 3, d: 3 }[PRAYER[i][0]] || 0;
 };
-const praying = (x, y) => (t, p) => { xq.x = x; xq.y = y; xq.r = kaabaDir(x, y); xq.pose = prayPose(t * p.sp + p.ph * PRAYER_T); };
+// свой (нафль, 2 ракаата тавафа) — каждый в своём темпе; но когда Харам собирается на общий намаз (CL.phase 1–4),
+// личный намаз заканчивают: ждут икаму сидя, на икаму встают, в джамаате — общий ритм (placeExtras), после — сидят, дуа
+const praying = (x, y) => (t, p) => {
+  xq.x = x; xq.y = y; xq.r = kaabaDir(x, y);
+  const ph = CL.phase;
+  if (ph === 1 || ph === 4 || (ph === 2 && CL.phT < 20 + p.ph * 10)) { xq.pose = 3; xq.bend = 1.5; return; }
+  xq.pose = ph === 2 ? 0 : prayPose(t * p.sp + p.ph * PRAYER_T);
+};
 // Путь по точкам: позиция и направление на расстоянии s (с зацикливанием)
 function polyline(pts) {
   const P = pts.map(([x, y]) => new THREE.Vector2(x, y)), cum = [0];
@@ -1066,10 +1076,12 @@ function onPath(pl, s) {
   const a = pl.P[i - 1], b = pl.P[i], k = (s - pl.cum[i - 1]) / (pl.cum[i] - pl.cum[i - 1] || 1);
   xq.x = a.x + (b.x - a.x) * k; xq.y = a.y + (b.y - a.y) * k; xq.r = faceTo(b.x - a.x, b.y - a.y);
 }
-// 1. Ряды намаза за Макамом (2 ракаата после тавафа): 3 ряда, каждый молится в своём темпе. Место «вы» (ringPos) — свободно.
+// 1. За Макамом молятся 2 ракаата после тавафа — каждый сам по себе (это не джамаат), поэтому не строем:
+//    три неровных «ряда» со сдвигом, у каждого свой темп. Место «вы» (ringPos) — свободно.
 const mqSide = new THREE.Vector2(-mqOut.y, mqOut.x);
 for (let row = 0; row < 3; row++) for (let j = -4; j <= 4; j++) {
-  const u = 4.6 + row * 1.35, v = j * 0.85 + (row % 2) * 0.4, x = mq.x + mqOut.x * u + mqSide.x * v, y = mq.y + mqOut.y * u + mqSide.y * v;
+  const u = 4.6 + row * 1.35 + (rnd() - 0.5) * 0.5, v = j * 0.85 + (row % 2) * 0.4 + (rnd() - 0.5) * 0.3;
+  const x = mq.x + mqOut.x * u + mqSide.x * v, y = mq.y + mqOut.y * u + mqSide.y * v;
   xPerson(praying(x, y), { sp: 0.9 + rnd() * 0.25, woman: false });
 }
 // 2. Внутри Хиджра молятся (это часть Каабы); 3. очередь в Хиджр: вход у северного угла, выход у западного
@@ -1126,13 +1138,13 @@ for (let k = 0; k < 26; k++) xPerson((t, p) => { onPath(toSafa, (t * 1.2 + p.ph 
 const saiN = SAFA2.clone().sub(MARWA2).normalize(), saiS = new THREE.Vector2(-saiN.y, saiN.x);
 for (let k = 0; k < 240; k++) xPerson((t, p) => {
   const back = k % 2, lat = (back ? 1 : -1) * (1.5 + p.ph * 7), L = LEG;
-  let e = ((t * 1.25 / L) + k / 240) % 1;
-  const g0 = GREEN[0], g1 = GREEN[1];
-  // в зелёной зоне мужчины идут ~1,5× быстрее: пересчитываем долю пути так, чтобы цикл оставался 1
-  if (!p.woman) { const span = g1 - g0, slow = 1 - span, tt = e * (slow + span / 1.5); e = tt < g0 ? tt : tt < g0 + span / 1.5 ? g0 + (tt - g0) * 1.5 : tt + span - span / 1.5; e = Math.min(e, 1); }
+  let e = ((t * 1.25 / L) + k / 240) % 1;   // доля этого прохода (от его начала)
+  // зона огней в долях прохода: идущим от Марвы к Сафе она зеркальна (иначе бегут в 75 м от огней)
+  const g0 = back ? 1 - GREEN[1] : GREEN[0], g1 = back ? 1 - GREEN[0] : GREEN[1];
+  if (!p.woman) e = greenWarp(e, g0, g1);   // мужчины между огнями — ×GREEN_F, как и сам паломник; женщины — обычным шагом
   const q = back ? 1 - e : e, x = SAFA2.x + (MARWA2.x - SAFA2.x) * q + saiS.x * lat, y = SAFA2.y + (MARWA2.y - SAFA2.y) * q + saiS.y * lat;
   const run = !p.woman && e > g0 && e < g1, ph = t * (run ? 9 : 5) + p.ph * 9;   // мужчины между зелёными огнями бегут: корпус вперёд, подскок, мах руками
-  xq.x = x; xq.y = y; xq.h = saiY - 1.2 + (run ? Math.abs(Math.sin(ph)) * 0.09 : 0); xq.pose = run ? 5 : 0; xq.sw = Math.sin(ph) * (run ? 0.9 : 0.32);
+  xq.x = x; xq.y = y; xq.h = saiY - 1.2 + (run ? Math.abs(Math.sin(ph)) * 0.16 : 0); xq.pose = run ? 5 : 0; xq.sw = Math.sin(ph) * (run ? 0.9 : 0.32);
   xq.r = back ? faceTo(-(MARWA2.x - SAFA2.x), -(MARWA2.y - SAFA2.y)) : faceTo(MARWA2.x - SAFA2.x, MARWA2.y - SAFA2.y);
 });
 // 8. Коляски на внешних кругах тавафа (сопровождающий толкает сзади); 9. группа за гидом с оранжевым флажком
@@ -1802,15 +1814,18 @@ function updateFx(dt) {
     pct = setProg(1);
     updateNur(fxT + 7.5);   // +7.5 с: первые залпы уже в небе, когда камера долетает
   }
-  // паломник виден с любого расстояния (≈30 px в высоту), ткань и сияние светлеют вместе с прогрессом умры
-  const D = camera.position.distanceTo(you.position);
-  you.scale.setScalar(Math.max(1.05, 30 * 0.768 * D / (innerHeight * 1.75)));
+  // паломник — в рост человека (издали чуть крупнее, не больше 1,5×: иначе на саи он «великан» среди толпы);
+  // найти его с любого расстояния помогает метка: треугольник над головой и кольцо держат ≈30 px на экране
+  const D = camera.position.distanceTo(you.position), px = 30 * 0.768 * D / (innerHeight * 1.75), fig = THREE.MathUtils.clamp(px, 1.05, 1.5);
+  youFig.scale.setScalar(fig);
+  const mk = Math.max(1, px * 0.6);
+  youPin.scale.setScalar(mk);
   const near = Math.min(1, D / 60);   // вблизи сияние тише, чтобы видеть позы
   heroCloth.emissiveIntensity = 0.25 + pct * 0.002;
   const soft = fx === "halq" || fx === "finish" ? 0.35 : 1;
   youGlow.scale.setScalar(3 + pct * 0.012); youGlow.material.opacity = (0.4 + pct * 0.002) * (0.75 + 0.25 * pulse) * (0.25 + 0.75 * near) * soft;
-  youPin.position.y = 2.35 + Math.abs(Math.sin(fxT * 3)) * 0.18; youPin.rotation.y = fxT * 1.5;
-  youRing.scale.setScalar(1 + 0.12 * pulse);
+  youPin.position.y = 2.1 * fig + 0.25 * mk + Math.abs(Math.sin(fxT * 3)) * 0.18 * mk; youPin.rotation.y = fxT * 1.5;
+  youRing.scale.setScalar(Math.min(mk, 4) * (1 + 0.12 * pulse));
 }
 
 // ---------- Подсветки мест (по открытой метке) ----------
@@ -2243,7 +2258,7 @@ const LYR = {}, lyrOn = new Set(["umra"]);
 let LD = null;   // данные layers.json — для «Ближайшее»
 const LINFO = {
   gates: "Оранжевые — главные ворота. Для умры можно входить через любые; через № 22 «Бану Шейба» входят по традиции.",
-  wc: "Туалеты и места для омовения — снаружи мечети, под площадями (м — мужские, ж — женские).",
+  wc: "Туалеты и места для омовения — снаружи мечети, под площадями. Синие — мужские, малиновые — женские, серые — пол на карте не указан: смотрите табличку у входа.",
   esc: "⇅ — эскалаторы на 1-й этаж и крышу; «лифт» — лифты (удобно с колясками).",
   all: "Всё сразу, в том числе место дома Абу Джахля (по преданию; сейчас там туалеты, показано приблизительно).",
 };
@@ -2258,7 +2273,9 @@ fetch("layers.json").then((r) => r.json()).then((d) => {
   LD = d;
   mkLayer("gates", d.gates.map((g) => g.main ? [g.p[0], g.p[1], `№ ${g.n}${GATE_RU[g.n] ? " · " + GATE_RU[g.n] : ""}`, "#F07A1E", "#fff", false]
     : [g.p[0], g.p[1], `№ ${g.n}`, "#005A5C", "#F4EDE1", true]));
-  mkLayer("wc", d.wc.map((w) => [w.p[0], w.p[1], `WC ${w.g}`, "#1559B7", "#FFFFFF", true]));   // синий + белый: видно и на светлом мраморе
+  // цвет по полу, как на табличках: синий — мужские, малиновый — женские, серый — пол в OSM не указан
+  const WC_BG = { "м": "#1559B7", "ж": "#B0306A" };
+  mkLayer("wc", d.wc.map((w) => [w.p[0], w.p[1], w.g ? `WC ${w.g}` : "WC", WC_BG[w.g] || "#5C6B6D", "#FFFFFF", true]));
   mkLayer("esc", [...d.esc.map(([x, y]) => [x, y, "⇅", "#111111", "#FFD23F", true]), ...d.lift.map(([x, y]) => [x, y, "лифт", "#111111", "#FFD23F", true])]);
   syncLayers();
 }).catch(() => {});

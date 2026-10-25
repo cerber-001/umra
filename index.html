@@ -23,7 +23,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Умра JURT">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="icon" href="favicon.png" sizes="64x64" type="image/png">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 @font-face{ font-family:"Exo 2"; src:url("exo2-regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
@@ -163,7 +164,7 @@ b{ font-weight:700; }
 :root:not(.fromMecca) .only-mecca, :root.fromMecca .not-mecca, :root:not(.repeat) .only-repeat{ display:none !important; }
 :root.brief .acc.step .note.keep{ display:block; }
 .modeq .btns{ flex-wrap:nowrap; }
-.modeq .btns .btn{ flex:1 1 0; padding:.35rem .25rem; white-space:nowrap; font-size:.86rem; }
+.modeq .btns .btn{ flex:1 1 0; padding:.35rem .25rem; white-space:normal; text-align:center; overflow-wrap:break-word; font-size:.86rem; }   /* на телефоне длинные подписи — в две строки */
 .modeq .btns .btn.sel{ border-color:var(--teal); box-shadow:inset 0 0 0 1px var(--teal); }
 .modeq details{ font-size:.92rem; }
 .modeq details summary{ cursor:pointer; color:var(--teal-d); font-weight:700; min-height:2.2rem; display:flex; align-items:center; }
@@ -416,6 +417,13 @@ p.lead{ font-size:1.02rem; }
 .dua .ctx{ font-size:.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
 .flag{ border-left:4px solid var(--red); background:var(--redbg); padding:.6rem .8rem; font-size:.88rem; border-radius:0 .7rem .7rem 0; }
 .flag b{ color:var(--red); }
+.hairfig{ margin:0; padding:.4rem .2rem 0; background:var(--sand); border-radius:.8rem; }
+.hairfig svg{ display:block; width:100%; max-width:420px; height:auto; margin:0 auto; font:600 11px "Exo 2",system-ui,sans-serif; }
+.hairfig text{ fill:var(--ink); } .hairfig .hf-s{ fill:var(--muted); font-weight:500; } .hairfig .hf-o{ fill:var(--orange-t); font-size:14px; }
+.hairfig .hf-f{ fill:var(--card); stroke:var(--muted); stroke-width:1.5; } .hairfig .hf-n{ fill:var(--mint); stroke:var(--muted); stroke-width:1.2; }
+.hairfig .hf-l{ stroke:var(--muted); stroke-width:1.5; } .hairfig .hf-b{ fill:none; stroke:var(--orange-t); stroke-width:2; }
+.hairfig .hf-h{ fill:var(--hill); } .hairfig .hf-w{ fill:none; stroke:var(--ink); stroke-width:2.2; stroke-linecap:round; }
+.hairfig .hf-c{ stroke:var(--orange-t); stroke-width:2; stroke-dasharray:5 4; } .hairfig .hf-g{ stroke:var(--orange-t); stroke-width:2; stroke-dasharray:3 3; }
 .note{ border-left:4px solid var(--teal); background:var(--mint); padding:.6rem .8rem; font-size:.92rem; border-radius:0 .7rem .7rem 0; }
 table{ width:100%; border-collapse:collapse; font-size:.95rem; }
 td,th{ padding:.55rem .3rem; vertical-align:top; border-bottom:1px solid var(--line); text-align:left; }
@@ -948,23 +956,33 @@ img{ -webkit-user-drag:none; }
  </div>
  <div class="modeq">
   <div class="kicker">Ваша умра</div>
-  <div class="btns"><button class="btn ghost" data-kind="first">Первая<small>подробно</small></button><button class="btn ghost" data-kind="again">Уже был(а)<small>кратко</small></button><button class="btn ghost" data-kind="mecca">Ещё одна<small>из Мекки</small></button></div>
+  <div class="btns"><button class="btn ghost" data-kind="first">Первая умра<small>подробно</small></button><button class="btn ghost" data-kind="again">Уже совершал(а)<small>раньше · кратко</small></button><button class="btn ghost" data-kind="mecca">Ещё одна в поездке<small>из Мекки · кратко</small></button></div>
   <details><summary>Что меняется?</summary>
    <ul>
     <li><b>Обряды те же</b> для всех: ихрам, таваф, саи, бритьё — в том же порядке.</li>
-    <li><b>«Уже был(а)»</b> — шаги кратко: действия и дуа, без пояснений. Подробности можно вернуть в «Ещё» → «Шаги умры».</li>
-    <li><b>«Ещё одна из Мекки»</b> — ихрам надевают <b>за границей Харама</b>: обычно в Тан'име (Масджид Аиши, ≈ 7,5 км от Харама, на такси), можно и в другом месте за границей, например в Джиъране. Шаги 1–5 покажут это.</li>
-    <li><b>Бритьё:</b> если голова уже обрита — снова провести бритвой по голове (у ханафитов это требуется). Женщины снова укорачивают волосы на длину фаланги.</li>
-    <li>Награду умры можно посвятить другому, например умершему родителю, — у ханафитов это допустимо (Хидая).</li>
+    <li><b>«Уже совершал(а)»</b> — вы уже были на умре в прошлые годы. Шаги кратко: действия и дуа, без пояснений. Подробности можно вернуть в «Ещё» → «Шаги умры».</li>
+    <li><b>«Ещё одна в поездке»</b> — вторая (третья…) умра в эту же поездку, уже из Мекки. Ихрам надевают <b>за границей Харама</b>: обычно в Тан'име (Масджид Аиши, ≈ 7,5 км от Харама, на такси), можно и в другом месте за границей, например в Джиъране. Шаги 1–5 покажут это.</li>
+    <li><b>Бритьё во второй умре:</b> если голова обрита после первой — снова провести бритвой по всей голове (у ханафитов это требуется). Женщины снова укорачивают волосы на длину фаланги.</li>
+    <li><b>Это кнопки про вашу собственную умру.</b> Умра за другого человека (бадаль) — отдельно, ниже.</li>
     <li>Отметки прошлой умры — кнопка «Сбросить отметки умры» внизу вкладки.</li>
    </ul>
+  </details>
+  <details><summary>Умра за другого (бадаль)</summary>
+   <ul>
+    <li><b>Бадаль</b> — умра от имени другого человека: за умершего (например, за отца или мать) или добровольная — за живого. У ханафитов это допустимо (Хидая, «Хадж за другого»).</li>
+    <li><b>Намерение</b> — за него: «О Аллах, я намереваюсь совершить умру за (имя), облегчи её мне и прими её». В тальбии: «Ляббайка ‘ан (имя)» — «Я здесь, о Аллах, от имени такого-то».</li>
+    <li><b>Одна умра — за одного человека.</b> Шаги те же, что и в своей умре.</li>
+    <li>Обычно бадаль делают в эту же поездку, уже из Мекки, — выберите вверху «Ещё одна в поездке»: шаги 1–5 покажут микат Тан'им.</li>
+    <li><b>Посвятить награду</b> — другое: вы совершаете умру за себя, а потом в дуа просите передать её награду умершим. Награду можно посвятить сразу многим.</li>
+   </ul>
+   <div class="flag"><b>⚑ Сверить у знатока ханафитского фикха:</b> нужно ли сначала совершить свою умру; когда можно делать умру за живого; можно ли брать плату за бадаль.</div>
   </details>
  </div>
  <a class="mygo h3d" href="haram3d/?from=medina"><svg><use href="#i-tawaf"/></svg><span><b data-i18n="h3d.t">Харам в 3D</b><small>Только посмотреть, где что находится. Что делать — в шагах ниже.</small></span><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
  <section class="acc info blue">
   <div class="acc-h"><div class="num">?</div><div class="st"><div class="kicker">Бисмилляхи-р-рахмани-р-рахим</div><b>Как пользоваться гидом</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   <div class="acc-b"><div class="acc-wrap"><div class="acc-in">
-   <p><b>Главное — шаги ниже, по порядку.</b> Карта 3D — только чтобы заранее увидеть, куда идти. Уже были на умре? Выберите вверху «Уже был(а)» — останутся действия и дуа, без пояснений. Ещё одна умра, уже из Мекки, — «Ещё одна»: шаги 1–5 покажут микат за границей Харама.</p>
+   <p><b>Главное — шаги ниже, по порядку.</b> Карта 3D — только чтобы заранее увидеть, куда идти. Уже совершали умру раньше? Выберите вверху «Уже совершал(а)» — останутся действия и дуа, без пояснений. Вторая умра в эту поездку, уже из Мекки, — «Ещё одна в поездке»: шаги 1–5 покажут микат за границей Харама. Умра за другого — «Умра за другого (бадаль)» там же.</p>
    <p>Нажмите на шаг — откроется, что делать и какие дуа читать. Сделали — нажмите «Сделано». Отметки сохраняются в телефоне и работают без интернета.</p>
   <h3>Метки по ханафитскому мазхабу</h3>
  <div class="tags"><span class="tag fard">Фарз · шарт</span></div>
@@ -1002,6 +1020,7 @@ img{ -webkit-user-drag:none; }
   <li class="s">Сделать гусль: прополоскать рот, промыть нос, омыть всё тело.</li>
   <li class="s">Нанести благовоние <b>на тело</b> (не на ткань ихрама).</li>
  </ul>
+ <div class="note keep not-mecca"><b>Мужчинам:</b> хотите после умры только укоротить волосы (таксир) — не стригитесь коротко перед поездкой. Волосы должны быть длиннее фаланги пальца (≈ 2 см), иначе — только бритьё (шаг 11).</div>
  <details class="det"><summary><span class="mbtn">Подробнее<svg class="mchev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><small>если гусль невозможен</small></summary><div class="det-in">
  <ul class="do">
   <li>Если гусль невозможен — достаточно обычного омовения (вуду).</li>
@@ -1250,7 +1269,28 @@ img{ -webkit-user-drag:none; }
   <li>Только после бритья снимаются запреты ихрама. <b>Умра завершена!</b></li>
   <li>Цены в салонах разные и меняются — спросите до начала. Лучше — салон с одноразовым лезвием.</li>
  </ul>
- <div class="note keep only-repeat"><b>Повторная умра.</b> Если голова уже обрита — снова провести бритвой по всей голове (у ханафитов это требуется). Женщины снова укорачивают волосы на длину фаланги пальца.</div>
+ <div class="note keep only-mecca"><b>Ещё одна умра в эту поездку.</b> Если голова уже обрита — снова провести бритвой по всей голове (у ханафитов это требуется). Женщины снова укорачивают волосы на длину фаланги пальца.</div>
+ <figure class="hairfig keep">
+  <svg viewBox="0 0 330 138" role="img" aria-label="Фаланга пальца — около 2 см. Длинные волосы можно укоротить, волосы короче фаланги — только бритьё">
+   <rect class="hf-f" x="20" y="10" width="34" height="112" rx="17"/>
+   <rect class="hf-n" x="28" y="15" width="18" height="22" rx="8"/>
+   <path class="hf-l" d="M22 48h30"/>
+   <path class="hf-b" d="M60 10h7v38h-7"/>
+   <text x="72" y="27">≈ 2 см</text><text class="hf-s" x="72" y="41">фаланга</text>
+   <rect class="hf-h" x="132" y="118" width="70" height="8" rx="4"/>
+   <path class="hf-w" d="M150 118C146 94 158 74 152 52S160 22 156 10M166 118C162 94 174 74 168 52S176 22 172 10M182 118C178 96 188 76 184 54S190 24 188 12"/>
+   <path class="hf-c" d="M136 48h64"/>
+   <text class="hf-o" x="204" y="52">✂</text>
+   <text x="167" y="136" text-anchor="middle">срезать кончик</text>
+   <rect class="hf-h" x="244" y="118" width="70" height="8" rx="4"/>
+   <path class="hf-g" d="M240 118v-38"/>
+   <path class="hf-w" d="M262 118c-2-8 2-14 0-22M278 118c-2-8 2-14 0-22M294 118c-2-8 2-14 0-22"/>
+   <text x="279" y="74" text-anchor="middle" class="hf-s">короче фаланги</text>
+   <text x="279" y="136" text-anchor="middle">только бритьё</text>
+  </svg>
+ </figure>
+ <div class="note keep"><b>Волосы короче фаланги пальца (≈ 2 см)?</b> Укоротить нечего — мужчине нужно <b>бритьё</b> (халк). Срезать «три волоска» у ханафитов недостаточно: нужно не меньше четверти головы. Женщины голову не бреют — только укорачивают на фалангу.</div>
+ <div class="flag"><b>⚑ Сверить:</b> считается ли бритьём машинка «под ноль» без лезвия — у знатока ханафитского фикха. Надёжнее — бритва.</div>
  <div class="note">Пророк <span class="saw">ﷺ</span> трижды просил о прощении для обривших голову и один раз — для укоротивших <span class="small">(аль-Бухари 1727, Муслим 1302)</span>.</div>
  <div class="dua">
   <div class="lbl">После умры</div>
@@ -1546,7 +1586,7 @@ img{ -webkit-user-drag:none; }
  <h3>Деньги</h3>
  <ul class="do">
   <li>500–1 000 SAR на человека наличными. USD менять у Харама.</li>
-  <li>Карту открыть для оплаты за рубежом. Мелочь — на садака.</li>
+  <li>Карту открыть для оплаты за рубежом. Мелочь — на воду, такси, носильщиков. Садака — см. «Попрошайки» в «Связь и безопасность».</li>
  </ul>
  <h3>Багаж</h3>
  <ul class="do">
@@ -1571,6 +1611,14 @@ img{ -webkit-user-drag:none; }
   <li><b>Не ищите</b> группу в толпе. Идите к точке сбора или в отель и напишите в чат.</li>
  </ul>
  <div class="btns"><button class="btn" data-lost><svg><use href="#i-pin"/></svg>Я потерялся</button></div>
+ <h3>Попрошайки</h3>
+ <ul class="do">
+  <li>В Саудовской Аравии попрошайничество запрещено законом (2021): до <b>1 года тюрьмы</b> или штраф до <b>100 000 SAR</b>, иностранцев — депортация. Тем, кто помогает или подстрекает, — до 6 месяцев или 50 000 SAR.</li>
+  <li>У Харама и в отелях часто просят организованные группы, в том числе с детьми. «Потерял кошелёк, дайте на билет», «соберите на лечение» — то же самое.</li>
+  <li class="no">Не давать деньги незнакомым на улице. Не спорить — вежливо отойти.</li>
+  <li>Сообщить о попрошайке — <b>911</b> (единый номер экстренных служб).</li>
+  <li>Садака — через надёжные каналы: государственная платформа <b>«Эхсан»</b> (ehsan.sa) или проверенные фонды дома.</li>
+ </ul>
  <h3>Здоровье</h3>
  <ul class="do">
   <li>Днём +33…+38 °C: вода с собой, тень, зонт.</li>
@@ -1619,7 +1667,7 @@ img{ -webkit-user-drag:none; }
   </div>
   <p class="small" id="langNote" data-i18n="lang.note" hidden></p>
  </div>
- <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.13 · 25.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
+ <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.14 · 25.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
 </section>
 </main>
 
