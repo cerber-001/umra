@@ -404,6 +404,18 @@ ul.do li{ padding-left:1.35rem; position:relative; }
 ul.do li::before{ content:""; position:absolute; left:.2rem; top:.5em; width:.55rem; height:.55rem; border-radius:50%; background:var(--teal); }
 ul.do li.s::before{ background:none; border:2px solid var(--orange); }
 ul.do li.no::before{ background:none; content:"✕"; color:var(--red); font-weight:800; top:0; left:.1rem; width:auto; height:auto; }
+/* Сборы · чек-лист */
+.pkl{ display:flex; flex-direction:column; }
+label.pk{ display:flex; gap:.65rem; align-items:flex-start; padding:.5rem 0; border-bottom:1px solid var(--line); font-size:.93rem; line-height:1.38; cursor:pointer; }
+label.pk:last-child{ border-bottom:0; }
+label.pk input{ flex:none; width:1.4rem; height:1.4rem; margin:.1rem 0 0; accent-color:var(--teal); }
+label.pk.on span{ color:var(--muted); }
+label.pk.on b{ text-decoration:line-through; }
+.giv{ display:inline-block; font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--teal-d); background:var(--mint); border-radius:.45rem; padding:.1rem .4rem; margin-left:.25rem; vertical-align:middle; white-space:nowrap; }
+.acc.pk .num{ background:var(--teal); }
+.acc.pk .num.nox{ background:var(--red); }
+#packCard{ text-align:left; }
+#packCard h3{ margin:0; font-size:1.2rem; }
 p.lead{ font-size:1.02rem; }
 .small{ font-size:.85rem; color:var(--muted); }
 .dua{ background:var(--sand); border-radius:1rem; padding:.9rem 1rem; display:flex; flex-direction:column; gap:.5rem; border-left:4px solid var(--orange); }
@@ -919,6 +931,11 @@ img{ -webkit-user-drag:none; }
  <button class="card trip reveal" id="tripCard" data-go="prog">
   <span class="trow"><span class="kicker">Наш путь</span><span class="small" id="tripNext"></span></span>
 <span class="track" id="tripTrack" style="--n:6"><span class="tk"><i><svg><use href="#b-almaty"/></svg></i><small>Алматы</small><em>28.10</em></span><span class="tk"><i><svg><use href="#b-istanbul"/></svg></i><small>Стамбул</small><em>28.10</em></span><span class="tk"><i><svg><use href="#b-medina"/></svg></i><small>Медина</small><em>29–⁠31.10</em></span><span class="tk"><i><svg><use href="#b-mecca"/></svg></i><small>Мекка</small><em>01–⁠04.11</em></span><span class="tk"><i><svg><use href="#b-dubai"/></svg></i><small>Дубай</small><em>05.11</em></span><span class="tk"><i><svg><use href="#b-almaty"/></svg></i><small>Дома</small><em>06.11</em></span></span>
+ </button>
+ <button class="card reveal" id="packCard" data-go="more" data-anchor="pack">
+  <span class="trow"><span class="kicker">До вылета · 28.10, сбор 03:15</span><span class="small" id="packStat"></span></span>
+  <h3>Чек-лист сборов</h3>
+  <span class="small">Что взять, что выдаём, личная аптечка. Галочки сохраняются в телефоне.</span>
  </button>
  <div class="card reveal" id="nowCard">
   <div class="row" style="display:flex;justify-content:space-between;align-items:baseline"><h3 id="nowTitle">Сегодня</h3><button class="small" id="nowMore" data-i18n="home.all" data-go="prog" style="color:var(--teal-d);font-weight:700">Весь путь →</button></div>
@@ -1542,6 +1559,130 @@ img{ -webkit-user-drag:none; }
   <div class="src">Муслим 975 · то же — на кладбище Баки</div>
  </div>
 </div>
+ <h2 class="sec" id="pack">Сборы</h2>
+ <p class="sub">Чек-лист до вылета · отмечено <span id="packCnt"></span></p>
+<div class="card"><div><div class="kicker">Выдаём в аэропорту на сборе 28.10</div><h3 style="font-size:1.25rem">Ихрам, рюкзак, пауэрбанк</h3></div>
+ <p class="small" style="color:var(--ink)">Эти вещи покупать не нужно: получите на сборе в 03:15, до регистрации. Гид паломника — электронный, доступ уже открыт.</p>
+ <p class="small">Ниже — что взять самому. Отмечайте галочками, гид запомнит. Это рекомендации с примерами названий, а не обязательный список: берите по себе, лишнее оставьте дома. Погода на все дни — на главной, «Погода в пути».</p>
+</div>
+<section class="acc pk"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-pen"/></svg></div><div class="st"><div class="kicker">В ручную кладь · одна папка</div><b>Документы и деньги</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+ <div class="pkl">
+  <label class="pk"><input type="checkbox" data-pk="1"><span><b>Загранпаспорт</b> — действует дольше 6 месяцев. Фото первой страницы — в телефоне.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="2"><span><b>Виза Саудовской Аравии (e-visa)</b> — распечатка и PDF в телефоне.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="3"><span><b>Билеты</b> — PDF в телефоне: туда TK 351 + TK 98, обратно flydubai FZ 828 + FZ 1721.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="4"><span><b>Nusuk</b> — вход в аккаунт работает, разрешения на умру и Равду — скриншотами.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="5"><span><b>Удостоверение личности РК</b> — на обратную дорогу и для банка.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="6"><span><b>Наличные</b> — 500–1 000 SAR на человека на еду, такси, покупки; 100–200 $ или € на Стамбул и Дубай. Менять выгоднее в городе, не в аэропорту.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="7"><span><b>Банковская карта</b> — Visa или Mastercard (Kaspi Gold, Freedom, Halyk). Предупредите банк о выезде. Карта «Мир» за рубежом не работает.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="8"><span><b>Копии паспорта и визы</b> — отдельно от оригиналов. В отеле могут попросить депозит на номер, его вернут при выезде.</span></label>
+ </div>
+</div></div></div></section>
+<section class="acc pk"><div class="acc-h"><div class="num"><svg class="pic"><use href="#t-shirt"/></svg></div><div class="st"><div class="kicker">На 9 дней</div><b>Одежда и обувь</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+ <div class="pkl">
+  <label class="pk"><input type="checkbox" data-pk="9"><span><b>Ихрам</b> — два полотна. Получите в аэропорту на сборе и сразу положите <b>в чемодан</b>: нужен только 01.11 в Медине. Свой, если есть, — тоже в чемодан. <i class="giv">выдаём</i></span></label>
+  <label class="pk"><input type="checkbox" data-pk="10"><span><b>Сандалии или шлёпки</b> для ихрама — открыты плюсна и пятка. Только разношенные, не новые.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="11"><span><b>Обувь для ходьбы</b> — кроссовки: в Стамбуле за день 10 и больше километров.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="12"><span><b>Рубашки, камисы или футболки</b> — 3–4 длинных, <b>брюки</b> — 2–3. Стирка в отеле возможна.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="13"><span><b>Тёплая кофта и лёгкая куртка</b> — Стамбул +12…+18°, в самолёте и в мечетях холодно от кондиционеров.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="14"><span><b>Бельё и носки</b> на каждый день.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="15"><span><b>Головной убор от солнца и очки</b> — вне ихрама.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="16"><span><b>Пояс-сумка для ихрама</b> с карманом для денег и телефона — по желанию, продаётся и в Медине.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="17"><span><b>Рюкзак</b> — для мечети и прогулок. Для обуви в мечеть — тканевый мешок или пакет. <i class="giv">выдаём</i></span></label>
+ </div>
+</div></div></div></section>
+<section class="acc pk"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-drop"/></svg></div><div class="st"><div class="kicker">Без запаха — на время ихрама</div><b>Гигиена</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+ <div class="pkl">
+  <label class="pk"><input type="checkbox" data-pk="18"><span><b>Зубная щётка и паста.</b></span></label>
+  <label class="pk"><input type="checkbox" data-pk="19"><span><b>Бритва или триммер, маникюрные ножницы</b> — понадобятся после умры. Только в чемодан.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="20"><span><b>Мыло и шампунь без запаха</b> — на время ихрама: детское мыло без отдушки, Dove Sensitive «без запаха» или аптечное.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="21"><span><b>Маленькое полотенце</b> — быстросохнущее, из микрофибры.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="22"><span><b>Влажные салфетки и антисептик без запаха.</b></span></label>
+  <label class="pk"><input type="checkbox" data-pk="23"><span><b>Вазелин или крем без отдушки</b> — от натираний в ихраме: вазелин, «Бепантен», детский крем без запаха.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="24"><span><b>Солнцезащитный крем SPF 50 и гигиеническая помада</b> — без запаха (у La Roche-Posay, Bioderma есть варианты «без отдушки»).</span></label>
+  <label class="pk"><input type="checkbox" data-pk="25"><span><b>Дезодорант, духи, кремы</b> — обычные, до ихрама и после умры.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="26"><span><b>Беруши и маска для сна</b> — ночной перелёт, в номере несколько человек.</span></label>
+ </div>
+</div></div></div></section>
+<section class="acc pk"><div class="acc-h"><div class="num"><svg class="pic"><use href="#t-heart"/></svg></div><div class="st"><div class="kicker">Личная · по одной упаковке</div><b>Аптечка</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+<p class="small" style="color:var(--ink)"><b>У руководителя группы есть общая аптечка</b> на экстренный случай: жаропонижающее и обезболивающее, средства при отравлении и расстройстве, от аллергии, спазмов, насморка, боли в горле и кашля, антисептик, пластыри, термометр, маски. Это запас «на всякий случай», по одной упаковке на группу, не на всю поездку. Своё берите с собой. Стало плохо — сразу скажите руководителю.</p>
+ <div class="pkl">
+  <label class="pk"><input type="checkbox" data-pk="27"><span><b>Свои постоянные лекарства</b> — с запасом на 3 дня сверх срока, название действующего вещества латиницей, для рецептурных — рецепт.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="28"><span><b>Жаропонижающее и обезболивающее</b> — парацетамол («Панадол», «Эффералган»), ибупрофен («Нурофен», «МИГ»).</span></label>
+  <label class="pk"><input type="checkbox" data-pk="29"><span><b>От боли в горле</b> — в Хараме сухой воздух и кондиционеры: «Стрепсилс», «Фарингосепт», «Лизобакт».</span></label>
+  <label class="pk"><input type="checkbox" data-pk="30"><span><b>От насморка и кашля</b> — спрей с морской водой («Аквамарис», «Аквалор»), капли от заложенности («Називин», «Тизин»), пастилки от кашля («Доктор Мом»).</span></label>
+  <label class="pk"><input type="checkbox" data-pk="31"><span><b>От расстройства желудка</b> — лоперамид («Имодиум»), электролиты («Регидрон»), сорбент («Смекта», активированный уголь, «Энтеросгель»).</span></label>
+  <label class="pk"><input type="checkbox" data-pk="32"><span><b>От аллергии</b> — цетиризин («Зиртек», «Цетрин») или лоратадин («Кларитин»).</span></label>
+  <label class="pk"><input type="checkbox" data-pk="33"><span><b>Пластыри</b> — обычные и от мозолей («Компид», «Мультипласт мозольный»), эластичный бинт.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="34"><span><b>От укачивания</b> — дорога Медина — Мекка 5 часов: «Драмина», «Авиа-море».</span></label>
+  <label class="pk"><input type="checkbox" data-pk="35"><span><b>От изжоги и спазмов</b> — омепразол («Омез»), «Ренни»; дротаверин («Но-шпа»).</span></label>
+ </div>
+</div></div></div></section>
+<section class="acc pk"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-phone"/></svg></div><div class="st"><div class="kicker">Розетка типа G · SIM</div><b>Техника и связь</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+ <div class="pkl">
+  <label class="pk"><input type="checkbox" data-pk="36"><span><b>Телефон, кабель и зарядное устройство.</b></span></label>
+  <label class="pk"><input type="checkbox" data-pk="37"><span><b>Пауэрбанк</b> — только в ручную кладь, в багаж нельзя. Свой тоже можно: до 100 Вт·ч (около 20 000 мА·ч). <i class="giv">выдаём</i></span></label>
+  <label class="pk"><input type="checkbox" data-pk="38"><span><b>Переходник на розетку типа G</b> — три плоских штыря, как в Британии: Саудовская Аравия и ОАЭ. В Турции розетки как у нас. Есть в Technodom, Sulpak, на Kaspi.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="39"><span><b>Наушники.</b></span></label>
+  <label class="pk"><input type="checkbox" data-pk="40"><span><b>Приложения — установить дома по Wi-Fi:</b> Nusuk; этот гид (откройте один раз с интернетом и добавьте на главный экран — работает офлайн); Google Maps с офлайн-картами Медины, Мекки, Стамбула, Дубая; WhatsApp; переводчик с офлайн-арабским (Google Переводчик, Яндекс Переводчик); приложение банка.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="41"><span><b>Связь</b> — SIM в аэропорту Медины по паспорту (STC, Mobily, Zain, ≈100–150 SAR) или eSIM заранее (Airalo, Holafly, Saily — пакет Саудовская Аравия + ОАЭ + Турция). До покупки SIM отключите мобильные данные.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="42"><span><b>Гид паломника</b> — доступ уже у вас: umra.jurt.kz, ссылка и код группы в чате. <i class="giv">выдаём</i></span></label>
+ </div>
+</div></div></div></section>
+<section class="acc pk"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-cup"/></svg></div><div class="st"><div class="kicker">Пригодится</div><b>Еда и мелочи</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+ <div class="pkl">
+  <label class="pk"><input type="checkbox" data-pk="43"><span><b>Бутылка для воды</b> — Замзам в мечети бесплатно, своя бутылка удобнее.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="44"><span><b>Перекус в дорогу</b> — орехи, сухофрукты, финики, батончики.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="45"><span><b>Чётки (тасбих).</b> Коран — лучше в телефоне: много печатных книг таможня проверяет.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="46"><span><b>Блокнот и ручка</b> — имена, за кого делать дуа. В гиде тоже есть свой список: раздел «Дуа».</span></label>
+  <label class="pk"><input type="checkbox" data-pk="47"><span><b>Пакеты zip-lock</b> — документы, телефон в дождь, мелочи.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="48"><span><b>Замок для чемодана и бирка</b> — имя, телефон, «JURT UMRAH 2026».</span></label>
+  <label class="pk"><input type="checkbox" data-pk="49"><span><b>Пустая складная сумка</b> — для подарков и Замзама на обратный путь.</span></label>
+ </div>
+</div></div></div></section>
+<section class="acc pk"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-plane"/></svg></div><div class="st"><div class="kicker">TK 351 · 28.10</div><b>Ручная кладь</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+ <h3>Берём в салон</h3>
+ <div class="pkl">
+  <label class="pk"><input type="checkbox" data-pk="50"><span><b>Документы, деньги, свои постоянные лекарства.</b></span></label>
+  <label class="pk"><input type="checkbox" data-pk="51"><span><b>Телефон, зарядка, пауэрбанк.</b></span></label>
+  <label class="pk"><input type="checkbox" data-pk="52"><span><b>Одна смена футболки и бельё, зубная щётка.</b></span></label>
+  <label class="pk"><input type="checkbox" data-pk="53"><span><b>Куртка</b> — в самолёте холодно, <b>беруши и маска</b>, <b>перекус</b>.</span></label>
+ </div>
+ <h3>Нельзя в ручную кладь</h3>
+ <ul class="do">
+  <li class="no">Ножницы, бритва с лезвием.</li>
+  <li class="no">Жидкости больше 100 мл — остальные в одном прозрачном пакете на 1 л.</li>
+  <li>Пауэрбанк — наоборот, нельзя в багаж. Ихрам — в чемодан, выдаём до регистрации.</li>
+  <li>Нормы: туда — чемодан 23 кг и ручная кладь 8 кг; обратно — 30 кг и 7 кг.</li>
+ </ul>
+</div></div></div></section>
+<section class="acc pk"><div class="acc-h"><div class="num nox"><svg class="pic"><use href="#t-x"/></svg></div><div class="st"><div class="kicker">Оставить дома</div><b>Что не брать</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+ <ul class="do">
+  <li class="no">Ценности и украшения, крупные суммы наличных: больше 10 000 $ нужно декларировать.</li>
+  <li class="no">Много печатных религиозных книг — таможня Саудовской Аравии проверяет.</li>
+  <li class="no">Лекарства с кодеином, трамадолом, прегабалином — в Саудовскую Аравию без разрешения нельзя.</li>
+  <li class="no">Электронные сигареты — ввоз в Саудовскую Аравию запрещён.</li>
+ </ul>
+</div></div></div></section>
+<section class="acc pk"><div class="acc-h"><div class="num"><svg class="pic"><use href="#i-star"/></svg></div><div class="st"><div class="kicker">Накануне · 27.10</div><b>Последняя проверка</b></div><svg class="chev" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="acc-b"><div class="acc-wrap"><div class="acc-in">
+ <div class="pkl">
+  <label class="pk"><input type="checkbox" data-pk="54"><span><b>Паспорт, виза, билеты</b> — в руке. Nusuk: скриншоты QR сделаны.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="55"><span><b>Чемодан не больше 23 кг, ручная кладь не больше 8 кг.</b> Взвесьте дома на напольных весах: с чемоданом в руках минус без него.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="56"><span><b>Телефон заряжен.</b> Гид открыт один раз с интернетом и добавлен на главный экран.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="57"><span><b>Ногти и волосы в порядке</b> — меньше забот перед ихрамом.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="58"><span><b>Дома:</b> ключи, деньги семье. Попросите прощения у близких, долги закройте или договоритесь.</span></label>
+  <label class="pk"><input type="checkbox" data-pk="59"><span><b>Лечь до 22:00.</b> Подъём 02:15, сбор 03:15 в аэропорту Алматы.</span></label>
+ </div>
+</div></div></div></section>
+ <div class="btns"><button class="btn ghost" type="button" id="packReset">Сбросить галочки</button></div>
  <h2 class="sec" data-i18n="sec.memo">Памятка</h2>
  <div class="card" id="myCard">
   <h3 data-i18n="more.my">Мои данные</h3>
@@ -1592,7 +1733,8 @@ img{ -webkit-user-drag:none; }
  <h3>Багаж</h3>
  <ul class="do">
   <li>Туда: 23 кг. Обратно: 30 кг + 7 кг ручная кладь.</li>
-  <li>В ручной клади: ихрам, сандалии, документы, лекарства, пауэрбанк.</li>
+  <li>В ручной клади: документы, деньги, лекарства, телефон и пауэрбанк. Ихрам — в чемодан: выдаём в аэропорту, нужен только 01.11.</li>
+  <li>Полный чек-лист — в разделе «Сборы» выше.</li>
   <li>Замзам — только в фирменных запечатанных канистрах 5 л.</li>
   <li>Бирка на чемодан: имя, телефон, «JURT UMRAH 2026».</li>
  </ul>
@@ -1668,7 +1810,7 @@ img{ -webkit-user-drag:none; }
   </div>
   <p class="small" id="langNote" data-i18n="lang.note" hidden></p>
  </div>
- <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.16 · 26.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
+ <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.17 · 26.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
 </section>
 </main>
 
@@ -1826,6 +1968,17 @@ function reveal(){ $$('.reveal:not(.in)').forEach(function(el){ if(io) io.observ
 /* аккордеон */
 function openAcc(a, on){ a.classList.toggle('open', on); }
 $$('.acc').forEach(function(a){ $('.acc-h',a).addEventListener('click',function(){ openAcc(a, !a.classList.contains('open')); if(a.classList.contains('open') && $('.counter',a)) wake(); }); });
+/* Сборы · чек-лист: галочки хранятся на телефоне */
+(function(){
+ var boxes=$$('input[data-pk]'); if(!boxes.length) return;
+ function key(c){ return 'pk-'+c.getAttribute('data-pk'); }
+ function upd(){ var d=0; boxes.forEach(function(c){ if(c.checked) d++; c.closest('label').classList.toggle('on',c.checked); });
+  var t=d+' из '+boxes.length; $$('#packStat,#packCnt').forEach(function(e){ e.textContent=t; }); }
+ boxes.forEach(function(c){ c.checked=!!get(key(c),false); c.addEventListener('change',function(){ set(key(c),c.checked); buzz(6); upd(); }); });
+ var r=$('#packReset'); if(r) r.addEventListener('click',function(){ boxes.forEach(function(c){ c.checked=false; set(key(c),false); }); upd(); });
+ var pc=$('#packCard'); if(pc && Date.now()>Date.parse('2026-10-28T03:15:00+05:00')) pc.hidden=true;
+ upd();
+})();
 
 /* шаги умры */
 var steps=$$('.acc.step'), TOTAL=steps.length;
