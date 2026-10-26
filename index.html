@@ -283,6 +283,21 @@ nav.tabs button.dot::after{ content:""; position:absolute; top:.35rem; left:calc
 .tl .what{ font-weight:700; line-height:1.3; }
 .tl .meta{ font-size:.8rem; color:var(--muted); margin-top:.15rem; }
 .tl .badge{ display:inline-block; font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; background:var(--orange); color:#fff; border-radius:.3rem; padding:.05rem .35rem; margin-left:.3rem; vertical-align:.1rem; }
+/* v2.18 карточка «Сейчас» на главной */
+.now{ border:2px solid var(--line); }
+.now.live{ border-color:var(--orange); }
+.now .kicker{ display:inline-flex; align-items:center; gap:.4rem; }
+.now .dot{ width:.5rem; height:.5rem; border-radius:50%; background:var(--line); flex:none; }
+.now.live .dot{ background:var(--orange); animation:pulseO 1.8s infinite; }
+.now .now-t{ margin-top:.5rem; font-weight:800; font-size:.95rem; color:var(--teal-d); }
+.now .now-w{ font-size:1.3rem; font-weight:800; line-height:1.2; margin-top:.15rem; }
+.now .now-p{ margin-top:.3rem; font-size:.88rem; color:var(--muted); line-height:1.3; }
+.now .now-next{ margin-top:.65rem; padding-top:.55rem; border-top:1px solid var(--line); font-size:.88rem; color:var(--muted); line-height:1.3; }
+.now .now-next b{ color:var(--ink); font-weight:700; }
+.now .now-acts{ display:flex; gap:.5rem; margin-top:.75rem; }
+.now .now-acts .btn{ min-width:0; min-height:2.9rem; font-size:.92rem; }
+.now #nowList{ margin-top:.5rem; }
+.back{ display:inline-block; font-weight:700; color:var(--teal-d); margin:0 0 .4rem; padding:.3rem 0; }
 /* лента «Путь» и трек на главной */
 .trip{ text-align:left; width:100%; transition:transform .15s var(--ease); }
 .trip:active{ transform:scale(.985); }
@@ -807,7 +822,7 @@ img{ -webkit-user-drag:none; }
 @media (prefers-reduced-motion: reduce){ *,*::before,*::after{ animation:none !important; transition:none !important; } .reveal{ opacity:1; transform:none; } }
 /* ---------- фокус-группа v2.8: пальцы пожилых и мелкий текст ---------- */
 .call{ min-height:2.75rem; min-width:2.75rem; justify-content:center; padding:0 .3rem; margin:-.5rem 0; vertical-align:middle; }
-#installHide, #nowMore, #resetBtn{ min-height:2.75rem; padding:0 .6rem; margin:-.6rem -.6rem -.6rem 0; }
+#installHide, #resetBtn{ min-height:2.75rem; padding:0 .6rem; margin:-.6rem -.6rem -.6rem 0; }
 /* ---------- v2.13: время намаза и кибла ---------- */
 .prt .nw{white-space:nowrap}
 .pr-top{ display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; }
@@ -920,6 +935,17 @@ img{ -webkit-user-drag:none; }
   <div class="chips" id="heroChips"></div>
  </div>
  <div id="annBox"></div>
+<!-- v2.18 «Сейчас»: один главный пункт программы по времени и месту; весь день — по кнопке -->
+ <div class="card now reveal" id="nowCard" hidden>
+  <div class="trow"><span class="kicker" id="nowKick"><i class="dot"></i>Сейчас</span><span class="small" id="nowCity"></span></div>
+  <div class="now-t" id="nowT"></div>
+  <div class="now-w" id="nowW"></div>
+  <div class="now-p" id="nowP"></div>
+  <div class="now-next" id="nowNext" hidden></div>
+  <div class="now-acts"><button class="btn ghost" id="nowDay" type="button">Весь день</button><button class="btn ghost" id="nowMore" data-i18n="home.all" data-go="prog" type="button">Весь путь →</button></div>
+  <div class="tl" id="nowList" hidden></div>
+ </div>
+ 
  <div id="pollBox"></div>
  <div id="regBox"></div>
  <div class="banner" id="installBanner" hidden>
@@ -937,10 +963,6 @@ img{ -webkit-user-drag:none; }
   <h3>Чек-лист сборов</h3>
   <span class="small">Что взять, что выдаём, личная аптечка. Галочки сохраняются в телефоне.</span>
  </button>
- <div class="card reveal" id="nowCard">
-  <div class="row" style="display:flex;justify-content:space-between;align-items:baseline"><h3 id="nowTitle">Сегодня</h3><button class="small" id="nowMore" data-i18n="home.all" data-go="prog" style="color:var(--teal-d);font-weight:700">Весь путь →</button></div>
-  <div class="tl" id="nowList"></div>
- </div>
  <div class="card reveal" id="wxCard">
   <div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem"><h3>Погода в пути</h3><span class="small" id="wxNote"></span></div>
   <p class="small" style="margin:.1rem 0 .5rem">Нажмите на город — прогноз на каждый день и по часам.</p>
@@ -1508,6 +1530,7 @@ img{ -webkit-user-drag:none; }
 
 <!-- ================= ПУТЬ ================= -->
 <section class="view" id="v-prog">
+ <button class="small back" data-go="home" type="button">← Сейчас</button>
  <h2 class="sec" data-i18n="sec.prog">Путь</h2>
  <p class="sub" data-i18n="sec.prog.s">Нажмите на остановку — откроются дни. Программу обновляет Чингис.</p>
  <a class="btn" id="progLink" href="program/" style="margin:0 0 1rem">Программа по дням<svg viewBox="0 0 24 24" style="width:1.1em;height:1.1em"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
@@ -1893,10 +1916,10 @@ img{ -webkit-user-drag:none; }
 <div class="dlg" id="phBig"><img alt="Фото ворот"><button class="btn" id="phClose">Закрыть</button></div>
 <nav class="tabs">
  <span class="pill" id="pill"></span>
- <button data-tab="home"><svg><use href="#i-star"/></svg><span data-i18n="tab.home">Главная</span></button>
+ <button data-tab="home"><svg><use href="#i-star"/></svg><span data-i18n="tab.home">Сейчас</span></button>
  <button data-tab="umra"><svg><use href="#i-tawaf"/></svg><span data-i18n="tab.umra">Умра</span></button>
  <button data-tab="dua"><svg><use href="#i-heart"/></svg><span data-i18n="tab.dua">Дуа</span></button>
- <button data-tab="prog"><svg><use href="#i-plane"/></svg><span data-i18n="tab.prog">Путь</span></button>
+ <button data-tab="map"><svg><use href="#i-walk"/></svg><span data-i18n="tab.map">Карта</span></button>
  <button data-tab="more"><svg><use href="#i-dome"/></svg><span data-i18n="tab.more">Ещё</span></button>
 </nav>
 
@@ -1940,20 +1963,23 @@ applyLite(get('lite',weak?1:0));
 $$('[data-lite-set]').forEach(function(b){ b.onclick=function(){ buzz(8); applyLite(b.getAttribute('data-lite-set')==='1'); }; });
 
 /* языки интерфейса: русский берём из разметки, казахский и английский — из словаря (содержание пока на русском) */
-var L={"ru": {"my.ph1": "За кого или о чём", "my.ph2": "Слова дуа или подробности — по желанию", "btn.save": "Сохранить", "btn.del": "Удалить", "my.mark": "Отметить", "my.stat": "Сделано {d} из {n}", "my.hamd": " · аль-хамду ли-Лляхь", "z.of": "из {g}", "z.tap": "нажмите", "z.again": "✓ ещё круг", "z.lap": "Кругов: {l} · всего {n}", "z.goal": "Цель {g}", "z.zeroQ": "Начать счёт этого зикра заново?", "z.btn": "Счёт +1", "z.src": "Источник", "z.chk": "Перевод смысла — на сверку", "pr.title": "Мои дуа", "pr.sub": "Умра · 28.10–06.11.2026", "pr.name": "Паломник", "pr.date": "Дата", "pr.foot": "Пусть Аллах примет ваши дуа.", "h3d.t": "Харам в 3D", "h3d.s": "Кааба · таваф · Сафа и Марва"}, "kk": {"app.t": "Умра жолсерігі", "app.s": "Умра · JURT · 28.10–⁠06.11.2026", "app.fs": "Қаріп өлшемі", "tab.home": "Басты", "tab.umra": "Умра", "tab.dua": "Дұға", "tab.prog": "Жол", "tab.more": "Тағы", "home.all": "Бүкіл жол →", "home.chat": "Топтың WhatsApp чаты", "tile.duaS": "гид дұғалары, өз тізіміңіз, зікір", "tile.med": "Мәдина", "tile.medS": "сәлем, Рауда, Құба, Ұхұд", "tile.lost": "Адасып қалдым", "tile.lostS": "қоңырау · қайдамын · жиналу орны", "sec.dua": "Дұға", "sec.prog": "Жол", "sec.prog.s": "Аялдаманы басыңыз — күндер ашылады. Бағдарламаны Шыңғыс жаңартып отырады.", "sec.med": "Мәдина", "sec.med.s": "Мәсжид ән-Нәбауи · 29.10–01.11, 04.11", "sec.memo": "Жадынама", "seg.guide": "Гид дұғалары", "seg.mine": "Дұғаларым", "seg.zikr": "Зікір", "dua.sub": "Дұғаны басыңыз — арабша мәтіні, оқылуы және аудармасы ашылады. Дұғаны өз тіліңізде де жасауға болады — бастысы, шын жүректен.", "my.sub": "Кім үшін және не сұрайтыныңызды жазып алыңыз. Харамда ✓ белгілеп отырыңыз — ештеңе ұмытылмайды.", "q.self": "Өзім үшін", "q.par": "Ата-анам үшін", "q.fam": "Отбасым үшін", "q.kids": "Балаларым үшін", "q.umma": "Үмбет үшін", "q.asked": "Мені сұрағандар…", "q.askedQ": "Сұрады: ", "my.ph1": "Кім үшін немесе не туралы", "my.ph2": "Дұға сөздері немесе толығырақ — қаласаңыз", "my.add": "Қосу", "my.empty": "Әзірге бос. Алғашқы дұғаны қосыңыз — мысалы, ата-анаңыз үшін.", "my.store": "Жазбалар тек осы телефонда сақталады.", "my.uncheck": "Барлық ✓ белгілерін алып тастау", "my.print": "Басып шығару / PDF", "my.printH": "Басып шығару терезесі ашылады: қағазға шығарыңыз немесе PDF етіп сақтаңыз. iPhone-да — сол терезедегі «Бөлісу» → «Файлдарға сақтау».", "btn.save": "Сақтау", "btn.del": "Өшіру", "my.mark": "Белгілеу", "my.stat": "{n} дұғаның {d}-і орындалды", "my.hamd": " · әлхамдулиллаһ", "z.sub": "Зікірді таңдап, шеңберді басыңыз. Әр 33 сайын — жарқыл мен діріл (iPhone-да тек жарқыл).", "z.of": "{g}-ден", "z.tap": "басыңыз", "z.again": "✓ тағы бір айналым", "z.lap": "Айналым: {l} · барлығы {n}", "z.goal": "Мақсат {g}", "z.zero": "Нөлдеу", "z.zeroQ": "Бұл зікірді басынан бастаймыз ба?", "z.btn": "Санау +1", "z.fadl": "Фазилеті", "z.store": "Әр зікірдің саны телефонда бөлек сақталады.", "z.src": "Дереккөз", "z.chk": "Мағына аудармасы — тексерілуде", "more.my": "Менің деректерім", "more.link": "Шыңғыстан келген жеке сілтеме", "more.linkPh": "сілтемені немесе кодты қойыңыз", "more.linkS": "Шыңғыстың хабарламасындағы сілтемені қойыңыз — аты-жөніңіз бен бөлме нөмірлері өздігінен толады.", "more.notme": "Бұл мен емеспін · ауыстыру", "more.name": "Аты-жөні", "more.rmed": "Қонақүйдегі бөлме · Мәдина", "more.rmak": "Қонақүйдегі бөлме · Мекке", "more.store": "Бұл жазбалар тек осы телефонда сақталады.", "set.t": "Баптаулар", "set.fs0": "Aa қалыпты", "set.fs1": "Aa ірі", "set.fs2": "Aa өте ірі", "set.th0": "Телефондағыдай", "set.th1": "Ашық", "set.th2": "Қараңғы", "set.lang": "Тіл", "lang.note": "Интерфейс қазақша. Умра қадамдары, дұғалар мен хадистер әзірге орыс тілінде.", "foot.dua": "Алла умрамызды қабыл етіп, жолымызды жеңілдетсін.", "foot.ver": "Нұсқа", "foot.lic": "© 2026 JURT Group. Барлық құқықтар қорғалған. Материалдарды көшіру — тек JURT рұқсатымен.", "am.h": "Аманат", "am.t": "Бұл гид — JURT командасының еңбегі және топ қажыларына аманат. Материалдарды рұқсатсыз көшірмеңіз және таратпаңыз: исламда өзгенің еңбегі — авторының хақысы, оны келісімсіз иемдену жарамайды. Бір нәрсе керек болса, JURT-тан сұраңыз — бөлісеміз.", "upd.t": "Гидтің жаңа нұсқасы бар", "upd.b": "Жаңарту", "toast.b": "Болдырмау", "pr.title": "Дұғаларым", "pr.sub": "Умра · 28.10–06.11.2026", "pr.name": "Зиярат етуші", "pr.date": "Күні", "pr.foot": "Алла дұғаларыңызды қабыл етсін.", "tile.dua": "Дұға", "h3d.t": "Харам 3D форматта", "h3d.s": "Қағба · тауап · Сафа мен Марва"}, "en": {"app.t": "Pilgrim’s Guide", "app.s": "Umrah · JURT · 28.10–⁠06.11.2026", "app.fs": "Text size", "tab.home": "Home", "tab.umra": "Umrah", "tab.dua": "Duas", "tab.prog": "Trip", "tab.more": "More", "home.all": "Full trip →", "home.chat": "Group chat on WhatsApp", "tile.duaS": "guide’s duas, your list, dhikr", "tile.med": "Madinah", "tile.medS": "salam, Rawdah, Quba, Uhud", "tile.lost": "I’m lost", "tile.lostS": "call · where am I · meeting point", "sec.dua": "Duas", "sec.prog": "Our trip", "sec.prog.s": "Tap a stop to see its days. Chingis keeps the programme up to date.", "sec.med": "Madinah", "sec.med.s": "Masjid an-Nabawi · 29.10–01.11, 04.11", "sec.memo": "Essentials", "seg.guide": "Guide’s duas", "seg.mine": "My duas", "seg.zikr": "Dhikr", "dua.sub": "Tap a dua to see the Arabic, transliteration and translation. You may also make dua in your own language — what matters is the heart.", "my.sub": "Write down who and what to pray for. Tick ✓ in the Haram so nothing is forgotten.", "q.self": "For myself", "q.par": "For my parents", "q.fam": "For my family", "q.kids": "For my children", "q.umma": "For the Ummah", "q.asked": "Asked of me…", "q.askedQ": "Asked by: ", "my.ph1": "Who or what for", "my.ph2": "Words of the dua or details — optional", "my.add": "Add", "my.empty": "Nothing here yet. Add your first dua — for your parents, for example.", "my.store": "Your notes stay on this phone only.", "my.uncheck": "Clear all ticks ✓", "my.print": "Print / PDF", "my.printH": "A print window opens: print it or save as PDF. On iPhone, tap Share in that window → Save to Files.", "btn.save": "Save", "btn.del": "Delete", "my.mark": "Tick", "my.stat": "Done {d} of {n}", "my.hamd": " · alhamdulillah", "z.sub": "Pick a dhikr and tap the circle. Every 33 — a flash and a buzz (on iPhone, the flash only).", "z.of": "of {g}", "z.tap": "tap", "z.again": "✓ one more round", "z.lap": "Rounds: {l} · total {n}", "z.goal": "Goal {g}", "z.zero": "Reset", "z.zeroQ": "Start counting this dhikr again?", "z.btn": "Count +1", "z.fadl": "Virtue", "z.store": "Each dhikr keeps its own count on this phone.", "z.src": "Source", "z.chk": "Translation of meaning — under review", "more.my": "My details", "more.link": "Personal link from Chingis", "more.linkPh": "paste the link or code", "more.linkS": "Paste the link from Chingis’s message — your name and room numbers fill in by themselves.", "more.notme": "Not me · change", "more.name": "Your name", "more.rmed": "Hotel room · Madinah", "more.rmak": "Hotel room · Makkah", "more.store": "These notes stay on this phone only.", "set.t": "Settings", "set.fs0": "Aa normal", "set.fs1": "Aa large", "set.fs2": "Aa extra large", "set.th0": "Like my phone", "set.th1": "Light", "set.th2": "Dark", "set.lang": "Language", "lang.note": "The interface is in English. Umrah steps, duas and hadith are in Russian for now.", "foot.dua": "May Allah accept our umrah and make the journey easy.", "foot.ver": "Version", "foot.lic": "© 2026 JURT Group. All rights reserved. Copying is allowed only with JURT's permission.", "am.h": "Amanah", "am.t": "This guide is the work of the JURT team and an amanah for the pilgrims of our group. Please do not copy or forward its materials without permission: in Islam, a person's work is their right, and taking it without consent is not permitted. If you need something, ask JURT and we will gladly share.", "upd.t": "A guide update is available", "upd.b": "Update", "toast.b": "Undo", "pr.title": "My duas", "pr.sub": "Umrah · 28.10–06.11.2026", "pr.name": "Pilgrim", "pr.date": "Date", "pr.foot": "May Allah accept your duas.", "tile.dua": "Duas", "h3d.t": "Haram in 3D", "h3d.s": "Kaaba · tawaf · Safa and Marwa"}};
+var L={"ru": {"my.ph1": "За кого или о чём", "my.ph2": "Слова дуа или подробности — по желанию", "btn.save": "Сохранить", "btn.del": "Удалить", "my.mark": "Отметить", "my.stat": "Сделано {d} из {n}", "my.hamd": " · аль-хамду ли-Лляхь", "z.of": "из {g}", "z.tap": "нажмите", "z.again": "✓ ещё круг", "z.lap": "Кругов: {l} · всего {n}", "z.goal": "Цель {g}", "z.zeroQ": "Начать счёт этого зикра заново?", "z.btn": "Счёт +1", "z.src": "Источник", "z.chk": "Перевод смысла — на сверку", "pr.title": "Мои дуа", "pr.sub": "Умра · 28.10–06.11.2026", "pr.name": "Паломник", "pr.date": "Дата", "pr.foot": "Пусть Аллах примет ваши дуа.", "h3d.t": "Харам в 3D", "h3d.s": "Кааба · таваф · Сафа и Марва"}, "kk": {"app.t": "Умра жолсерігі", "app.s": "Умра · JURT · 28.10–⁠06.11.2026", "app.fs": "Қаріп өлшемі", "tab.home": "Қазір", "tab.map": "Карта", "tab.umra": "Умра", "tab.dua": "Дұға", "tab.prog": "Жол", "tab.more": "Тағы", "home.all": "Бүкіл жол →", "home.chat": "Топтың WhatsApp чаты", "tile.duaS": "гид дұғалары, өз тізіміңіз, зікір", "tile.med": "Мәдина", "tile.medS": "сәлем, Рауда, Құба, Ұхұд", "tile.lost": "Адасып қалдым", "tile.lostS": "қоңырау · қайдамын · жиналу орны", "sec.dua": "Дұға", "sec.prog": "Жол", "sec.prog.s": "Аялдаманы басыңыз — күндер ашылады. Бағдарламаны Шыңғыс жаңартып отырады.", "sec.med": "Мәдина", "sec.med.s": "Мәсжид ән-Нәбауи · 29.10–01.11, 04.11", "sec.memo": "Жадынама", "seg.guide": "Гид дұғалары", "seg.mine": "Дұғаларым", "seg.zikr": "Зікір", "dua.sub": "Дұғаны басыңыз — арабша мәтіні, оқылуы және аудармасы ашылады. Дұғаны өз тіліңізде де жасауға болады — бастысы, шын жүректен.", "my.sub": "Кім үшін және не сұрайтыныңызды жазып алыңыз. Харамда ✓ белгілеп отырыңыз — ештеңе ұмытылмайды.", "q.self": "Өзім үшін", "q.par": "Ата-анам үшін", "q.fam": "Отбасым үшін", "q.kids": "Балаларым үшін", "q.umma": "Үмбет үшін", "q.asked": "Мені сұрағандар…", "q.askedQ": "Сұрады: ", "my.ph1": "Кім үшін немесе не туралы", "my.ph2": "Дұға сөздері немесе толығырақ — қаласаңыз", "my.add": "Қосу", "my.empty": "Әзірге бос. Алғашқы дұғаны қосыңыз — мысалы, ата-анаңыз үшін.", "my.store": "Жазбалар тек осы телефонда сақталады.", "my.uncheck": "Барлық ✓ белгілерін алып тастау", "my.print": "Басып шығару / PDF", "my.printH": "Басып шығару терезесі ашылады: қағазға шығарыңыз немесе PDF етіп сақтаңыз. iPhone-да — сол терезедегі «Бөлісу» → «Файлдарға сақтау».", "btn.save": "Сақтау", "btn.del": "Өшіру", "my.mark": "Белгілеу", "my.stat": "{n} дұғаның {d}-і орындалды", "my.hamd": " · әлхамдулиллаһ", "z.sub": "Зікірді таңдап, шеңберді басыңыз. Әр 33 сайын — жарқыл мен діріл (iPhone-да тек жарқыл).", "z.of": "{g}-ден", "z.tap": "басыңыз", "z.again": "✓ тағы бір айналым", "z.lap": "Айналым: {l} · барлығы {n}", "z.goal": "Мақсат {g}", "z.zero": "Нөлдеу", "z.zeroQ": "Бұл зікірді басынан бастаймыз ба?", "z.btn": "Санау +1", "z.fadl": "Фазилеті", "z.store": "Әр зікірдің саны телефонда бөлек сақталады.", "z.src": "Дереккөз", "z.chk": "Мағына аудармасы — тексерілуде", "more.my": "Менің деректерім", "more.link": "Шыңғыстан келген жеке сілтеме", "more.linkPh": "сілтемені немесе кодты қойыңыз", "more.linkS": "Шыңғыстың хабарламасындағы сілтемені қойыңыз — аты-жөніңіз бен бөлме нөмірлері өздігінен толады.", "more.notme": "Бұл мен емеспін · ауыстыру", "more.name": "Аты-жөні", "more.rmed": "Қонақүйдегі бөлме · Мәдина", "more.rmak": "Қонақүйдегі бөлме · Мекке", "more.store": "Бұл жазбалар тек осы телефонда сақталады.", "set.t": "Баптаулар", "set.fs0": "Aa қалыпты", "set.fs1": "Aa ірі", "set.fs2": "Aa өте ірі", "set.th0": "Телефондағыдай", "set.th1": "Ашық", "set.th2": "Қараңғы", "set.lang": "Тіл", "lang.note": "Интерфейс қазақша. Умра қадамдары, дұғалар мен хадистер әзірге орыс тілінде.", "foot.dua": "Алла умрамызды қабыл етіп, жолымызды жеңілдетсін.", "foot.ver": "Нұсқа", "foot.lic": "© 2026 JURT Group. Барлық құқықтар қорғалған. Материалдарды көшіру — тек JURT рұқсатымен.", "am.h": "Аманат", "am.t": "Бұл гид — JURT командасының еңбегі және топ қажыларына аманат. Материалдарды рұқсатсыз көшірмеңіз және таратпаңыз: исламда өзгенің еңбегі — авторының хақысы, оны келісімсіз иемдену жарамайды. Бір нәрсе керек болса, JURT-тан сұраңыз — бөлісеміз.", "upd.t": "Гидтің жаңа нұсқасы бар", "upd.b": "Жаңарту", "toast.b": "Болдырмау", "pr.title": "Дұғаларым", "pr.sub": "Умра · 28.10–06.11.2026", "pr.name": "Зиярат етуші", "pr.date": "Күні", "pr.foot": "Алла дұғаларыңызды қабыл етсін.", "tile.dua": "Дұға", "h3d.t": "Харам 3D форматта", "h3d.s": "Қағба · тауап · Сафа мен Марва"}, "en": {"app.t": "Pilgrim’s Guide", "app.s": "Umrah · JURT · 28.10–⁠06.11.2026", "app.fs": "Text size", "tab.home": "Now", "tab.map": "Map", "tab.umra": "Umrah", "tab.dua": "Duas", "tab.prog": "Trip", "tab.more": "More", "home.all": "Full trip →", "home.chat": "Group chat on WhatsApp", "tile.duaS": "guide’s duas, your list, dhikr", "tile.med": "Madinah", "tile.medS": "salam, Rawdah, Quba, Uhud", "tile.lost": "I’m lost", "tile.lostS": "call · where am I · meeting point", "sec.dua": "Duas", "sec.prog": "Our trip", "sec.prog.s": "Tap a stop to see its days. Chingis keeps the programme up to date.", "sec.med": "Madinah", "sec.med.s": "Masjid an-Nabawi · 29.10–01.11, 04.11", "sec.memo": "Essentials", "seg.guide": "Guide’s duas", "seg.mine": "My duas", "seg.zikr": "Dhikr", "dua.sub": "Tap a dua to see the Arabic, transliteration and translation. You may also make dua in your own language — what matters is the heart.", "my.sub": "Write down who and what to pray for. Tick ✓ in the Haram so nothing is forgotten.", "q.self": "For myself", "q.par": "For my parents", "q.fam": "For my family", "q.kids": "For my children", "q.umma": "For the Ummah", "q.asked": "Asked of me…", "q.askedQ": "Asked by: ", "my.ph1": "Who or what for", "my.ph2": "Words of the dua or details — optional", "my.add": "Add", "my.empty": "Nothing here yet. Add your first dua — for your parents, for example.", "my.store": "Your notes stay on this phone only.", "my.uncheck": "Clear all ticks ✓", "my.print": "Print / PDF", "my.printH": "A print window opens: print it or save as PDF. On iPhone, tap Share in that window → Save to Files.", "btn.save": "Save", "btn.del": "Delete", "my.mark": "Tick", "my.stat": "Done {d} of {n}", "my.hamd": " · alhamdulillah", "z.sub": "Pick a dhikr and tap the circle. Every 33 — a flash and a buzz (on iPhone, the flash only).", "z.of": "of {g}", "z.tap": "tap", "z.again": "✓ one more round", "z.lap": "Rounds: {l} · total {n}", "z.goal": "Goal {g}", "z.zero": "Reset", "z.zeroQ": "Start counting this dhikr again?", "z.btn": "Count +1", "z.fadl": "Virtue", "z.store": "Each dhikr keeps its own count on this phone.", "z.src": "Source", "z.chk": "Translation of meaning — under review", "more.my": "My details", "more.link": "Personal link from Chingis", "more.linkPh": "paste the link or code", "more.linkS": "Paste the link from Chingis’s message — your name and room numbers fill in by themselves.", "more.notme": "Not me · change", "more.name": "Your name", "more.rmed": "Hotel room · Madinah", "more.rmak": "Hotel room · Makkah", "more.store": "These notes stay on this phone only.", "set.t": "Settings", "set.fs0": "Aa normal", "set.fs1": "Aa large", "set.fs2": "Aa extra large", "set.th0": "Like my phone", "set.th1": "Light", "set.th2": "Dark", "set.lang": "Language", "lang.note": "The interface is in English. Umrah steps, duas and hadith are in Russian for now.", "foot.dua": "May Allah accept our umrah and make the journey easy.", "foot.ver": "Version", "foot.lic": "© 2026 JURT Group. All rights reserved. Copying is allowed only with JURT's permission.", "am.h": "Amanah", "am.t": "This guide is the work of the JURT team and an amanah for the pilgrims of our group. Please do not copy or forward its materials without permission: in Islam, a person's work is their right, and taking it without consent is not permitted. If you need something, ask JURT and we will gladly share.", "upd.t": "A guide update is available", "upd.b": "Update", "toast.b": "Undo", "pr.title": "My duas", "pr.sub": "Umrah · 28.10–06.11.2026", "pr.name": "Pilgrim", "pr.date": "Date", "pr.foot": "May Allah accept your duas.", "tile.dua": "Duas", "h3d.t": "Haram in 3D", "h3d.s": "Kaaba · tawaf · Safa and Marwa"}};
 var LANG='ru'; /* v2.8: языки временно скрыты — переводы на сверке */
 function t(k,o){ var s=(L[LANG][k]!=null)?L[LANG][k]:(L.ru[k]!=null?L.ru[k]:k); if(o) for(var x in o) s=s.split('{'+x+'}').join(o[x]); return s; }
 
 /* вкладки */
-var TABS=['home','umra','dua','prog','more'];
+/* v2.18: вкладки Сейчас · Умра · Дуа · Карта (→ /where/) · Ещё; «Путь» (v-prog) открывается из «Сейчас» и подсвечивает её же */
+var TABS=['home','umra','dua','map','more'], VIEWS=['home','umra','dua','prog','more'];
 var curTab=null, scrollMem={};
 function show(tab, anchor, restore){
-  if(TABS.indexOf(tab)<0) tab='home';
+  if(tab==='map'){ location.href='where/'; return; }
+  if(VIEWS.indexOf(tab)<0) tab='home';
   if(curTab) scrollMem[curTab]=window.scrollY;
   var back=restore && tab!==curTab; curTab=tab;
+  var nt = tab==='prog' ? 'home' : tab;
   $$('.view').forEach(function(v){ v.classList.toggle('on', v.id==='v-'+tab); });
-  $$('nav.tabs button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===tab); });
-  $('#pill').style.transform='translateX('+(TABS.indexOf(tab)*100)+'%)';
+  $$('nav.tabs button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===nt); });
+  $('#pill').style.transform='translateX('+(TABS.indexOf(nt)*100)+'%)';
   set('tab',tab); root.classList.remove('pm');
   if(anchor){ var a=document.getElementById(anchor); if(a) setTimeout(function(){ a.scrollIntoView({behavior:'smooth'}); },50); } else window.scrollTo(0, back ? (scrollMem[tab]||0) : 0);
   reveal();
@@ -2322,8 +2348,56 @@ function renderMates(me){
         (d?'<div class="acts"><a class="btn" href="tel:+'+d+'">Звонок</a><a class="btn wa" href="https://wa.me/'+d+'" target="_blank" rel="noopener">WhatsApp</a></div>':'<span class="tbd">нет номера</span>')+'</div>'; }).join(''); }).join('');
   box.innerHTML='<b>Мои соседи по номеру</b>'+(rows||'<p class="small">Соседи появятся, когда Чингис заполнит номера комнат в таблице.</p>');
 }
+/* ---------- v2.18 «Сейчас»: программа из таблицы Чингиса (API), а пока её нет — из program/program.json (лежит в кэше, работает без интернета) ---------- */
+function pjRows(pj){
+  var rows=[]; ((pj&&pj.days)||[]).forEach(function(d){
+    var p=String(d.date||'').split('-'); if(p.length!==3) return;
+    var dt=p[2]+'.'+p[1]+'.'+p[0], title=String(d.title||''), city=String(d.city||'');
+    (d.items||[]).forEach(function(it){ rows.push({date:dt, time:it.t||'', place:it.p||'', what:it.w||'', transport:it.tr||'', who:it.who||'', city:city, day:(title&&title!==city)?title:'', m:it.m||'', st:it.st||''}); });
+  }); return rows;
+}
+function progRows(D){ var p=D&&D.program; if(p&&p.length) return p; return get('pj',[]); }
+function loadPJ(){
+  fetch('program/program.json',{cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){
+    var rows=pjRows(j); if(!rows.length) return;
+    var old=JSON.stringify(get('pj',[])); set('pj',rows); if(old!==JSON.stringify(rows)) renderData();
+  }).catch(function(){});
+}
+/* начался ли пункт: по своему времени; без времени («Фаджр», «После зухра») — вслед за предыдущим, когда тот кончился */
+function startedAt(list,i,nm){
+  var m=mins(list[i].time); if(m!==null) return m<=nm;
+  if(i===0) return false;
+  var prev=String(list[i-1].time||''), mm=prev.match(/(\d{1,2}):(\d{2})\D+(\d{1,2}):(\d{2})/), end=mm?(+mm[3])*60+(+mm[4]):null;
+  return startedAt(list,i-1,nm) && (end===null || end<=nm);
+}
+var nowOpen=false;
+function renderNow(by, dates, t, di){
+  var card=$('#nowCard'); if(!dates.length){ card.hidden=true; return; }
+  var nm=nowMin(), dt=by[t]?t:null, kick, state='';
+  if(!dt){ for(var k=0;k<dates.length;k++){ if(dIdx(dates[k])>di){ dt=dates[k]; break; } } }
+  if(!dt){ card.hidden=true; return; }   /* путь пройден — карточка не нужна */
+  var list=by[dt], cur=-1;
+  if(dt===t){ list.forEach(function(r,i){ if(startedAt(list,i,nm)) cur=i; }); }
+  var main=list[cur>=0?cur:0], nxt=list[(cur>=0?cur:0)+1], nxtDay='';
+  if(!nxt){ var j=dates.indexOf(dt)+1; if(j<dates.length){ nxt=by[dates[j]][0]; nxtDay=(dIdx(dates[j])===di+1?'завтра':dates[j].slice(0,5)); } }
+  if(dt===t){ kick = cur>=0 ? 'Сейчас' : 'Скоро'; state = cur>=0 ? 'now' : ''; }
+  else kick = (dIdx(dt)<0 ? 'Накануне · ' : 'Ближайшее · ')+dt.slice(0,5);
+  card.hidden=false; card.classList.toggle('live', state==='now');
+  $('#nowKick').innerHTML='<i class="dot"></i>'+esc(kick);
+  var city=main.city||cityOf(dt,[].concat.apply([],dates.map(function(d){ return by[d]; })));
+  $('#nowCity').textContent=city||'';
+  $('#nowT').textContent=main.time||'';
+  $('#nowW').textContent=main.what||'';
+  var meta=[main.place, main.transport && main.transport!=='—' ? main.transport : '', main.who && main.who!=='—' ? 'отв.: '+main.who : ''].filter(Boolean).join(' · ');
+  $('#nowP').textContent=meta; $('#nowP').hidden=!meta;
+  var nb=$('#nowNext');
+  if(nxt){ nb.hidden=false; nb.innerHTML='<b>Потом'+(nxtDay?' · '+esc(nxtDay):'')+':</b> '+esc([nxt.time,nxt.what].filter(Boolean).join(' · ')); } else nb.hidden=true;
+  $('#nowList').innerHTML=itemsHtml(list, dt);
+  $('#nowList').hidden=!nowOpen; $('#nowDay').textContent=nowOpen?'Свернуть':'Весь день';
+}
+$('#nowDay').onclick=function(){ buzz(8); nowOpen=!nowOpen; $('#nowList').hidden=!nowOpen; this.textContent=nowOpen?'Свернуть':'Весь день'; };
 function renderData(){
-  var D=get('data',null), me=D&&D.me, prog=(D&&D.program)||[];
+  var D=get('data',null), me=D&&D.me, prog=progRows(D);
   /* герой */
   var name = (me&&me.first) || get('in-f-name','') || '';
   $('#heroName').textContent = name ? name : 'Дорогой паломник';
@@ -2354,12 +2428,8 @@ function renderData(){
   /* сейчас и далее */
   var t=today(), dates=[], by={};
   prog.forEach(function(r){ if(!by[r.date]){ by[r.date]=[]; dates.push(r.date); } by[r.date].push(r); });
-  var showDate = by[t] ? t : (di<0 ? dates[0] : null);
-  if(prog.length && showDate){
-    $('#nowCard').hidden=false;
-    $('#nowTitle').textContent = showDate===t ? 'Сегодня' : 'Первый день · '+showDate.slice(0,5);
-    $('#nowList').innerHTML=itemsHtml(by[showDate], showDate);
-  } else $('#nowCard').hidden=true;
+  dates.sort(function(a,b){ return dIdx(a)-dIdx(b); });
+  renderNow(by, dates, t, di);
   renderPath(by, dates, t, di);
   $('#dataNote').textContent = D&&D.updated ? 'Данные от Чингиса обновлены '+D.updated+(navigator.onLine?'':' · сейчас без интернета') : 'Подробная программа загрузится при первом подключении к интернету.';
 }
@@ -2795,7 +2865,7 @@ function goVote(){ if(!/^#vote/.test(location.hash)) return; show('home'); wantV
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   toPoll(); }
 window.addEventListener('hashchange',goVote);
-renderData(); load();
+renderData(); load(); loadPJ();
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible'){ renderData(); load(); } });
 window.addEventListener('online',load);
 setInterval(function(){ if(document.visibilityState==='visible') renderData(); },60000);
