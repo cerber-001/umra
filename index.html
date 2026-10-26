@@ -615,6 +615,7 @@ nav.tabs button.on svg{ color:var(--orange); transform:translateY(-2px) scale(1.
 .lost-call, .lost-wa{ display:flex; align-items:center; gap:.8rem; min-height:4.2rem; padding:.7rem 1rem; border-radius:1.1rem; color:#fff; text-decoration:none; transition:transform .15s var(--ease); }
 .lost-call{ background:#C0352B; box-shadow:0 8px 20px rgba(192,53,43,.3); }
 .lost-wa{ background:#15803D; box-shadow:0 8px 20px rgba(21,128,61,.28); }
+.lost-map{ background:#005A5C; box-shadow:0 8px 20px rgba(0,90,92,.28); }
 .lost-call:active, .lost-wa:active{ transform:scale(.97); }
 .lost-call svg, .lost-wa svg{ flex:none; width:2rem; height:2rem; }
 .lost-call span, .lost-wa span{ display:flex; flex-direction:column; line-height:1.25; }
@@ -1667,7 +1668,7 @@ img{ -webkit-user-drag:none; }
   </div>
   <p class="small" id="langNote" data-i18n="lang.note" hidden></p>
  </div>
- <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.15 · 25.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
+ <p class="foot"><span data-i18n="foot.dua">Пусть Аллах примет нашу умру и облегчит путь.</span> · JURT · 2026<br><span data-i18n="foot.ver">Версия</span> 2.16 · 26.10.2026<br><span data-i18n="foot.lic">© 2026 JURT Group. Все права защищены. Копирование материалов — только с разрешения JURT.</span></p>
 </section>
 </main>
 
@@ -1686,6 +1687,7 @@ img{ -webkit-user-drag:none; }
  <p class="lost-tip"><b>Не ищите</b> группу в толпе. Идите к точке сбора или в отель и напишите в чат.</p>
  <a class="lost-call" href="tel:+77777825555"><svg><use href="#i-phone"/></svg><span><b>Позвонить Чингису</b><small>+7 777 782 55 55</small></span></a>
  <a class="lost-wa" id="lostWa" href="https://wa.me/77777825555" target="_blank" rel="noopener"><svg><use href="#i-pin"/></svg><span><b>Отправить, где я</b><small>WhatsApp Чингису · с точкой на карте</small></span></a>
+ <a class="lost-wa lost-map" href="where/"><svg><use href="#i-walk"/></svg><span><b>Карта группы</b><small>где все наши и пеший путь до них, до точки сбора, ворот, WC</small></span></a>
  <div class="lost-st"><button class="linkbtn" id="lostGeo">Определить, где я</button><a class="linkbtn" id="lostSms" href="sms:+77777825555">SMS без интернета</a></div>
  <div class="lost-card"><div class="kicker">Точка сбора</div><div id="lostPts"></div>
   <div class="lost-gates"><label class="field"><span>Медина<br>ворота №</span><input data-k="p2-1"></label><label class="field"><span>Мекка<br>ворота №</span><input data-k="p2-2"></label></div>

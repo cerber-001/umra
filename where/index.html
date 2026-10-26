@@ -1,0 +1,1531 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Где группа · JURT</title>
+<meta name="description" content="Карта группы паломников в Мекке и Медине: где свои, точки сбора, «Я потерялся», время азана, перекличка">
+<meta name="theme-color" content="#00292C">
+<link rel="icon" href="../icon-192.png">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<style>
+@font-face{font-family:'Exo 2';src:url(../exo2-regular.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Exo 2';src:url(../exo2-semibold.woff2) format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:'Exo 2';src:url(../exo2-bold.woff2) format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'Amiri';src:url(../amiri-400.woff2) format('woff2');font-weight:400;font-display:swap}
+:root{--sea:#005A5C;--deep:#00292C;--sun:#F07A1E;--bg:#F3F6F6;--ink:#0E2224;--mute:#5C7072;--line:#DDE6E6;--soft:#E6F0F0;--red:#C8372D}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.4 'Exo 2',system-ui,sans-serif;overflow:hidden}
+button,input,select,textarea{font:inherit}
+#map{position:fixed;inset:0;background:#E9EEEE}
+header{position:fixed;left:0;right:0;top:0;z-index:500;display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;background:linear-gradient(160deg,var(--deep),var(--sea));color:#fff}
+header h1{flex:1;margin:0;font-size:17px;line-height:1.15;font-weight:700;min-width:0}
+header h1 small{display:block;font-weight:400;font-size:11.5px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font-weight:600;font-size:12.5px;padding:6px 10px;border-radius:999px;cursor:pointer;text-decoration:none;white-space:nowrap}
+#top{position:fixed;z-index:600;left:12px;right:12px;top:calc(62px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:6px;pointer-events:none}
+#top>*{pointer-events:auto}
+#top>.chips{pointer-events:none;display:flex;flex-wrap:wrap;gap:6px}
+body.sheeton #top>:not(#sos):not(#net){display:none!important}   /* сигнал «нужна помощь» виден всегда */
+#banner{display:none;background:#FFF6EE;border-left:3px solid var(--sun);border-radius:10px;padding:7px 10px;font-size:12.5px;box-shadow:0 2px 8px rgba(0,41,44,.12)}
+#meet{display:none;background:var(--sun);color:#fff;border-radius:12px;padding:8px 12px;font-weight:600;font-size:13.5px;box-shadow:0 2px 8px rgba(0,41,44,.2);cursor:pointer}
+#meet small{display:block;font-weight:400;font-size:12px;opacity:.95}
+#meet.go{background:var(--red);animation:pulseR 1.6s infinite}
+#sos{display:none;background:var(--red);color:#fff;border-radius:12px;padding:10px 12px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+#net{display:none;align-self:center;background:var(--deep);color:#fff;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+#net.off{background:var(--red)}
+#note{display:none;position:relative;background:#fff;border-left:4px solid var(--sea);border-radius:10px;padding:7px 36px 7px 10px;box-shadow:0 2px 8px rgba(0,41,44,.15);cursor:pointer}
+#note small{display:block;color:var(--sea);font-weight:600;font-size:11.5px}
+#noteTx{font-size:13.5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+#note.full #noteTx{display:block}
+#noteX{position:absolute;right:6px;top:6px;border:0;background:var(--soft);color:var(--sea);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1}
+.chip{pointer-events:auto;border:0;background:rgba(255,255,255,.96);color:var(--deep);border-radius:999px;padding:5px 11px;font-size:12.5px;box-shadow:0 1px 6px rgba(0,41,44,.18);cursor:pointer}
+.chip b{color:var(--sea)}
+.chip.soon{background:var(--sun);color:#fff}.chip.soon b{color:#fff}
+.chip.far{background:var(--deep);color:#fff}
+#dock{position:fixed;z-index:500;left:0;right:0;bottom:0;padding:10px 12px calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;pointer-events:none}
+#dock>*{pointer-events:auto}
+#near{align-self:flex-start;background:rgba(0,41,44,.88);color:#fff;border-radius:10px;padding:6px 10px;font-size:12.5px;display:none}
+.row{display:flex;gap:8px}
+.big{flex:1;border:0;border-radius:14px;padding:14px 10px;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 3px 10px rgba(0,41,44,.25)}
+#lost{background:var(--sun);color:#fff}
+.sec{flex:none;width:auto;padding:14px;background:#fff;color:var(--sea);border:1px solid var(--line);font-size:14px}
+#me{position:fixed;z-index:500;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--sea);font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,41,44,.18)}
+.sheet{position:fixed;z-index:700;left:0;right:0;bottom:0;max-height:82vh;overflow:auto;background:#fff;border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(0,41,44,.25);transform:translateY(105%);transition:transform .25s}
+.sheet.on{transform:none}
+.sheet h2{margin:0 0 6px;font-size:18px;color:var(--deep)}
+.sheet h3{margin:16px 0 4px;font-size:16px;color:var(--deep)}
+.sheet .x{float:right;border:0;background:var(--soft);color:var(--sea);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer}
+.sheet p{margin:6px 0;color:#2A3D3F;font-size:14px}
+.mute{color:var(--mute);font-size:12.5px}
+.sheet p.mute{color:var(--mute);font-size:12.5px}
+.btns{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.b{display:block;text-align:center;border:0;border-radius:12px;padding:12px;font-weight:600;font-size:15px;cursor:pointer;text-decoration:none}
+.b.o{background:var(--sun);color:#fff}
+.b.s{background:var(--sea);color:#fff}
+.b.l{background:var(--soft);color:var(--sea)}
+.b.r{background:#FBE9E7;color:var(--red)}
+.b.big2{padding:18px;font-size:18px}
+.target{display:flex;align-items:center;gap:14px;background:var(--soft);border-radius:14px;padding:12px;margin:10px 0}
+.arrow{flex:none;width:64px;height:64px;border-radius:50%;background:var(--sea);display:grid;place-items:center;transition:transform .3s}
+.arrow svg{width:34px;height:34px}
+.target b{display:block;font-size:17px;color:var(--deep)}
+.target .d{font-size:26px;font-weight:700;color:var(--sun);line-height:1.1}
+.tchips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tchips button{border:1px solid var(--line);background:#fff;color:var(--sea);border-radius:999px;padding:6px 11px;font-weight:600;font-size:13px;cursor:pointer}
+.tchips button.on{background:var(--sea);color:#fff;border-color:var(--sea)}
+label.f{display:block;margin:10px 0 4px;font-weight:600;font-size:13px;color:var(--sea)}
+input[type=text],input[type=tel],select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;color:var(--ink);font-size:16px}
+textarea{min-height:84px;resize:vertical}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:12px 0;font-size:13.5px}
+.chk input{width:22px;height:22px;flex:none;margin:0;accent-color:var(--sea)}
+.list{margin:8px 0 0;padding:0;list-style:none}
+.list li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--soft);font-size:14px}
+.list li:first-child{border-top:0}
+.list li.hd{display:block;font-weight:700;color:var(--sea);font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:12px 0 2px;border-top:0}
+.list .nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.list .ago{color:var(--mute);font-size:12px;white-space:nowrap}
+.list button{border:0;background:var(--soft);color:var(--sea);border-radius:8px;padding:5px 9px;font-weight:600;font-size:12.5px;cursor:pointer}
+.list button.x{background:none;color:var(--mute);font-size:18px;padding:2px 6px}
+.tag{display:inline-block;background:#FBE9E7;color:var(--red);border-radius:6px;padding:0 5px;font-size:11px;font-weight:700;margin-left:5px}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;background:var(--sea)}
+.dot.old{background:#B9C6C7}.dot.sos{background:var(--red)}.dot.lead{background:var(--deep)}.dot.me{background:var(--sun)}
+.dot.gone{background:#fff;border:2px dashed #9AAAAC}
+.langs{display:flex;gap:6px;margin-top:10px}
+.langs button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px;color:var(--sea);font-weight:600;cursor:pointer}
+.langs button.on{background:var(--sea);color:#fff;border-color:var(--sea)}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:8px 0}
+.seg button{flex:1;border:0;background:#fff;color:var(--sea);padding:9px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--sea);color:#fff}
+.tpl{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tpl button{border:1px solid var(--line);background:var(--soft);color:var(--sea);border-radius:10px;padding:6px 9px;font-size:12.5px;cursor:pointer;text-align:left}
+.prt{width:100%;border-collapse:collapse;margin:8px 0;font-size:16px}
+.prt td{padding:8px 4px;border-top:1px solid var(--soft)}
+.prt td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.prt tr.nx td{color:var(--sun);font-weight:700}
+.prt tr.past td{color:var(--mute)}
+.pol{font:400 27px/1.55 'Amiri',serif;color:var(--deep);text-align:right;margin-top:10px}
+.pol .ltr{direction:ltr;unicode-bidi:isolate;font:700 22px 'Exo 2',sans-serif}
+.pol-en{color:var(--mute);font-size:13px;border-bottom:1px solid var(--soft);padding-bottom:6px}
+/* метки на карте */
+.pin{display:flex;flex-direction:column;align-items:center;transform:translateY(-6px);cursor:pointer}
+.pin i{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--sea);color:#fff;font:700 12px 'Exo 2',sans-serif;font-style:normal;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.pin span{margin-top:2px;background:rgba(255,255,255,.92);color:var(--deep);font:600 11px 'Exo 2',sans-serif;padding:1px 5px;border-radius:5px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.pin.old i{background:#9AAAAC}.pin.lead i{background:var(--deep)}
+.pin.sos i{background:var(--red);animation:pulse 1s infinite}
+.pin.self i{background:var(--sun);animation:pulse 2s infinite}
+.pin.gone i{background:#fff;color:#7D8D8F;border:2px dashed #9AAAAC;box-shadow:none}
+.pin.gone span{color:var(--mute)}
+.flag{display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.flag i{display:grid;place-items:center;width:26px;height:26px;border-radius:6px 6px 6px 0;background:#fff;color:var(--sun);border:2px solid var(--sun);font:700 13px 'Exo 2',sans-serif;font-style:normal;transform:rotate(-45deg);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.flag i b{transform:rotate(45deg)}
+.flag span{margin-top:4px;background:var(--sun);color:#fff;font:600 11px 'Exo 2',sans-serif;padding:1px 6px;border-radius:5px;white-space:nowrap}
+.flag.meet i{background:var(--sun);color:#fff;width:32px;height:32px}
+.gl,.wc{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;cursor:pointer;text-align:center}
+.gl{min-width:20px;height:18px;padding:0 4px;border-radius:5px;background:rgba(255,255,255,.93);border:1px solid var(--sea);color:var(--sea);font:700 10.5px/16px 'Exo 2',sans-serif;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.gl.main{background:var(--sea);color:#fff;font-size:11.5px;height:20px;line-height:18px}
+.wc{height:16px;padding:0 4px;border-radius:4px;background:var(--deep);color:#fff;font:700 9.5px/16px 'Exo 2',sans-serif;opacity:.9}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(240,122,30,.55)}70%{box-shadow:0 0 0 14px rgba(240,122,30,0)}100%{box-shadow:0 0 0 0 rgba(240,122,30,0)}}
+@keyframes pulseR{0%{box-shadow:0 0 0 0 rgba(200,55,45,.5)}70%{box-shadow:0 0 0 10px rgba(200,55,45,0)}100%{box-shadow:0 0 0 0 rgba(200,55,45,0)}}
+.leaflet-container{font-family:'Exo 2',sans-serif}
+.leaflet-control-attribution{font-size:10px}
+.leaflet-top{top:calc(60px + env(safe-area-inset-top))}
+.leaflet-bottom{bottom:calc(76px + env(safe-area-inset-bottom))}
+#toast{position:fixed;z-index:800;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--deep);color:#fff;padding:8px 14px;border-radius:16px;font-size:13px;display:none;max-width:90vw;text-align:center}
+#toast.act{cursor:pointer;background:var(--sun);font-weight:600;padding:10px 16px}
+.wc.poi{font-size:10px}
+#tRt{display:block;margin-top:2px;font-size:12px}
+#cLink{font-size:13px;margin:6px 0}
+body.sheeton #toast{bottom:auto;top:calc(64px + env(safe-area-inset-top))}   /* при открытой шторке — сверху, чтобы не закрывать кнопки */
+</style>
+</head>
+<body>
+<div id="map"></div>
+<header>
+  <a class="hb" href="../" data-t="back">← Гид</a>
+  <h1><span data-t="title">Где группа</span><small id="sub"></small></h1>
+  <button class="hb" id="menuBtn" data-t="menu">Группа</button>
+</header>
+<div id="top">
+  <div id="sos"></div>
+  <div id="net"></div>
+  <div id="note"><button id="noteX" aria-label="×">×</button><small id="noteBy"></small><div id="noteTx"></div></div>
+  <div id="meet"></div>
+  <div class="chips"><button class="chip" id="prChip"></button><button class="chip soon" id="askChip" style="display:none"></button><button class="chip far" id="farChip" style="display:none"></button></div>
+  <div id="banner"></div>
+</div>
+<button id="me" aria-label="Моё место">◎</button>
+<div id="dock">
+  <div id="near"></div>
+  <div class="row">
+    <button class="big" id="lost" data-t="lost">Я потерялся</button>
+    <button class="big sec" id="addBtn" data-t="add">+ Точка</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<!-- Вход в группу -->
+<section class="sheet" id="join">
+  <h2 data-t="joinH">Где группа</h2>
+  <p data-t="joinP"></p>
+  <label class="f" for="jGroup" data-t="code">Код группы</label>
+  <input type="text" id="jGroup" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="UMRA-0009-…" maxlength="40">
+  <label class="f" for="jName" data-t="name">Ваше имя</label>
+  <input type="text" id="jName" autocomplete="given-name" maxlength="24">
+  <label class="chk"><input type="checkbox" id="jShare" checked><span data-t="consent"></span></label>
+  <div class="langs" id="jLangs"></div>
+  <div class="btns"><button class="b s" id="jGo" data-t="start">Начать</button></div>
+  <p class="mute" data-t="joinNote"></p>
+  <div class="btns"><button class="b l" id="jNew" data-t="create"></button></div>
+  <p class="mute" data-t="createNote"></p>
+</section>
+
+<!-- Я потерялся / Куда идти -->
+<section class="sheet" id="lostS">
+  <button class="x" data-close>×</button>
+  <h2 id="lH"></h2>
+  <p id="lP" data-t="lostP"></p>
+  <div class="tchips" id="tChips"></div>
+  <div class="target"><div class="arrow" id="arrow"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 1l7 9h-4.5v13h-5V10H5z"/></svg></div>
+    <div><b id="tName">—</b><span class="d" id="tDist">—</span> <span class="mute" id="tDir"></span><span class="mute" id="tRt"></span></div></div>
+  <p class="mute" id="tGate"></p>
+  <div class="btns">
+    <a class="b o" id="tWalk" target="_blank" rel="noopener" data-t="walk"></a>
+    <button class="b r" id="tCall" data-t="call"></button>
+    <button class="b l" id="tFound" data-t="found"></button>
+    <a class="b s" id="tLead" data-t="callLead"></a>
+    <a class="b s" id="tWa" target="_blank" rel="noopener" data-t="wa"></a>
+    <button class="b l" id="tPol" data-t="police"></button>
+  </div>
+  <p class="mute" id="lTip" data-t="lostTip"></p>
+</section>
+
+<!-- Карточка для полиции -->
+<section class="sheet" id="polS">
+  <button class="x" data-close>×</button>
+  <h2 data-t="polH"></h2>
+  <p class="mute" data-t="polHint"></p>
+  <div id="polBody"></div>
+  <div class="btns"><a class="b s" id="polCall" data-t="callLead"></a><button class="b l" data-back="lostS" data-t="back2"></button></div>
+</section>
+
+<!-- Время намаза -->
+<section class="sheet" id="prS">
+  <button class="x" data-close>×</button>
+  <h2 id="prH"></h2>
+  <table class="prt"><tbody id="prT"></tbody></table>
+  <label class="chk"><input type="checkbox" id="prRem"><span data-t="remind"></span></label>
+  <p class="mute" id="prNote"></p>
+</section>
+
+<!-- Объявление (руководитель) -->
+<section class="sheet" id="noteS">
+  <button class="x" data-close>×</button>
+  <h2 data-t="noteH"></h2>
+  <p class="mute" data-t="noteP"></p>
+  <div class="tpl" id="nTpl"></div>
+  <textarea id="nBody" maxlength="280" data-tp="notePh"></textarea>
+  <div class="btns"><button class="b o" id="nSend" data-t="send"></button></div>
+</section>
+
+<!-- Перекличка (руководитель) -->
+<section class="sheet" id="rollS">
+  <button class="x" data-close>×</button>
+  <h2 data-t="roll"></h2>
+  <p id="rCount" style="font-weight:700;color:var(--sea)"></p>
+  <ul class="list" id="rList"></ul>
+  <div class="btns"><button class="b l" id="rAgain" data-t="repeat"></button><button class="b r" id="rEnd" data-t="finish"></button></div>
+</section>
+
+<!-- Перекличка (участник) -->
+<section class="sheet" id="askS">
+  <h2 data-t="askH"></h2>
+  <p id="askBy"></p>
+  <p data-t="askP"></p>
+  <div class="btns"><button class="b s big2" id="aOk" data-t="imOk"></button><button class="b r big2" id="aHelp" data-t="needHelp"></button></div>
+</section>
+
+<!-- Меню группы -->
+<section class="sheet" id="menuS">
+  <button class="x" data-close>×</button>
+  <h2 id="mTitle">—</h2>
+  <p class="mute" id="mMode"></p>
+  <label class="chk"><input type="checkbox" id="mShare"><span data-t="shareNow"></span></label>
+  <label class="f" data-t="cityL"></label>
+  <div class="seg" id="mCity"><button data-c="mak" data-t="mak"></button><button data-c="med" data-t="med"></button></div>
+  <label class="f" for="mFloor" data-t="floor"></label>
+  <select id="mFloor"></select>
+  <div class="btns" style="margin-top:8px"><button class="b l" id="mHere" data-t="here"></button></div>
+  <label class="chk"><input type="checkbox" id="mWake"><span data-t="wake"></span></label>
+  <div id="mLead">
+    <h3 data-t="leadTools"></h3>
+    <div class="btns" style="margin-top:6px"><button class="b o" id="mRoll" data-t="roll"></button><button class="b s" id="mNote" data-t="noteH"></button></div>
+    <label class="f" for="mTel" data-t="telLabel"></label>
+    <input type="tel" id="mTel" maxlength="20" placeholder="+966 5…" autocomplete="tel">
+  </div>
+  <h3 data-t="people"></h3>
+  <ul class="list" id="mPeople"></ul>
+  <h3 data-t="notes"></h3>
+  <ul class="list" id="mNotes"></ul>
+  <h3 data-t="points"></h3>
+  <ul class="list" id="mPoints"></ul>
+  <div class="btns">
+    <button class="b l" id="mShareLink" data-t="invite"></button>
+    <button class="b l" id="mCoLead" data-t="coLead"></button>
+    <button class="b r" id="mWipe" data-t="wipe"></button>
+    <button class="b l" id="mLeave" data-t="leave"></button>
+  </div>
+  <div class="langs" id="mLangs"></div>
+  <p class="mute" data-t="privacy"></p>
+  <p class="mute">© OpenStreetMap contributors (ODbL) — карта, улицы и пешие маршруты</p>
+</section>
+
+<!-- Новая точка / назначить сбор -->
+<section class="sheet" id="ptS">
+  <button class="x" data-close>×</button>
+  <h2 id="pH"></h2>
+  <p class="mute" id="pP" data-t="newPtP"></p>
+  <label class="f" for="pName" data-t="ptName"></label>
+  <input type="text" id="pName" maxlength="60">
+  <div id="pMeetBox">
+    <label class="f" for="pTime" data-t="meetAt"></label>
+    <input type="text" id="pTime" inputmode="numeric" placeholder="14:30" maxlength="5">
+  </div>
+  <div class="btns"><button class="b s" id="pGo" data-t="goHere"></button><button class="b o" id="pSave" data-t="save"></button><button class="b r" id="pDel" data-t="del"></button></div>
+</section>
+<!-- Подтверждение и ссылка — своей шторкой: системные окна на телефоне блокируют страницу -->
+<section class="sheet" id="confS">
+  <button class="x" data-close>×</button>
+  <h2 id="cH"></h2>
+  <p id="cP"></p>
+  <div id="cLinkBox" style="display:none"><input type="text" id="cLink" readonly><div class="btns"><button class="b o" id="cCopy" data-t="copy"></button></div></div>
+  <div class="btns" id="cBtns"><button class="b r" id="cYes" data-t="yes"></button><button class="b l" id="cNo" data-t="no"></button></div>
+</section>
+<div id="cross" style="display:none;position:fixed;z-index:650;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;pointer-events:none"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="7" fill="none" stroke="#F07A1E" stroke-width="3"/><path d="M18 0v10M18 26v10M0 18h10M26 18h10" stroke="#00292C" stroke-width="2"/></svg></div>
+
+<script src="config.js"></script>
+<script src="vendor/leaflet.js"></script>
+<script src="../prayer.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const CFG = window.WHERE_CFG || {};
+const LIVE = !!(CFG.url && CFG.key);
+const Q = new URLSearchParams(location.search);
+const PR = window.JurtPrayer || null;
+function rid(n = 10, abc = "abcdefghijkmnpqrstuvwxyz23456789") {
+  const a = new Uint8Array(n); crypto.getRandomValues(a);
+  return Array.from(a, (x) => abc[x % abc.length]).join("");
+}
+
+// ---------- Языки (казахский — на сверку) ----------
+const T = {
+  ru: {back:"← Гид",title:"Где группа",menu:"Группа",lost:"Я потерялся",add:"+ Точка",joinH:"Где группа",joinP:"Видно, где свои и где точка сбора. Если отстали — кнопка «Я потерялся» покажет, куда идти.",code:"Код группы",name:"Ваше имя (как в группе WhatsApp)",
+    consent:"Показывать моё место участникам этой группы, пока открыта эта страница. В базу место не записывается. Если вы закроете страницу, у участников до 3 часов останется серая метка «последнее место» — чтобы вас было легче найти. Снимете галочку — метка исчезнет у всех.",
+    start:"Начать",create:"Создать новую группу",createNote:"Руководителю: впишите начало кода (например UMRA-0009) и нажмите «Создать новую группу» — добавится случайная часть, чтобы код нельзя было угадать. Потом отправьте приглашение в WhatsApp группы.",
+    joinNote:"Телефон спросит разрешение на геолокацию — нажмите «Разрешить». Внутри Харама GPS ошибается на 20–50 м и не знает этаж: уточните место вручную.",
+    lostH:"Без паники — вы не одни",goH:"Куда идти",lostP:"Остановитесь в безопасном месте, не уходите в толпу. Выберите, куда идти:",walk:"Маршрут пешком",call:"Позвать группу",found:"Я с группой — отменить сигнал",callLead:"Позвонить руководителю",wa:"Отправить место в WhatsApp",police:"Карточка для полиции (по-арабски)",
+    lostTip:"Совет: запомните номер ближайших ворот — по нему вас быстрее всего найдут. Если садится телефон — стойте у этих ворот.",
+    shareNow:"Показывать моё место группе",floor:"Где я (если GPS ошибается)",here:"Я здесь — поставить вручную на карте",cityL:"Город",mak:"Мекка",med:"Медина",wake:"Не гасить экран, пока открыта карта",
+    leadTools:"Руководителю",roll:"Перекличка",noteH:"Объявление группе",telLabel:"Ваш телефон — участники смогут позвонить из «Я потерялся»",people:"Участники",notes:"Объявления",points:"Точки сбора",invite:"Пригласить в группу",coLead:"Ссылка для второго руководителя",
+    coLeadWarn:"Эта ссылка даёт права руководителя: назначать сбор, удалять точки, делать перекличку и объявления. Отправьте её лично помощнику, не в общий чат. Продолжить?",
+    wipe:"Завершить поездку — стереть точки и объявления",leave:"Выйти из группы",
+    privacy:"Место не записывается в базу: его видят только участники с этим кодом, пока страница открыта. Если страницу закрыли, у участников до 3 часов видна серая метка «последнее место». Точки сбора и объявления стираются после поездки. Когда телефон заблокирован, место не обновляется — для этого есть «Отправить место в WhatsApp».",
+    newPt:"Новая точка сбора",newPtP:"Точка — там, где прицел в центре карты. Подвиньте карту, если нужно.",ptName:"Название",meetAt:"Сбор здесь в (местное время, необязательно)",save:"Сохранить",del:"Удалить точку",goHere:"Идти сюда",
+    demo:"Демо-режим: другие участники ненастоящие, ваше место видно только в этом браузере.",tripDone:"Поездка завершена — место больше не передаётся.",live:"Живой режим",leadMode:"вы — руководитель",you:"вы",now:"сейчас",min:"мин назад",hr:"ч назад",dy:"дн назад",
+    noGps:"Нет GPS — нажмите сюда и отметьте себя на карте",nearGate:"Рядом: ",tgtGate:"Там: ",gateNo:"Ворота № ",women:"вход для женщин",meetTxt:"Сбор: ",at:" в ",noPts:"Точек пока нет",
+    called:"Группа получила сигнал. Оставайтесь на месте.",sosFrom:"Нужна помощь: ",sosTap:" — нажмите, чтобы пойти навстречу",sosFound:(n)=>n+" — с группой, сигнал отменён",
+    copied:"Ссылка скопирована",need:"Введите код группы и имя",needName:"Введите ваше имя",codeBad:"Код группы: 4–40 латинских букв, цифр или дефисов",created:"Группа создана. Отправьте приглашение участникам",noGroup:"Группы с таким кодом нет или её срок вышел. Проверьте код в приглашении",routeOk:(m)=>"≈ "+m+" мин пешком по улицам (OSM)",routeLine:"прямая линия — пешего пути по карте не нашлось",tPharm:"Аптека",tMed:"Медпункт",tSalon:"Барбершоп",tWater:"Вода",tapGo:" — нажмите, чтобы проложить путь",yes:"Да",no:"Отмена",copy:"Копировать",linkH:"Ссылка",linkP:"Скопируйте ссылку и отправьте её в WhatsApp.",wipeQ:"Стереть все точки и объявления группы? Отменить нельзя.",leadOnly:"Ключ руководителя хранится только на телефоне, где группу создали. Отправьте ссылку с того телефона.",
+    inviteTxt:"«Где группа» — карта нашей группы в Мекке и Медине. Откройте ссылку и нажмите «Начать»:",
+    waMsg:"Не могу найти группу. Моё место: ",waGate:"Рядом ворота № ",tapMap:"Коснитесь карты там, где вы стоите",placed:"Место поставлено вручную",meetSet:"Сбор назначен",meetNew:(n,tm)=>"★ Сбор: "+n+(tm?" в "+tm:"")+" — нажмите, чтобы пойти",show:"Показать",go:"Идти",makeMeet:"Сбор здесь",
+    tMeet:"★ Сбор",tHotel:"Отель",tLead:"★ Руководитель",tWcM:"WC муж.",tWcF:"WC жен.",tAll:"Все точки",wcName:(g,n)=>"Туалет"+(g==="m"?" мужской":g==="f"?" женский":"")+(n?" № "+n:""),
+    online:"онлайн",hidden:"место скрыто",noFix:"ещё нет GPS",forget:"Убрать из списка",goneTxt:"последнее место",farTag:"далеко",far:(d)=>"★ Руководитель: "+d+" от вас — показать",
+    inPre:"через ",inPost:"",h:" ч ",mn:" мин",walkMin:(n)=>"≈ "+n+" мин пешком",leaveNow:"пора выходить",late:(n)=>"опаздываете на "+n+" мин",leaveAlert:(n)=>"Пора выходить к месту сбора: идти ≈ "+n+" мин",
+    timeBad:"Время — в виде 14:30",ptRange:"Точку можно поставить только в Мекке или Медине",
+    azan:"Азан",prH:"Время намаза",tomorrow:"завтра",pr:{fajr:"Фаджр",sunrise:"Восход",dhuhr:"Зухр",asr:"Аср",maghrib:"Магриб",isha:"Иша",jumua:"Джума"},
+    prNoteMak:"Время азана в Харам аль-Макки — по календарю Умм аль-Кура (официальный календарь Саудовской Аравии), расчёт с точностью ±1–2 мин. Договаривайтесь о встрече заранее: перед намазом у входов многолюдно.",
+    prNoteMed:"Время азана в Мечети Пророка ﷺ — по календарю Умм аль-Кура (официальный календарь Саудовской Аравии), расчёт с точностью ±1–2 мин. Договаривайтесь о встрече заранее: перед намазом у входов многолюдно.",
+    remind:"Напоминать за 20 минут до азана",remTxt:(n,p,m)=>"Через "+n+" мин азан: "+p+(m?". Сбор: "+m:""),
+    noteP:"Его увидят все участники — и те, кто откроет страницу позже. Хранится до конца поездки.",notePh:"Например: сбор у ворот № 79 после иша",send:"Отправить",noteSent:"Объявление отправлено",noNotes:"Объявлений нет",fromLead:"Руководитель",
+    tpls:(m)=>[m?"Сбор: "+m+" — через 15 минут":"Через 15 минут собираемся на нашем месте",m?"После намаза — сбор: "+m:"После намаза — собираемся на нашем месте","Идём в отель, ждём всех в лобби","Автобус отправляется через 30 минут","Не расходитесь — идём вместе","Кто отстал — нажмите «Я потерялся»"],
+    rollStart:"Перекличка отправлена",askH:"Перекличка",askBy:(n)=>"Руководитель "+n+" проверяет, все ли на месте.",askP:"Ответьте одним нажатием:",askChip:"✋ Перекличка — ответьте",imOk:"Я в порядке",needHelp:"Нужна помощь",
+    rollCount:(n,m)=>"Ответили "+n+" из "+m,rollHelp:"Нужна помощь",rollOk:"В порядке",rollNo:"Нет ответа",offline:"не в сети",repeat:"Повторить для неответивших",finish:"Завершить перекличку",ackSent:"Ответ отправлен руководителю",
+    polH:"Для полиции",polHint:"Покажите этот экран полицейскому или сотруднику Харама.",back2:"← Назад",
+    batLow:(n,g)=>"Батарея "+n+"%. "+(g?"Ближайшие ворота № "+g+". ":"")+"Если телефон сядет — оставайтесь на месте или у ближайших ворот: группа увидит, где вы были последний раз.",
+    netOff:"Нет интернета — место не обновляется",netConn:"Подключаюсь к группе…",netErr:"Связь прервалась — переподключаюсь…",err:"Не получилось: ",
+    floorsMak:["Не знаю","Двор у Каабы (мата́ф)","1 этаж","2 этаж","Крыша","Галерея Сафа — Марва","На улице","В отеле"],
+    floorsMed:["Не знаю","В мечети (молитвенный зал)","Ар-Рауда","Крыша мечети","Двор под зонтами","Туалеты / омовение (под двором)","На улице","В отеле"],
+    dirs:["на север","на северо-восток","на восток","на юго-восток","на юг","на юго-запад","на запад","на северо-запад"],m:" м",km:" км",
+    ptsMak:["Отель Address Jabal Omar — лобби","Ворота № 79 короля Фахда","Ворота № 1 короля Абдулазиза","Ворота № 25 у Марвы (выход после саи)","Часовая башня — вход с площади"],
+    ptsMed:["Ворота № 1 — Баб ас-Салям","Ворота № 20–22 короля Фахда (север)","Ворота № 5 — Баб Куба","Ворота № 41 — аль-Баки","Ворота № 33–35 короля Абдулазиза"]},
+  kk: {back:"← Гид",title:"Топ қайда",menu:"Топ",lost:"Мен адастым",add:"+ Нүкте",joinH:"Топ қайда",joinP:"Өзіміздікілер қайда, жиналу нүктесі қайда — бәрі көрінеді. Қалып қойсаңыз, «Мен адастым» батырмасы қайда бару керегін көрсетеді.",code:"Топ коды",name:"Атыңыз (WhatsApp тобындағыдай)",
+    consent:"Осы бет ашық тұрғанда орнымды осы топ мүшелеріне көрсету. Орын базаға жазылмайды. Бетті жапсаңыз, қатысушыларда 3 сағатқа дейін сұр «соңғы орны» белгісі қалады — сізді табу оңай болу үшін. Белгіні алсаңыз — ол бәрінде жоғалады.",
+    start:"Бастау",create:"Жаңа топ құру",createNote:"Жетекшіге: кодтың басын жазыңыз (мысалы UMRA-0009) да, «Жаңа топ құру» батырмасын басыңыз — кодты табу мүмкін болмас үшін кездейсоқ бөлік қосылады. Кейін шақыруды топтың WhatsApp-ына жіберіңіз.",
+    joinNote:"Телефон геолокацияға рұқсат сұрайды — «Рұқсат ету» басыңыз. Харам ішінде GPS 20–50 м қателеседі және қабатты білмейді: орныңызды қолмен нақтылаңыз.",
+    lostH:"Сабыр етіңіз — сіз жалғыз емессіз",goH:"Қайда бару керек",lostP:"Қауіпсіз жерде тоқтаңыз, топырға кірмеңіз. Қайда баратыныңызды таңдаңыз:",walk:"Жаяу бағыт",call:"Топты шақыру",found:"Мен топпен біргемін — белгіні тоқтату",callLead:"Жетекшіге қоңырау шалу",wa:"Орнымды WhatsApp-қа жіберу",police:"Полицияға арналған карточка (араб тілінде)",
+    lostTip:"Кеңес: ең жақын қақпаның нөмірін есте сақтаңыз — сізді сол арқылы тез табады. Телефон өшіп бара жатса — сол қақпаның қасында тұрыңыз.",
+    shareNow:"Орнымды топқа көрсету",floor:"Мен қайдамын (GPS қателессе)",here:"Мен осындамын — картаға қолмен қою",cityL:"Қала",mak:"Мекке",med:"Медине",wake:"Карта ашық тұрғанда экранды сөндірмеу",
+    leadTools:"Жетекшіге",roll:"Түгендеу",noteH:"Топқа хабарландыру",telLabel:"Телефоныңыз — қатысушылар «Мен адастым» ішінен қоңырау шала алады",people:"Қатысушылар",notes:"Хабарландырулар",points:"Жиналу нүктелері",invite:"Топқа шақыру",coLead:"Екінші жетекшіге сілтеме",
+    coLeadWarn:"Бұл сілтеме жетекші құқығын береді: жиналуды белгілеу, нүктелерді өшіру, түгендеу және хабарландыру. Оны көмекшіге жеке жіберіңіз, жалпы чатқа емес. Жалғастырасыз ба?",
+    wipe:"Сапарды аяқтау — нүктелер мен хабарландыруларды өшіру",leave:"Топтан шығу",
+    privacy:"Орын базаға жазылмайды: оны бет ашық тұрғанда тек осы кодпен кірген қатысушылар көреді. Бет жабылса, қатысушыларда 3 сағатқа дейін сұр «соңғы орны» белгісі көрінеді. Жиналу нүктелері мен хабарландырулар сапардан кейін өшіріледі. Телефон бұғатталған кезде орын жаңармайды — ол үшін «Орнымды WhatsApp-қа жіберу» бар.",
+    newPt:"Жаңа жиналу нүктесі",newPtP:"Нүкте — карта ортасындағы көздеудің астында. Қажет болса, картаны жылжытыңыз.",ptName:"Атауы",meetAt:"Осында жиналу уақыты (жергілікті уақыт, міндетті емес)",save:"Сақтау",del:"Нүктені өшіру",goHere:"Осында бару",
+    demo:"Демо-режим: басқа қатысушылар шынайы емес, орныңыз тек осы браузерде көрінеді.",tripDone:"Сапар аяқталды — орын енді жіберілмейді.",live:"Тірі режим",leadMode:"сіз — жетекшісіз",you:"сіз",now:"қазір",min:"мин бұрын",hr:"сағ бұрын",dy:"күн бұрын",
+    noGps:"GPS жоқ — осы жерді басып, картадан орныңызды белгілеңіз",nearGate:"Жанында: ",tgtGate:"Ол жақта: ",gateNo:"Қақпа № ",women:"әйелдер кіреберісі",meetTxt:"Жиналу: ",at:", ",noPts:"Әзірге нүкте жоқ",
+    called:"Топ белгі алды. Орныңыздан қозғалмаңыз.",sosFrom:"Көмек керек: ",sosTap:" — оған бару үшін басыңыз",sosFound:(n)=>n+" — топпен бірге, белгі тоқтатылды",
+    copied:"Сілтеме көшірілді",need:"Топ коды мен атыңызды енгізіңіз",needName:"Атыңызды енгізіңіз",codeBad:"Топ коды: 4–40 латын әрпі, сан немесе сызықша",created:"Топ құрылды. Қатысушыларға шақыру жіберіңіз",noGroup:"Мұндай кодпен топ жоқ немесе мерзімі өтіп кеткен. Шақырудағы кодты тексеріңіз",routeOk:(m)=>"≈ "+m+" мин жаяу, көшелер бойынша (OSM)",routeLine:"түзу сызық — картадан жаяу жол табылмады",tPharm:"Дәріхана",tMed:"Медпункт",tSalon:"Шаштараз",tWater:"Су",tapGo:" — жол салу үшін басыңыз",yes:"Иә",no:"Болдырмау",copy:"Көшіру",linkH:"Сілтеме",linkP:"Сілтемені көшіріп, WhatsApp-қа жіберіңіз.",wipeQ:"Топтың барлық нүктелері мен хабарландыруларын өшіру керек пе? Қайтару мүмкін емес.",leadOnly:"Жетекші кілті тек топ құрылған телефонда сақталады. Сілтемені сол телефоннан жіберіңіз.",
+    inviteTxt:"«Топ қайда» — Мекке мен Мединедегі тобымыздың картасы. Сілтемені ашып, «Бастау» басыңыз:",
+    waMsg:"Мен адастым. Менің орным: ",waGate:"Жанында қақпа № ",tapMap:"Тұрған жеріңізді картадан басыңыз",placed:"Орын қолмен қойылды",meetSet:"Жиналу белгіленді",meetNew:(n,tm)=>"★ Жиналу: "+n+(tm?", "+tm:"")+" — бару үшін басыңыз",show:"Көрсету",go:"Бару",makeMeet:"Осында жиналу",
+    tMeet:"★ Жиналу",tHotel:"Қонақүй",tLead:"★ Жетекші",tWcM:"WC ер",tWcF:"WC әйел",tAll:"Барлық нүктелер",wcName:(g,n)=>"Дәретхана"+(g==="m"?" (ерлер)":g==="f"?" (әйелдер)":"")+(n?" № "+n:""),
+    online:"желіде",hidden:"орны жасырын",noFix:"GPS әлі жоқ",forget:"Тізімнен алып тастау",goneTxt:"соңғы орны",farTag:"алыста",far:(d)=>"★ Жетекші сізден "+d+" жерде — көрсету",
+    inPre:"",inPost:" кейін",h:" сағ ",mn:" мин",walkMin:(n)=>"жаяу ≈ "+n+" мин",leaveNow:"шығатын уақыт болды",late:(n)=>n+" мин кешігіп жатырсыз",leaveAlert:(n)=>"Жиналу орнына шығатын уақыт болды: жаяу ≈ "+n+" мин",
+    timeBad:"Уақытты 14:30 түрінде жазыңыз",ptRange:"Нүктені тек Мекке немесе Мединеде қоюға болады",
+    azan:"Азан",prH:"Намаз уақыты",tomorrow:"ертең",pr:{fajr:"Таң",sunrise:"Күн шығуы",dhuhr:"Бесін",asr:"Екінті",maghrib:"Ақшам",isha:"Құптан",jumua:"Жұма"},
+    prNoteMak:"Әл-Харам мешітіндегі азан уақыты — Умм әл-Құра күнтізбесі бойынша (Сауд Арабиясының ресми күнтізбесі), есеп дәлдігі ±1–2 мин. Кездесуді алдын ала келісіңіз: намаз алдында кіреберістерде адам көп.",
+    prNoteMed:"Пайғамбар ﷺ мешітіндегі азан уақыты — Умм әл-Құра күнтізбесі бойынша (Сауд Арабиясының ресми күнтізбесі), есеп дәлдігі ±1–2 мин. Кездесуді алдын ала келісіңіз: намаз алдында кіреберістерде адам көп.",
+    remind:"Азаннан 20 минут бұрын еске салу",remTxt:(n,p,m)=>n+" минуттан кейін азан: "+p+(m?". Жиналу: "+m:""),
+    noteP:"Оны барлық қатысушылар көреді — бетті кейін ашқандар да. Сапар соңына дейін сақталады.",notePh:"Мысалы: құптаннан кейін № 79 қақпада жиналамыз",send:"Жіберу",noteSent:"Хабарландыру жіберілді",noNotes:"Хабарландыру жоқ",fromLead:"Жетекші",
+    tpls:(m)=>[m?"Жиналу: "+m+" — 15 минуттан кейін":"15 минуттан кейін өз орнымызда жиналамыз",m?"Намаздан кейін жиналу: "+m:"Намаздан кейін өз орнымызда жиналамыз","Қонақүйге барамыз, бәрін лоббиде күтеміз","Автобус 30 минуттан кейін жүреді","Тарап кетпеңіз — бірге жүреміз","Қалып қойғандар — «Мен адастым» басыңыз"],
+    rollStart:"Түгендеу жіберілді",askH:"Түгендеу",askBy:(n)=>"Жетекші "+n+" бәрі орнында ма, тексеріп жатыр.",askP:"Бір рет басып жауап беріңіз:",askChip:"✋ Түгендеу — жауап беріңіз",imOk:"Менде бәрі жақсы",needHelp:"Көмек керек",
+    rollCount:(n,m)=>m+" адамнан "+n+" жауап берді",rollHelp:"Көмек керек",rollOk:"Бәрі жақсы",rollNo:"Жауап жоқ",offline:"желіде емес",repeat:"Жауап бермегендерге қайталау",finish:"Түгендеуді аяқтау",ackSent:"Жауап жетекшіге жіберілді",
+    polH:"Полицияға",polHint:"Бұл экранды полицейге немесе Харам қызметкеріне көрсетіңіз.",back2:"← Артқа",
+    batLow:(n,g)=>"Батарея "+n+"%. "+(g?"Ең жақын қақпа № "+g+". ":"")+"Телефон өшсе — орныңызда немесе ең жақын қақпаның қасында тұрыңыз: топ сіздің соңғы орныңызды көреді.",
+    netOff:"Интернет жоқ — орын жаңармайды",netConn:"Топқа қосылып жатыр…",netErr:"Байланыс үзілді — қайта қосылып жатыр…",err:"Болмады: ",
+    floorsMak:["Білмеймін","Қағба ауласы (матаф)","1-қабат","2-қабат","Төбесі","Сафа — Марва галереясы","Көшеде","Қонақүйде"],
+    floorsMed:["Білмеймін","Мешіт ішінде (намаз залы)","Әр-Рауда","Мешіттің төбесі","Қолшатырлар астындағы аула","Дәретхана / дәрет алатын орын (аула астында)","Көшеде","Қонақүйде"],
+    dirs:["солтүстікке","солтүстік-шығысқа","шығысқа","оңтүстік-шығысқа","оңтүстікке","оңтүстік-батысқа","батысқа","солтүстік-батысқа"],m:" м",km:" км",
+    ptsMak:["Address Jabal Omar қонақүйі — лобби","Король Фаһд қақпасы, № 79","Король Әбдіғазиз қақпасы, № 1","Марва жанындағы № 25 қақпа (сағидан кейінгі шығу)","Сағат мұнарасы — алаңнан кіру"],
+    ptsMed:["№ 1 қақпа — Баб әс-Сәлам","Король Фаһд қақпалары № 20–22 (солтүстік)","№ 5 қақпа — Баб Құба","№ 41 қақпа — әл-Бақиғ","Король Әбдіғазиз қақпалары № 33–35"]},
+  en: {back:"← Guide",title:"Where's the group",menu:"Group",lost:"I'm lost",add:"+ Point",joinH:"Where's the group",joinP:"See where your group is and where to meet. If you fall behind, “I'm lost” shows you where to go.",code:"Group code",name:"Your name (as in the WhatsApp group)",
+    consent:"Show my location to members of this group while this page is open. It isn't written to any database. If you close the page, members keep a grey “last seen” mark for up to 3 hours so you're easier to find. Untick this box and the mark disappears for everyone.",
+    start:"Start",create:"Create a new group",createNote:"Leaders: type the start of the code (e.g. UMRA-0009) and tap “Create a new group” — a random part is added so the code can't be guessed. Then send the invite to the group's WhatsApp.",
+    joinNote:"Your phone will ask for location access — tap “Allow”. Inside the Haram GPS can be off by 20–50 m and doesn't know the floor: set your place manually.",
+    lostH:"Don't panic — you're not alone",goH:"Where to go",lostP:"Stop somewhere safe, stay out of the crowd. Choose where to go:",walk:"Walking route",call:"Call the group",found:"I'm with the group — cancel the alert",callLead:"Call the group leader",wa:"Send my location on WhatsApp",police:"Card for the police (in Arabic)",
+    lostTip:"Tip: remember the nearest gate number — it's the fastest way to find you. If your battery is low, wait at that gate.",
+    shareNow:"Show my location to the group",floor:"Where I am (if GPS is wrong)",here:"I'm here — set it on the map",cityL:"City",mak:"Makkah",med:"Madinah",wake:"Keep the screen on while the map is open",
+    leadTools:"For the leader",roll:"Roll call",noteH:"Announcement to the group",telLabel:"Your phone — members can call you from “I'm lost”",people:"Members",notes:"Announcements",points:"Meeting points",invite:"Invite to the group",coLead:"Link for a second leader",
+    coLeadWarn:"This link gives leader rights: setting the meeting point, deleting points, roll calls and announcements. Send it personally to your assistant, not to the group chat. Continue?",
+    wipe:"End the trip — delete points and announcements",leave:"Leave the group",
+    privacy:"Location isn't written to a database: only members with this code see it while the page is open. If the page is closed, members see a grey “last seen” mark for up to 3 hours. Meeting points and announcements are deleted after the trip. When the phone is locked, your location doesn't update — use “Send my location on WhatsApp”.",
+    newPt:"New meeting point",newPtP:"The point is under the crosshair in the middle of the map. Move the map if needed.",ptName:"Name",meetAt:"Meet here at (local time, optional)",save:"Save",del:"Delete point",goHere:"Go here",
+    demo:"Demo mode: other members aren't real, your location is only visible in this browser.",tripDone:"The trip is over — your location is no longer shared.",live:"Live mode",leadMode:"you're the leader",you:"you",now:"now",min:"min ago",hr:"h ago",dy:"d ago",
+    noGps:"No GPS — tap here and mark yourself on the map",nearGate:"Nearby: ",tgtGate:"There: ",gateNo:"Gate No. ",women:"women's entrance",meetTxt:"Meet: ",at:" at ",noPts:"No points yet",
+    called:"The group got your signal. Stay where you are.",sosFrom:"Needs help: ",sosTap:" — tap to go to them",sosFound:(n)=>n+" is with the group — alert cancelled",
+    copied:"Link copied",need:"Enter the group code and your name",needName:"Enter your name",codeBad:"Group code: 4–40 Latin letters, digits or hyphens",created:"Group created. Send the invite to members",noGroup:"No group with this code, or it has expired. Check the code in the invite",routeOk:(m)=>"≈ "+m+" min on foot along streets (OSM)",routeLine:"straight line — no walking path found on the map",tPharm:"Pharmacy",tMed:"First aid",tSalon:"Barber",tWater:"Water",tapGo:" — tap to build a route",yes:"Yes",no:"Cancel",copy:"Copy",linkH:"Link",linkP:"Copy the link and send it on WhatsApp.",wipeQ:"Erase all group points and announcements? This cannot be undone.",leadOnly:"The leader key is kept only on the phone that created the group. Send the link from that phone.",
+    inviteTxt:"“Where's the group” — our group's map in Makkah and Madinah. Open the link and tap “Start”:",
+    waMsg:"I'm lost. My location: ",waGate:"Near gate No. ",tapMap:"Tap the map where you're standing",placed:"Location set manually",meetSet:"Meeting set",meetNew:(n,tm)=>"★ Meeting: "+n+(tm?" at "+tm:"")+" — tap to go",show:"Show",go:"Go",makeMeet:"Meet here",
+    tMeet:"★ Meeting",tHotel:"Hotel",tLead:"★ Leader",tWcM:"WC men",tWcF:"WC women",tAll:"All points",wcName:(g,n)=>(g==="m"?"Men's toilet":g==="f"?"Women's toilet":"Toilet")+(n?" No. "+n:""),
+    online:"online",hidden:"location hidden",noFix:"no GPS yet",forget:"Remove from list",goneTxt:"last seen",farTag:"far",far:(d)=>"★ Leader is "+d+" away — show",
+    inPre:"in ",inPost:"",h:" h ",mn:" min",walkMin:(n)=>"≈ "+n+" min walk",leaveNow:"time to leave",late:(n)=>n+" min late",leaveAlert:(n)=>"Time to head to the meeting point: ≈ "+n+" min walk",
+    timeBad:"Time format: 14:30",ptRange:"Points can only be set in Makkah or Madinah",
+    azan:"Adhan",prH:"Prayer times",tomorrow:"tomorrow",pr:{fajr:"Fajr",sunrise:"Sunrise",dhuhr:"Dhuhr",asr:"Asr",maghrib:"Maghrib",isha:"Isha",jumua:"Jumu'ah"},
+    prNoteMak:"Adhan times at al-Masjid al-Haram — Umm al-Qura calendar (Saudi Arabia's official calendar), calculated to ±1–2 min. Agree on meeting points in advance: entrances get crowded before prayers.",
+    prNoteMed:"Adhan times at the Prophet's Mosque ﷺ — Umm al-Qura calendar (Saudi Arabia's official calendar), calculated to ±1–2 min. Agree on meeting points in advance: entrances get crowded before prayers.",
+    remind:"Remind me 20 minutes before the adhan",remTxt:(n,p,m)=>"Adhan in "+n+" min: "+p+(m?". Meeting: "+m:""),
+    noteP:"Everyone in the group will see it — including those who open the page later. Kept until the end of the trip.",notePh:"E.g. meet at Gate No. 79 after Isha",send:"Send",noteSent:"Announcement sent",noNotes:"No announcements",fromLead:"Leader",
+    tpls:(m)=>[m?"Meeting: "+m+" — in 15 minutes":"Meeting at our usual spot in 15 minutes",m?"After the prayer — meeting: "+m:"After the prayer — meeting at our usual spot","Going to the hotel, waiting for everyone in the lobby","The bus leaves in 30 minutes","Stay together — we walk as a group","If you fell behind, tap “I'm lost”"],
+    rollStart:"Roll call sent",askH:"Roll call",askBy:(n)=>"Leader "+n+" is checking that everyone is here.",askP:"Answer with one tap:",askChip:"✋ Roll call — please answer",imOk:"I'm OK",needHelp:"I need help",
+    rollCount:(n,m)=>n+" of "+m+" answered",rollHelp:"Need help",rollOk:"OK",rollNo:"No answer",offline:"offline",repeat:"Repeat for those who didn't answer",finish:"End roll call",ackSent:"Your answer was sent to the leader",
+    polH:"For the police",polHint:"Show this screen to a police officer or Haram staff.",back2:"← Back",
+    batLow:(n,g)=>"Battery "+n+"%. "+(g?"Nearest gate: No. "+g+". ":"")+"If your phone dies, stay where you are or at the nearest gate: the group will see where you were last.",
+    netOff:"No internet — location isn't updating",netConn:"Connecting to the group…",netErr:"Connection lost — reconnecting…",err:"Failed: ",
+    floorsMak:["Don't know","Kaaba courtyard (mataf)","1st floor","2nd floor","Roof","Safa — Marwa gallery","Outside","At the hotel"],
+    floorsMed:["Don't know","Inside the mosque (prayer hall)","Ar-Rawdah","Mosque roof","Courtyard under the umbrellas","Toilets / wudu (under the courtyard)","Outside","At the hotel"],
+    dirs:["north","north-east","east","south-east","south","south-west","west","north-west"],m:" m",km:" km",
+    ptsMak:["Address Jabal Omar hotel — lobby","King Fahd Gate No. 79","King Abdulaziz Gate No. 1","Gate No. 25 by Marwa (exit after sa'i)","Clock Tower — plaza entrance"],
+    ptsMed:["Gate No. 1 — Bab as-Salam","King Fahd Gates No. 20–22 (north)","Gate No. 5 — Bab Quba","Gate No. 41 — al-Baqi","King Abdulaziz Gates No. 33–35"]}
+};
+const ls = { get(k, d) { try { const v = localStorage.getItem("where." + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+             set(k, v) { try { localStorage.setItem("where." + k, JSON.stringify(v)); } catch (e) {} } };
+let lang = Q.get("lang") || ls.get("lang", (navigator.language || "ru").slice(0, 2));
+if (!T[lang]) lang = "ru";
+const t = (k, ...a) => { const v = T[lang][k] ?? T.ru[k]; return typeof v === "function" ? v(...a) : v; };
+
+// ---------- Города: Мекка и Медина ----------
+const KAABA = PR ? PR.MAKKAH : [21.42251716, 39.82619418], NABAWI = PR ? PR.MADINAH : [24.46726, 39.61113];
+const fromM = (x, y, c = KAABA) => [c[0] + y / 110540, c[1] + x / (111320 * Math.cos(c[0] * Math.PI / 180))];   // метры от центра (x — восток, y — север) → широта/долгота
+// Мечеть Пророка ﷺ (OSM): ворота [x, y, №, название, вход для женщин] и туалеты [x, y, №, m/f] — метры от центра мечети
+const MED_GATES = [[-47,20,"1","Bab as-Salam"],[-47,34,"2","Abu Bakr as-Siddiq Gate"],[-47,54,"3","Bab ar-Rahmah"],[-58,66,"4","Bab al-Hijrah"],[-123,55,"5","Bab Quba"],[-200,111,"7–9","King Saud Gates"],[-204,181,"10–11","Al-Aqiq Gates"],[-199,246,"12–14","Bab al-Majidi",1],[-123,295,"16–17","Umar ibn al-Khattab Gates",1],[-106,295,"18","Umar ibn al-Khattab Gate"],[-60,285,"19","Badr Gate"],[3,295,"20–22","King Fahd Gates"],[63,288,"23","Uhud Gate",1],[126,296,"24–26","Uthman ibn Affan Gates",1],[206,243,"28–30","Ali ibn Abi Talib Gates",1],[210,178,"31–32","Abu Dharr al-Ghifari Gates"],[210,112,"33–35","King Abdulaziz Gates"],[136,56,"37","Bab Makkah"],[67,65,"38","Bab Bilal"],[42,62,"39","Bab an-Nisa"],[47,53,"40","Bab Jibril"],[48,21,"41","Al-Baqi Gate (exit)"]];
+const MED_MAIN = ["1", "20–22", "24–26", "41", "33–35", "5"];
+const MED_WC = [[51,-46,"203","m"],[-329,94,"",""],[-250,-4,"211","m"],[-250,-45,"209","m"],[-151,-45,"207","m"],[-50,-45,"205","m"],[150,-46,"201","m"],[-249,92,"213","m"],[-247,197,"215","f"],[-250,295,"217","f"],[-144,394,"224",""],[-34,341,"225","m"],[43,342,"227","m"],[157,342,"229","f"],[253,341,"231","f"],[251,219,"233","f"],[252,143,"235","m"],[311,220,"234","m"],[311,142,"236","m"],[-51,-114,"206","m"],[-149,-115,"208","m"],[-249,-114,"210",""],[-319,-6,"212","m"],[-317,94,"214","m"],[-315,194,"216","m"],[-315,293,"218","f"],[52,-115,"204",""],[152,-115,"202",""],[-143,340,"223","f"],[-251,340,"221",""],[-34,393,"226","m"],[44,393,"228","m"],[158,391,"230",""]];
+const CITY = {
+  mak: { c: KAABA, gates: [], wc: [],
+         pts: [["d-hotel", -806, -40], ["d-79", -223, -142], ["d-1", -37, -163], ["d-25", 124, 310], ["d-clock", -92, -470]].map(([id, x, y]) => ({ id, name: "", ll: fromM(x, y) })) },
+  med: { c: NABAWI,
+         gates: MED_GATES.map(([x, y, n, name, w]) => ({ n, name, w: !!w, main: MED_MAIN.includes(n), ll: fromM(x, y, NABAWI) })),
+         wc: MED_WC.map(([x, y, n, g]) => ({ n, g, ll: fromM(x, y, NABAWI) })),
+         pts: [["d-m1", -47, 20], ["d-m20", 3, 295], ["d-m5", -123, 55], ["d-m41", 48, 21], ["d-m34", 210, 112]].map(([id, x, y]) => ({ id, name: "", ll: fromM(x, y, NABAWI) })) }
+};
+const CITIES = ["mak", "med"];
+const DEFAULTS = [...CITY.mak.pts, ...CITY.med.pts];   // точки по умолчанию для групп JURT: отель и главные ворота
+const isDefault = (p) => DEFAULTS.includes(p);
+
+// ---------- Состояние ----------
+const normCode = (s) => String(s || "").toUpperCase().trim().replace(/\s+/g, "-").replace(/[^A-Z0-9-]/g, "");
+const CODE_RE = /^[A-Z0-9-]{4,40}$/;
+let group = normCode(Q.get("g") || ls.get("group", ""));
+const hashLk = (location.hash.match(/(?:^#|&)lk=([A-Za-z0-9]{12,64})/) || [])[1] || null;   // ссылка второго руководителя: ключ в #, на сервер не уходит
+if (group && hashLk) ls.set("lk." + group, hashLk);
+if (Q.get("g") && Q.get("tel")) ls.set("tel." + group, Q.get("tel").replace(/[^\d+ ()-]/g, "").slice(0, 20));
+if (Q.has("lead") || Q.has("tel") || hashLk) { Q.delete("lead"); Q.delete("tel"); history.replaceState(null, "", location.pathname + (Q.toString() ? "?" + Q : "") + (hashLk ? "" : location.hash)); }
+let lead = false;
+let city = CITIES.includes(Q.get("city")) ? Q.get("city") : ls.get("city", "mak");
+if (!CITIES.includes(city)) city = "mak";
+const me = { id: ls.get("id", null) || rid(8), name: ls.get("name", ""), share: ls.get("share", true), floor: ls.get("floor", 0),
+             ll: null, acc: null, manual: false, sos: 0, t: 0, bat: null, chg: false };
+ls.set("id", me.id);
+let people = {};      // кто сейчас онлайн: id → {name, ll, acc, floor, city, t, fx, man, sos, lead, bat, chg, tel, roll, ack}
+let gone = {};        // кто закрыл страницу: последнее место, 3 часа
+let points = [];      // {id, name, ll, meet, by}
+let notes = [];       // {id, body, by, t}
+let selPoint = null, goLost = false, bus = null;
+let roll = null, acks = {}, curAsk = null, myAck = null, sosNow = null;
+function tripOver() {
+  const trips = CFG.trips || {}, k = Object.keys(trips).find((p) => group.startsWith(p));
+  return !!k && Date.now() > new Date(trips[k] + "T23:59:59+03:00").getTime();
+}
+
+// ---------- Карта ----------
+const map = L.map("map", { zoomControl: false, attributionControl: true }).setView(CITY[city].c, 17);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors (ODbL)" }).addTo(map);
+map.attributionControl.setPrefix(false);
+const dist = (a, b) => map.distance(a, b);
+function bearing(a, b) {
+  const r = Math.PI / 180, y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r),
+        x = Math.cos(a[0] * r) * Math.sin(b[0] * r) - Math.sin(a[0] * r) * Math.cos(b[0] * r) * Math.cos((b[1] - a[1]) * r);
+  return (Math.atan2(y, x) / r + 360) % 360;
+}
+const fmtD = (m) => m < 1000 ? Math.round(m / 5) * 5 + t("m") : (m / 1000).toFixed(1).replace(".", lang === "en" ? "." : ",") + t("km");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const initials = (n) => String(n || "?").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+const pad2 = (n) => String(n).padStart(2, "0");
+function ago(ts) {
+  const s = (Date.now() - ts) / 1000;
+  return s < 60 ? t("now") : s < 3600 ? Math.round(s / 60) + " " + t("min") : s < 172800 ? Math.round(s / 3600) + " " + t("hr") : Math.round(s / 86400) + " " + t("dy");
+}
+const floorsOf = (c) => t(c === "med" ? "floorsMed" : "floorsMak");
+const floorName = (p) => (+p.floor ? floorsOf(p.city)[p.floor] || "" : "");
+const batTxt = (p) => p.bat !== null && p.bat !== undefined && p.bat <= 20 && !p.chg ? "🔋" + p.bat + "%" : "";
+const cityNear = (ll) => CITIES.find((c) => dist(ll, CITY[c].c) < 40000) || null;
+const inRange = (ll) => ll[0] >= 21 && ll[0] <= 25 && ll[1] >= 39 && ll[1] <= 40.5;   // как в проверке базы
+
+// Ворота и туалеты Харама — из той же выгрузки OSM, что и 3D-сцена
+fetch("../haram3d/layers.json").then((r) => r.json()).then((L_) => {
+  CITY.mak.gates = L_.gates.filter((g) => g.n).map((g) => ({ n: g.n, name: g.name, w: false, main: !!g.main, ll: fromM(g.p[0], g.p[1]) }));
+  CITY.mak.wc = L_.wc.map((w) => ({ n: w.n, g: w.g === "м" ? "m" : w.g === "ж" ? "f" : "", ll: fromM(w.p[0], w.p[1]) }));
+  drawPlaces(); render();
+}).catch(() => {});
+const allGates = () => [...CITY.mak.gates, ...CITY.med.gates];
+const allWc = () => [...CITY.mak.wc, ...CITY.med.wc];
+// названия ворот из OSM — по-английски; для рус/каз — привычное звучание [рус, каз]
+const GN = {"Quraish Gate":["Курайш","Құрайыш"],"King Fahd Gate":["короля Фахда","Король Фаһд"],"Fateh Gate":["аль-Фатх","әл-Фатх"],"Umra Gate":["Умра","Умра"],
+  "Bab Al Marwah":["Марва","Марва"],"King Abdul Aziz Gate":["короля Абдулазиза","Король Әбдіғазиз"],"Bab al-Hudaybiyah":["Худайбия","Худайбия"],"Bab Ajyad - Gate":["Аджьяд","Аджьяд"],
+  "King Abdullah Gate":["короля Абдуллы","Король Абдулла"],"Ajyad Gate":["Аджьяд","Аджьяд"],"Bani Shaibah Bridge Gate":["мост Бану Шейба","Бану Шайба көпірі"],"Bani Shaibah Gate":["Бану Шейба","Бану Шайба"],
+  "Al Quds Gate":["аль-Кудс","әл-Құдс"],"Al Nabi Gate":["ан-Наби","ән-Нәби"],
+  "Bab as-Salam":["Баб ас-Салям","Баб әс-Сәләм"],"Abu Bakr as-Siddiq Gate":["Абу Бакра ас-Сиддика","Әбу Бәкір Сыддық"],"Bab ar-Rahmah":["Баб ар-Рахма","Баб әр-Рахма"],"Bab al-Hijrah":["Баб аль-Хиджра","Баб әл-Һижра"],
+  "Bab Quba":["Баб Куба","Баб Құба"],"King Saud Gates":["короля Сауда","Король Сауд"],"Al-Aqiq Gates":["аль-Акик","әл-Ақиқ"],"Bab al-Majidi":["Баб аль-Маджиди","Баб әл-Мәжиди"],
+  "Umar ibn al-Khattab Gates":["Умара ибн аль-Хаттаба","Омар ибн Хаттаб"],"Umar ibn al-Khattab Gate":["Умара ибн аль-Хаттаба","Омар ибн Хаттаб"],"Badr Gate":["Бадр","Бәдр"],
+  "King Fahd Gates":["короля Фахда","Король Фаһд"],"Uhud Gate":["Ухуд","Ұхұд"],"Uthman ibn Affan Gates":["Усмана ибн Аффана","Осман ибн Аффан"],"Ali ibn Abi Talib Gates":["Али ибн Абу Талиба","Әли ибн Әбу Тәліб"],
+  "Abu Dharr al-Ghifari Gates":["Абу Зарра аль-Гифари","Әбу Зәрр Ғифари"],"King Abdulaziz Gates":["короля Абдулазиза","Король Әбдіғазиз"],"Bab Makkah":["Баб Мекка","Баб Мекке"],
+  "Bab Bilal":["Баб Билал","Баб Біләл"],"Bab an-Nisa":["Баб ан-Ниса","Баб ән-Ниса"],"Bab Jibril":["Баб Джибриль","Баб Жәбірейіл"],"Al-Baqi Gate (exit)":["аль-Баки (выход)","әл-Бақиғ (шығу)"]};
+const gName = (s) => { const v = GN[s.trim()]; return v && lang !== "en" ? v[lang === "kk" ? 1 : 0] : s.trim(); };
+const gateTxt = (g) => t("gateNo") + g.n + (g.name ? " · " + gName(g.name) : "") + (g.w ? " · " + t("women") : "");
+function nearestGate(ll, max = 250) {
+  let best = null, bd = 1e9;
+  for (const g of allGates()) { const d = dist(ll, g.ll); if (d < bd) { bd = d; best = g; } }
+  return best && bd < max ? { ...best, d: bd } : null;
+}
+function nearestWc(ll, g) {
+  let best = null;
+  const scan = (ok) => { for (const w of allWc()) { if (!ok(w)) continue; const d = dist(ll, w.ll); if (!best || d < best.d) best = { ...w, d }; } };
+  scan((w) => w.g === g);
+  if (!best || best.d > 800) scan((w) => w.g === "");   // рядом нет нужного — любой общий
+  return best && best.d < 1500 ? best : null;
+}
+// номера ворот и туалеты на карте: главные ворота — с 16-го масштаба, все — с 17-го, туалеты — с 18-го
+const placeLayer = L.layerGroup().addTo(map);
+function placeTap(name, ll) {   // подсказка с расстоянием пешком; нажатие на неё — «Куда идти» с маршрутом
+  toast(name + (me.ll ? " · " + fmtD(walkM(me.ll, ll)) : "") + t("tapGo"), 5000, () => openGo({ name, ll }, false));
+}
+function drawPlaces() {
+  placeLayer.clearLayers();
+  const z = map.getZoom();
+  if (z < 16) return;
+  const b = map.getBounds().pad(0.3);
+  const dot = (ll, html, onClick) => L.marker(ll, { zIndexOffset: -1000, icon: L.divIcon({ className: "", iconSize: [0, 0], html }) }).on("click", onClick).addTo(placeLayer);
+  const taken = [], free = (ll, w, h) => {   // подписи не налезают друг на друга: лишние прячутся до следующего приближения
+    const p = map.latLngToContainerPoint(ll);
+    if (taken.some((q) => Math.abs(q.x - p.x) < w && Math.abs(q.y - p.y) < h)) return false;
+    taken.push(p); return true;
+  };
+  for (const g of allGates().sort((a, b) => b.main - a.main)) {
+    if ((!g.main && z < 17) || !b.contains(g.ll) || !free(g.ll, g.main ? 30 : 26, 20)) continue;
+    dot(g.ll, `<div class="gl${g.main ? " main" : ""}">${esc(g.n)}</div>`, () => placeTap(gateTxt(g), g.ll));
+  }
+  if (z >= 18) for (const w of allWc()) {
+    if (!b.contains(w.ll) || !free(w.ll, 30, 18)) continue;
+    dot(w.ll, `<div class="wc">WC${w.g === "m" ? " ♂" : w.g === "f" ? " ♀" : ""}</div>`, () => placeTap(t("wcName", w.g, w.n), w.ll));
+  }
+  if (z >= 17) for (const c of CITIES) for (const p of RT[c].poi || []) {
+    if (!b.contains(p.ll) || !free(p.ll, 26, 18)) continue;
+    const [lab, ic, col] = POI_K[p.k];
+    dot(p.ll, `<div class="wc poi" style="background:${col}">${ic}</div>`, () => placeTap(t(lab) + (p.n ? " · " + p.n : ""), p.ll));
+  }
+}
+map.on("zoomend moveend", drawPlaces);
+
+// ---------- Пешие маршруты по улицам OSM: граф лежит рядом со страницей, A* считается в телефоне — работает и без сети ----------
+const RT = { mak: { f: "mecca" }, med: { f: "medina" } };
+const POI_K = { med: ["tMed", "✚", "#c0392b"], pharm: ["tPharm", "Rx", "#1b7f4a"], salon: ["tSalon", "✂", "#F07A1E"], water: ["tWater", "💧", "#1f6fb2"] };
+function rtLoad(c) {
+  const R = RT[c];
+  if (!R || R.p) return;
+  R.p = Promise.all([fetch("osm/graph_" + R.f + ".json").then((r) => r.json()), fetch("osm/poi_" + R.f + ".json").then((r) => r.json()).catch(() => [])])
+    .then(([g, poi]) => {
+      rtBuild(R, g);
+      R.poi = poi.filter((p) => POI_K[p.k]).map((p) => ({ k: p.k, n: p.n, ll: [p.lat, p.lon] }));
+      // туалеты города из OSM — к туалетам Харама (кроме тех, что уже есть рядом)
+      for (const p of poi) if (p.k.startsWith("wc")) {
+        const ll = [p.lat, p.lon];
+        if (!allWc().some((w) => dist(w.ll, ll) < 25)) CITY[c].wc.push({ n: "", g: p.k === "wc_m" ? "m" : p.k === "wc_f" ? "f" : "", ll });
+      }
+      drawPlaces(); render(); if (isOn("lostS")) updateLost();
+    })
+    .catch(() => { R.p = null; });   // нет сети и нет кэша — попробуем при следующем открытии
+}
+function rtBuild(R, g) {
+  const n = g.xy.length / 2, m = g.e.length / 3, X = new Float32Array(n), Y = new Float32Array(n);
+  for (let i = 0; i < n; i++) { X[i] = g.xy[2 * i] * g.u; Y[i] = g.xy[2 * i + 1] * g.u; }
+  const off = new Int32Array(n + 1);
+  for (let k = 0; k < m; k++) { off[g.e[3 * k] + 1]++; off[g.e[3 * k + 1] + 1]++; }
+  for (let i = 0; i < n; i++) off[i + 1] += off[i];
+  const adj = new Int32Array(2 * m), w = new Float32Array(2 * m), len = new Float32Array(2 * m), fill = off.slice(0, n);
+  for (let k = 0; k < m; k++) {
+    const a = g.e[3 * k], b = g.e[3 * k + 1], d = Math.hypot(X[a] - X[b], Y[a] - Y[b]), c = d * (g.e[3 * k + 2] === 1 ? 1.5 : 1);   // лестницы — в обход, если можно
+    adj[fill[a]] = b; w[fill[a]] = c; len[fill[a]++] = d;
+    adj[fill[b]] = a; w[fill[b]] = c; len[fill[b]++] = d;
+  }
+  // привязка — только к самой большой связной сети улиц (обрывки внутри зданий не годятся)
+  const comp = new Int32Array(n).fill(-1), st = new Int32Array(n);
+  let main = 0, size0 = 0;
+  for (let s0 = 0, id = 0; s0 < n; s0++) if (comp[s0] < 0) {
+    let sp = 0, size = 0; st[sp++] = s0; comp[s0] = id;
+    while (sp) { const v = st[--sp]; size++; for (let j = off[v]; j < off[v + 1]; j++) if (comp[adj[j]] < 0) { comp[adj[j]] = id; st[sp++] = adj[j]; } }
+    if (size > size0) { size0 = size; main = id; }
+    id++;
+  }
+  const cell = new Map();
+  for (let i = 0; i < n; i++) if (comp[i] === main) { const k = Math.floor(X[i] / 50) + "," + Math.floor(Y[i] / 50); (cell.get(k) || cell.set(k, []).get(k)).push(i); }
+  Object.assign(R, { n, X, Y, off, adj, w, len, cell, o: g.o, kx: g.kx, ky: g.ky, cache: new Map() });
+}
+const rtXY = (R, ll) => [(ll[1] - R.o[1]) * R.kx, (ll[0] - R.o[0]) * R.ky];
+const rtLL = (R, i) => [R.o[0] + R.Y[i] / R.ky, R.o[1] + R.X[i] / R.kx];
+function rtSnap(R, ll) {   // ближайший узел улиц в пределах 300 м
+  const [x, y] = rtXY(R, ll), cx = Math.floor(x / 50), cy = Math.floor(y / 50);
+  let best = -1, bd = 1e9;
+  for (let r = 0; r <= 6; r++) {
+    for (let i = cx - r; i <= cx + r; i++) for (let j = cy - r; j <= cy + r; j++) {
+      if (Math.max(Math.abs(i - cx), Math.abs(j - cy)) !== r) continue;
+      for (const k of cell_(R, i, j)) { const d = Math.hypot(R.X[k] - x, R.Y[k] - y); if (d < bd) { bd = d; best = k; } }
+    }
+    if (best >= 0 && bd <= r * 50) break;
+  }
+  return bd <= 300 ? best : -1;
+}
+const cell_ = (R, i, j) => R.cell.get(i + "," + j) || [];
+function rtPath(R, s, e) {   // A* с двоичной кучей; эвристика — прямое расстояние
+  const n = R.n, gs = new Float64Array(n).fill(Infinity), prev = new Int32Array(n).fill(-1), done = new Uint8Array(n);
+  const ex = R.X[e], ey = R.Y[e], h = (i) => Math.hypot(R.X[i] - ex, R.Y[i] - ey);
+  const hf = [], hi = [];
+  const push = (f, i) => { let k = hf.length; hf.push(f); hi.push(i); while (k) { const p = (k - 1) >> 1; if (hf[p] <= f) break; hf[k] = hf[p]; hi[k] = hi[p]; k = p; } hf[k] = f; hi[k] = i; };
+  const pop = () => {
+    const top = hi[0], lf = hf.pop(), li = hi.pop(), N = hf.length;
+    if (N) { let k = 0; for (;;) { let c = 2 * k + 1; if (c >= N) break; if (c + 1 < N && hf[c + 1] < hf[c]) c++; if (hf[c] >= lf) break; hf[k] = hf[c]; hi[k] = hi[c]; k = c; } hf[k] = lf; hi[k] = li; }
+    return top;
+  };
+  gs[s] = 0; push(h(s), s);
+  while (hf.length) {
+    const v = pop();
+    if (done[v]) continue;
+    if (v === e) break;
+    done[v] = 1;
+    for (let j = R.off[v]; j < R.off[v + 1]; j++) { const u = R.adj[j], g2 = gs[v] + R.w[j]; if (g2 < gs[u]) { gs[u] = g2; prev[u] = v; push(g2 + h(u), u); } }
+  }
+  if (!isFinite(gs[e])) return null;
+  const nodes = [];
+  for (let v = e; v >= 0; v = prev[v]) nodes.push(v);
+  nodes.reverse();
+  let m = 0;
+  for (let k = 1; k < nodes.length; k++) { const a = nodes[k - 1], b = nodes[k]; for (let j = R.off[a]; j < R.off[a + 1]; j++) if (R.adj[j] === b) { m += R.len[j]; break; } }
+  return { pts: nodes.map((i) => rtLL(R, i)), m };
+}
+// маршрут a → b: { pts — ломаная по улицам, m — метров пешком (с подходами), line — прямая (рядом или пути нет) } | null — граф ещё не загружен
+function route(a, b) {
+  const d = dist(a, b);
+  if (d < 40) return { pts: [a, b], m: d, line: false, near: true };
+  const c = cityNear(a), R = c && RT[c];
+  if (!R || cityNear(b) !== c) return null;
+  if (!R.n) { rtLoad(c); return null; }
+  const s = rtSnap(R, a), e = rtSnap(R, b);
+  if (s < 0 || e < 0) return { pts: [a, b], m: d, line: true };
+  const key = s + ":" + e;
+  let p = R.cache.get(key);
+  if (p === undefined) { if (R.cache.size > 300) R.cache.clear(); p = rtPath(R, s, e); R.cache.set(key, p); }
+  if (!p) return { pts: [a, b], m: d, line: true };
+  const m = dist(a, p.pts[0]) + p.m + dist(p.pts[p.pts.length - 1], b);
+  if (m > d * 4 + 300) return { pts: [a, b], m: d, line: true };   // привязка ушла не туда — честно показываем прямую
+  return { pts: [a, ...p.pts, b], m, line: false, ends: [[a, p.pts[0]], [p.pts[p.pts.length - 1], b]], core: p.pts };
+}
+const walkM = (a, b) => { const r = route(a, b); return r ? r.m : dist(a, b); };
+function drawRoute(a, b, lay) {
+  const r = route(a, b);
+  if (!r || r.line || r.near) { L.polyline([a, b], { color: "#F07A1E", weight: 4, dashArray: "6 8" }).addTo(lay); return; }
+  L.polyline(r.core, { color: "#fff", weight: 9, opacity: .9 }).addTo(lay);
+  L.polyline(r.core, { color: "#F07A1E", weight: 5 }).addTo(lay);
+  for (const e of r.ends) if (dist(e[0], e[1]) > 3) L.polyline(e, { color: "#F07A1E", weight: 3, dashArray: "3 6" }).addTo(lay);
+}
+function nearestPoi(ll, k, max = 3000) {
+  const R = RT[cityNear(ll)];
+  let best = null;
+  if (R && R.poi) for (const p of R.poi) if (p.k === k) { const d = dist(ll, p.ll); if (d < max && (!best || d < best.d)) best = { ...p, d }; }
+  return best;
+}
+
+// точки группы + точки по умолчанию (кроме тех, что руководитель уже сделал местом сбора)
+const localize = (p) => { const d = DEFAULTS.find((d) => String(p.id).startsWith(d.id + "-")); if (d) p.name = d.name; return p; };   // название — на языке читающего
+const allPoints = () => [...DEFAULTS.filter((d) => !points.some((p) => String(p.id).startsWith(d.id + "-"))), ...points.map(localize)];
+const meetPoint = () => points.find((p) => p.meet && dist(p.ll, CITY[city].c) < 30000);   // сбор в другом городе (вчерашний в Мекке, а мы уже в Медине) не показываем
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-t]").forEach((el) => { const v = t(el.dataset.t); if (typeof v === "string") el.textContent = v; });
+  document.querySelectorAll("[data-tp]").forEach((el) => { el.placeholder = t(el.dataset.tp); });
+  ["jLangs", "mLangs"].forEach((id) => {
+    $(id).innerHTML = "";
+    [["ru", "Рус"], ["kk", "Қаз"], ["en", "Eng"]].forEach(([k, n]) => {
+      const b = document.createElement("button"); b.textContent = n; b.className = k === lang ? "on" : "";
+      b.onclick = () => { lang = k; ls.set("lang", k); applyLang(); prayerTick(); render(); }; $(id).append(b);
+    });
+  });
+  $("mFloor").innerHTML = floorsOf(city).map((f, i) => `<option value="${i}">${esc(f)}</option>`).join("");
+  $("mFloor").value = me.floor;
+  CITY.mak.pts.forEach((p, i) => p.name = t("ptsMak")[i]);
+  CITY.med.pts.forEach((p, i) => p.name = t("ptsMed")[i]);
+}
+
+function toast(s, ms = 2600, act) {   // act — что сделать по нажатию на подсказку
+  const el = $("toast"); el.textContent = s; el.style.display = "block"; el.classList.toggle("act", !!act);
+  el.onclick = act ? () => { el.style.display = "none"; act(); } : null;
+  clearTimeout(toast.h); toast.h = setTimeout(() => el.style.display = "none", ms);
+}
+const isOn = (id) => $(id).classList.contains("on");
+function sheet(id) {
+  document.body.classList.toggle("sheeton", !!id && id !== "ptS");
+  document.querySelectorAll(".sheet").forEach((s) => s.classList.toggle("on", s.id === id));
+  $("cross").style.display = id === "ptS" ? "block" : "none";
+  wake(wantWake()); renderChips();
+}
+document.querySelectorAll("[data-close]").forEach((b) => b.onclick = () => { sheet(null); render(); });
+document.querySelectorAll("[data-back]").forEach((b) => b.onclick = () => { sheet(b.dataset.back); render(); });
+
+// ---------- Экран не гаснет, пока открыта карта или «Я потерялся» ----------
+let wl = null, wlReq = null;
+const wantWake = () => ls.get("wake", false) || isOn("lostS") || isOn("polS");
+function wake(on) {
+  if (!("wakeLock" in navigator)) return;
+  if (on && !wl && !wlReq && document.visibilityState === "visible")
+    wlReq = navigator.wakeLock.request("screen").then((l) => { wl = l; l.addEventListener("release", () => { if (wl === l) wl = null; }); if (!wantWake()) wake(false); }).catch(() => {}).finally(() => { wlReq = null; });
+  else if (!on && wl) { const l = wl; wl = null; l.release().catch(() => {}); }
+}
+
+// ---------- Звук и вибрация (звук включается после первого касания экрана) ----------
+let actx = null;
+addEventListener("pointerdown", () => { try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) {} }, { passive: true });
+const TONES = { sos: [880, 660, 880, 660], roll: [660, 880], note: [740, 990], prayer: [523, 659, 784], go: [880, 880] };
+const VIB = { sos: [300, 150, 300, 150, 300], roll: [200, 100, 200], note: [120, 80, 120], prayer: [200], go: [250, 120, 250] };
+function alertUser(kind) {
+  try { navigator.vibrate && navigator.vibrate(VIB[kind] || 200); } catch (e) {}
+  if (!actx || actx.state !== "running") return;
+  const t0 = actx.currentTime;
+  (TONES[kind] || [740]).forEach((f, i) => {
+    const o = actx.createOscillator(), g = actx.createGain(), s = t0 + i * 0.22;
+    o.type = "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.25, s + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, s + 0.2);
+    o.connect(g).connect(actx.destination); o.start(s); o.stop(s + 0.21);
+  });
+}
+
+// ---------- Канал группы: живой (Supabase Realtime) или демо (вкладки одного браузера) ----------
+const EVENTS = ["sos", "sosOff", "pts", "note", "roll", "rollEnd", "ack", "forget"];
+function demoBus() {
+  const bc = "BroadcastChannel" in window ? new BroadcastChannel("jurt-where-" + group) : null;
+  const pk = "where.demo.pts." + group, nk = "where.demo.notes." + group;
+  const get = (k) => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch (e) { return []; } };
+  const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const tabs = {}, fakes = {};
+  const sync = () => onPresence({ ...fakes, ...tabs });
+  // ненастоящие паломники, чтобы было видно, как это выглядит: [имя, x, y, где, батарея]
+  const FAKE = {
+    mak: [["Паломник А", -30, -60, 1, 64], ["Паломник Б", 40, 25, 1, 18], ["Паломник В", -180, -120, 2, 80], ["Паломник Г", 120, 200, 5, 45], ["Паломник Д", -700, -30, 7, 30], ["Руководитель (демо)", -210, -135, 6, 90]],
+    med: [["Паломник А", -60, 40, 1, 64], ["Паломник Б", 20, 120, 4, 18], ["Паломник В", -150, 200, 4, 80], ["Паломник Г", 160, 300, 6, 45], ["Паломник Д", -500, 300, 7, 30], ["Руководитель (демо)", 0, 280, 6, 90]]
+  };
+  function fakeTick() {
+    FAKE[city].forEach(([name, x, y, floor, bat], i) => {
+      const id = "fake" + i, f = fakes[id] || (fakes[id] = { id, name, acc: 25, man: false, sos: 0, chg: false, lead: i === 5, jx: 0, jy: 0, fx0: i === 3 ? Date.now() - 9 * 60000 : 0 });
+      f.jx += (Math.random() - 0.5) * 6; f.jy += (Math.random() - 0.5) * 6;   // бродят в пределах нескольких метров
+      Object.assign(f, { ll: fromM(x + f.jx, y + f.jy, CITY[city].c), floor, city, bat, t: Date.now(), fx: f.fx0 || Date.now() });
+    });
+    sync();
+  }
+  const api = {
+    status: "SUBSCRIBED", statusAt: Date.now(),
+    track(p) { bc && bc.postMessage({ k: "pos", p }); },
+    signal(ev, p) { bc && bc.postMessage({ k: "sig", ev, p: p || {} }); if (ev === "roll") fakeAcks(p); },
+    bye() { bc && bc.postMessage({ k: "bye", id: me.id }); },
+    setCity() { fakeTick(); },
+    async points() { return get(pk); },
+    async savePoint(pt) { const a = get(pk).filter((x) => x.id !== pt.id); if (pt.meet) a.forEach((x) => x.meet = null); a.push(pt); put(pk, a); api.signal("pts"); },
+    async delPoint(id) { put(pk, get(pk).filter((x) => x.id !== id)); api.signal("pts"); },
+    async wipe() { put(pk, []); put(nk, []); api.signal("pts"); api.signal("note"); },
+    async notes() { return get(nk).sort((a, b) => b.t - a.t).slice(0, 20); },
+    async addNote(n) { const a = get(nk); a.push({ ...n, t: Date.now() }); put(nk, a); api.signal("note"); },
+    async delNote(id) { put(nk, get(nk).filter((x) => x.id !== id)); api.signal("note"); }
+  };
+  function fakeAcks(r) {   // демо: ненастоящие паломники отвечают на перекличку (Д и руководитель — молчат)
+    FAKE[city].forEach(([name], i) => {
+      if (i === 4 || i === 5) return;
+      setTimeout(() => { if (roll && roll.rid === r.rid) onSignal("ack", { rid: r.rid, id: "fake" + i, name, ok: i !== 2, ll: fakes["fake" + i] && fakes["fake" + i].ll, t: Date.now() }); }, 1000 + Math.random() * 5000);
+    });
+  }
+  if (bc) bc.onmessage = (e) => {
+    const m = e.data;
+    if (m.k === "pos") { tabs[m.p.id] = m.p; sync(); }
+    else if (m.k === "bye") { delete tabs[m.id]; sync(); }
+    else if (m.k === "hello") publish(true);
+    else if (m.k === "sig") onSignal(m.ev, m.p);
+  };
+  fakeTick(); setInterval(fakeTick, 6000);
+  bc && bc.postMessage({ k: "hello" });
+  return api;
+}
+async function liveBus(create) {
+  if (!window.supabase) await new Promise((ok, no) => { const s = document.createElement("script"); s.src = "vendor/supabase.js"; s.onload = ok; s.onerror = () => no(new Error("supabase.js")); document.head.append(s); });
+  const db = window.supabase.createClient(CFG.url, CFG.key, { auth: { persistSession: false } });
+  const api = { status: "", statusAt: Date.now() };
+  let ch = null, last = null, trackT = 0, trackH = null, busy = false;
+  const setStatus = (s) => { api.status = s; api.statusAt = Date.now(); netRender(); };
+  const chk = ({ data, error }) => { if (error) throw new Error(error.message); return data; };
+  const row = (r) => ({ id: r.id, name: r.name, ll: [r.lat, r.lon], meet: r.meet_at, by: r.by_id });
+  function connect() {
+    const c = db.channel("where:" + group, { config: { presence: { key: me.id }, broadcast: { self: false } } });
+    ch = c;
+    c.on("presence", { event: "sync" }, () => {
+      if (ch !== c) return;
+      const st = c.presenceState(), next = {};
+      for (const id in st) { const p = st[id][st[id].length - 1]; if (id !== me.id && p) next[id] = p; }
+      onPresence(next);
+    });
+    EVENTS.forEach((ev) => c.on("broadcast", { event: ev }, ({ payload }) => { if (ch === c) onSignal(ev, payload); }));
+    // об изменениях точек и объявлений участники узнают по сигналу группы pts / note (таблицы закрыты)
+    return new Promise((ok) => {
+      const to = setTimeout(ok, 8000);
+      c.subscribe((s) => {
+        if (ch !== c) return;
+        setStatus(s);
+        if (s === "SUBSCRIBED") { clearTimeout(to); ok(); flush(); refresh(); }
+      });
+    });
+  }
+  function flush() { if (!ch || !last || api.status !== "SUBSCRIBED") return; trackT = Date.now(); ch.track(last).catch(() => {}); }
+  api.track = (p) => {   // не чаще раза в 3 с — уходит самое свежее
+    last = p; clearTimeout(trackH);
+    const wait = 3000 - (Date.now() - trackT);
+    if (wait <= 0) flush(); else trackH = setTimeout(flush, wait);
+  };
+  api.signal = (ev, payload) => { if (ch) ch.send({ type: "broadcast", event: ev, payload: payload || {} }).catch(() => {}); };
+  api.bye = () => { last = null; clearTimeout(trackH); try { ch && ch.untrack(); } catch (e) {} };
+  api.reconnect = async () => {
+    if (busy) return; busy = true;
+    const old = ch; ch = null; setStatus("CONNECTING");
+    try { if (old) await db.removeChannel(old); } catch (e) {}
+    try { await connect(); } finally { busy = false; }
+  };
+  const lk = () => ls.get("lk." + group, null);   // ключ руководителя (в базе — только его отпечаток)
+  api.points = async () => (chk(await db.rpc("where_list", { p_grp: group })) || []).map(row);
+  api.savePoint = async (pt) => { chk(await db.rpc("where_put_point", { p_grp: group, p_key: lk(), p_id: pt.id, p_name: pt.name.slice(0, 60), p_lat: pt.ll[0], p_lon: pt.ll[1], p_meet: pt.meet || null, p_by: pt.by })); api.signal("pts"); };
+  api.delPoint = async (id) => { chk(await db.rpc("where_del_point", { p_grp: group, p_key: lk(), p_id: id, p_by: me.id })); api.signal("pts"); };
+  api.wipe = async () => { chk(await db.rpc("where_clear", { p_grp: group, p_key: lk() })); api.signal("pts"); api.signal("note"); };
+  api.notes = async () => (chk(await db.rpc("where_notes_list", { p_grp: group })) || []).map((r) => ({ id: r.id, body: r.body, by: r.by_name, t: Date.parse(r.created_at) }));
+  api.addNote = async (n) => { chk(await db.rpc("where_put_note", { p_grp: group, p_key: lk(), p_id: n.id, p_body: n.body, p_by: n.by })); api.signal("note"); };
+  api.delNote = async (id) => { chk(await db.rpc("where_del_note", { p_grp: group, p_key: lk(), p_id: id })); api.signal("note"); };
+  api.close = () => { api.bye(); const c = ch; ch = null; if (c) db.removeChannel(c).catch(() => {}); };
+  // вход: есть ли группа и руководитель ли я; новую группу создаёт только тот, у кого ключ
+  try { api.joined = chk(await db.rpc("where_join", { p_grp: group, p_key: lk(), p_create: !!create })); }
+  catch (e) { if (create) throw e; api.joined = null; }   // нет сети — входим, права всё равно проверит база
+  if (api.joined && !api.joined.ok) return api;   // группы нет — канал не открываем
+  await connect();
+  return api;
+}
+let meetSig, myMeet = "";   // точка сбора, которую уже видели, и та, что назначил я сам, — о своей не оповещать
+const sigOf = (m) => m ? m.id + "|" + m.meet + "|" + m.name : "";
+async function loadPoints() {
+  if (!bus) return;
+  try { points = (await bus.points()).map(localize); } catch (e) { render(); return; }
+  const m = meetPoint(), s = sigOf(m);
+  if (meetSig !== undefined && s && s !== meetSig && s !== myMeet) { alertUser("note"); toast(t("meetNew", m.name, m.meet), 10000, () => openGo({ ...m, k: "meet" }, false)); }
+  meetSig = s; render();
+}
+
+// ---------- Кто где: присутствие и сигналы ----------
+const pruneGone = () => { for (const id in gone) if (Date.now() - gone[id].goneAt > 3 * 3600000) delete gone[id]; };
+function onPresence(next) {
+  const now = Date.now();
+  for (const id in people) if (!next[id] && people[id].ll) gone[id] = { ...people[id], goneAt: now };   // закрыл страницу — остаётся серая метка
+  for (const id in next) delete gone[id];
+  people = next;
+  pruneGone(); if (group) ls.set("gone." + group, gone);
+  for (const id in next) {
+    const p = next[id];
+    if (p.sos && now - p.sos < 15 * 60000) onSos({ id, name: p.name, ll: p.ll, floor: p.floor, city: p.city, t: p.sos });
+    if (lead && roll && p.ack && p.ack.rid === roll.rid) gotAck({ rid: p.ack.rid, id, name: p.name, ok: p.ack.ok, ll: p.ll, t: p.ack.t });
+    if (!lead && p.lead && p.tel) ls.set("tel." + group, p.tel);   // телефон руководителя — для «Позвонить руководителю»
+    if (p.roll) onRoll(p.roll);
+  }
+  if (curAsk) { const st = next[curAsk.from]; if (st && !(st.roll && st.roll.rid === curAsk.rid)) closeAsk(); }   // руководитель завершил перекличку
+  render();
+}
+function onSignal(ev, p) {
+  p = p || {};
+  if (ev === "sos") onSos(p);
+  else if (ev === "sosOff") onSosOff(p);
+  else if (ev === "pts") loadPoints();
+  else if (ev === "note") loadNotes();
+  else if (ev === "roll") onRoll(p);
+  else if (ev === "rollEnd") { if (curAsk && curAsk.rid === p.rid) closeAsk(); }
+  else if (ev === "ack") { if (lead && roll && p.rid === roll.rid) gotAck(p); }
+  else if (ev === "forget") { delete people[p.id]; delete gone[p.id]; ls.set("gone." + group, gone); render(); }
+}
+
+// ---------- Своё место ----------
+let lastSent = 0, lastSentLL = null, watch = null, firstFix = true;
+function payload() {
+  const show = me.share && !tripOver() && me.ll;
+  const p = { id: me.id, name: me.name, ll: show ? me.ll : null, acc: show ? Math.round(me.acc || 0) : null, floor: +me.floor, city,
+              t: Date.now(), fx: show ? me.t : 0, man: !!me.manual, sh: !!me.share, sos: me.sos, lead, bat: me.bat, chg: me.chg };
+  if (lead) { const tel = ls.get("tel." + group, ""); if (tel) p.tel = tel; if (roll && Date.now() - roll.t < 30 * 60000) p.roll = roll; }
+  if (myAck && Date.now() - myAck.t < 30 * 60000) p.ack = myAck;
+  return p;
+}
+function publish(force) {
+  if (!bus) return;
+  const ll = me.share && !tripOver() ? me.ll : null;
+  const moved = ll && (!lastSentLL || dist(lastSentLL, ll) > 10);
+  if (!force && !moved && Date.now() - lastSent < 20000) return;   // не чаще раза в 20 с, если человек стоит
+  lastSent = Date.now(); lastSentLL = ll;
+  bus.track(payload());
+}
+function autoCity(ll) {
+  const c = cityNear(ll);
+  if (c && c !== city && !(Date.now() - ls.get("cityPin", 0) < 30 * 60000)) setCity(c, false);   // ручной выбор города важнее GPS 30 минут
+}
+function startGps() {
+  if (!("geolocation" in navigator) || watch !== null) return;
+  watch = navigator.geolocation.watchPosition((p) => {
+    if (me.manual && Date.now() - me.manual < 10 * 60000) return;   // ручная отметка важнее GPS 10 минут
+    me.manual = false; me.ll = [p.coords.latitude, p.coords.longitude]; me.acc = p.coords.accuracy; me.t = Date.now();
+    autoCity(me.ll);
+    if (firstFix) { firstFix = false; if (cityNear(me.ll) && dist(map.getCenter(), me.ll) > 2000) map.setView(me.ll, 17); }
+    render(); publish();
+  }, (e) => {
+    if (!me.ll) toast(t("noGps"), 9000, placeByTap);
+    if (e.code === 1) { navigator.geolocation.clearWatch(watch); watch = null; }
+  }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 });
+}
+setInterval(() => publish(true), 60000);   // «жив» раз в минуту, чтобы не пропасть из списка
+addEventListener("pagehide", () => bus && bus.bye());
+addEventListener("pageshow", (e) => { if (e.persisted) refresh(); });
+function setCity(c, manual) {
+  if (!CITY[c]) return;
+  const changed = c !== city;
+  city = c; ls.set("city", c);
+  if (manual) { ls.set("cityPin", Date.now()); map.setView(CITY[c].c, 17); }
+  if (changed) { me.floor = 0; ls.set("floor", 0); }
+  applyLang(); prayerTick(); drawPlaces(); render(); publish(true);
+  if (bus && bus.setCity) bus.setCity(c);
+  rtLoad(c);
+}
+
+// ---------- Батарея: подсказка и метка для группы ----------
+async function initBattery() {
+  try {
+    if (!navigator.getBattery) return;
+    const b = await navigator.getBattery();
+    const upd = () => {
+      const lvl = Math.round(b.level * 100), was = me.bat, wasChg = me.chg;
+      me.bat = lvl; me.chg = b.charging;
+      if (was === null || (was > 20) !== (lvl > 20) || wasChg !== me.chg) publish(true);
+      if (lvl <= 15 && !b.charging) {
+        const k = "batTip." + saudiDate();
+        if (!ls.get(k, false)) { ls.set(k, true); const g = me.ll && nearestGate(me.ll, 400); toast(t("batLow", lvl, g ? g.n : ""), 9000); }
+      }
+    };
+    b.addEventListener("levelchange", upd); b.addEventListener("chargingchange", upd); upd();
+  } catch (e) {}
+}
+
+// ---------- Связь ----------
+function netRender() {
+  const el = $("net"); let s = "";
+  if (!navigator.onLine) s = t("netOff");
+  else if (LIVE && bus && bus.status !== "SUBSCRIBED" && Date.now() - bus.statusAt > 2500)
+    s = ["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(bus.status) ? t("netErr") : t("netConn");
+  el.textContent = s; el.style.display = s ? "" : "none"; el.classList.toggle("off", !navigator.onLine);
+}
+function refresh() {
+  if (!bus) return;
+  if (bus.reconnect && bus.status !== "SUBSCRIBED" && Date.now() - bus.statusAt > 10000) { bus.reconnect(); return; }
+  publish(true); loadPoints(); loadNotes();
+}
+addEventListener("online", () => { netRender(); refresh(); });
+addEventListener("offline", netRender);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { wake(wantWake()); refresh(); prayerTick(); } });
+setInterval(() => { netRender(); if (bus && bus.reconnect && bus.status !== "SUBSCRIBED" && Date.now() - bus.statusAt > 15000) bus.reconnect(); }, 5000);
+
+// ---------- Время намаза (Умм аль-Кура) ----------
+const saudiDate = (d = new Date()) => { const s = new Date(d.getTime() + 3 * 3600000); return pad2(s.getUTCDate()) + "." + pad2(s.getUTCMonth() + 1) + "." + s.getUTCFullYear(); };
+const saudiMin = () => ((Date.now() / 60000 + 180) % 1440 + 1440) % 1440;
+const fmtLeft = (n) => { n = Math.max(1, Math.round(n)); return t("inPre") + (n < 60 ? n + t("mn") : Math.floor(n / 60) + t("h") + pad2(n % 60) + t("mn")) + t("inPost"); };
+const prName = (k, fri) => { const P = t("pr"); return k === "dhuhr" && fri ? P.jumua : P[k]; };
+function prayerTick() {
+  const chip = $("prChip");
+  if (!PR) { chip.style.display = "none"; return; }
+  const c = CITY[city].c, nx = PR.next(new Date(), c[0], c[1], 3);
+  if (!nx) return;
+  const name = prName(nx.key, nx.friday);
+  chip.style.display = "";
+  chip.innerHTML = `${esc(t("azan"))} · <b>${esc(name)} ${PR.hhmm(nx.min)}</b> · ${esc(fmtLeft(nx.left))}`;
+  chip.classList.toggle("soon", nx.left <= 20);
+  if (nx.left <= 20 && ls.get("remind", true)) {
+    const key = saudiDate(nx.at) + nx.key + city;
+    if (ls.get("remLast", "") !== key) { ls.set("remLast", key); alertUser("prayer"); const m = meetPoint(); toast(t("remTxt", Math.max(1, nx.left), name, m ? m.name : ""), 9000); }
+  }
+  if (isOn("prS")) renderPrayer();
+}
+function renderPrayer() {
+  if (!PR) return;
+  const c = CITY[city].c, now = new Date(), tt = PR.times(now, c[0], c[1], 3), nx = PR.next(now, c[0], c[1], 3), nowMin = saudiMin();
+  const fri = new Date(now.getTime() + 3 * 3600000).getUTCDay() === 5, today = nx && saudiDate(nx.at) === saudiDate(now);
+  $("prH").textContent = t("prH") + " · " + t(city) + " · " + saudiDate(now);
+  $("prT").innerHTML = PR.ORDER.map((k) => {
+    const cls = today && nx.key === k ? "nx" : tt[k] <= nowMin ? "past" : "";
+    return `<tr class="${cls}"><td>${esc(prName(k, fri))}</td><td>${PR.hhmm(tt[k])}</td></tr>`;
+  }).join("") + (nx && !today ? `<tr class="nx"><td>${esc(prName(nx.key, nx.friday))} · ${esc(t("tomorrow"))}</td><td>${PR.hhmm(nx.min)}</td></tr>` : "");
+  $("prNote").textContent = t(city === "med" ? "prNoteMed" : "prNoteMak");
+  $("prRem").checked = ls.get("remind", true);
+}
+$("prChip").onclick = () => { sheet("prS"); renderPrayer(); };
+$("prRem").onchange = (e) => ls.set("remind", e.target.checked);
+
+// ---------- Сбор: сколько идти и когда выходить ----------
+const leaveSent = new Set();
+function meetInfo(m) {
+  const d = me.ll ? walkM(me.ll, m.ll) : null, walk = d !== null ? Math.max(1, Math.round(d / 50)) : null;   // по улицам; 50 м в минуту — шаг в толпе
+  const info = []; let go = false;
+  if (d !== null) info.push(fmtD(d), t("walkMin", walk));
+  if (m.meet) {
+    const [hh, mm] = m.meet.split(":").map(Number);
+    let left = hh * 60 + mm - saudiMin(); if (left > 720) left -= 1440; if (left < -720) left += 1440;
+    left = Math.round(left);
+    const there = me.ll && dist(me.ll, m.ll) < 60;
+    if (left < 0 && left >= -120 && !there) info.push(t("late", -left));
+    else if (left >= 0) {
+      info.push(fmtLeft(left));
+      if (walk !== null && !there && left <= walk + 5) {
+        go = true; info.unshift(t("leaveNow"));
+        const k = m.id + m.meet + saudiDate();
+        if (!leaveSent.has(k)) { leaveSent.add(k); alertUser("go"); toast(t("leaveAlert", walk), 7000); }
+      }
+    }
+  }
+  return { info: info.join(" · "), go };
+}
+function renderMeet() {
+  const m = meetPoint(), el = $("meet");
+  el.style.display = m ? "block" : "none";
+  if (!m) return;
+  const mi = meetInfo(m);
+  el.classList.toggle("go", mi.go);
+  el.innerHTML = "★ " + esc(t("meetTxt") + m.name + (m.meet ? t("at") + m.meet : "")) + (mi.info ? "<small>" + esc(mi.info) + "</small>" : "");
+}
+$("meet").onclick = () => { const m = meetPoint(); if (m) openGo({ ...m, k: "meet" }, false); };
+function leaderNearest(any) {
+  if (!any && (lead || !me.ll)) return null;
+  let best = null;
+  for (const id in people) {
+    const p = people[id];
+    if (!p.lead || !p.ll || Date.now() - (p.fx || p.t) > 10 * 60000) continue;
+    const d = me.ll ? dist(me.ll, p.ll) : 0;
+    if (!best || d < best.d) best = { id, p, d };
+  }
+  return best;
+}
+function renderChips() {
+  const ln = leaderNearest(false), fc = $("farChip"), far = ln && ln.d > 300;
+  fc.style.display = far ? "" : "none";
+  if (far) { fc.textContent = t("far", fmtD(ln.d)); fc.onclick = () => openGo({ pid: ln.id, name: ln.p.name, ll: ln.p.ll }, false); }
+  const ac = $("askChip");
+  ac.style.display = curAsk && !isOn("askS") ? "" : "none"; ac.textContent = t("askChip");
+}
+$("askChip").onclick = () => { if (curAsk) sheet("askS"); };
+
+// ---------- Отрисовка ----------
+const layer = L.layerGroup().addTo(map);
+const pinIcon = (cls, inner, label) => L.divIcon({ className: "", iconSize: [0, 0], html: `<div class="pin ${cls}" style="transform:translate(-50%,-15px)"><i>${inner}</i><span>${esc(label)}</span></div>` });
+function render() {
+  layer.clearLayers();
+  const meet = meetPoint();
+  for (const p of allPoints()) {
+    const isMeet = meet && meet.id === p.id, label = isMeet ? `${p.name} · ${p.meet}` : p.name;
+    L.marker(p.ll, { icon: L.divIcon({ className: "", iconSize: [0, 0], html: `<div class="flag${isMeet ? " meet" : ""}" style="transform:translate(-50%,-38px)"><i><b>${isMeet ? "★" : "⚑"}</b></i><span>${esc(label)}</span></div>` }) })
+      .on("click", () => editPoint(p)).addTo(layer);
+  }
+  for (const id in gone) {
+    const p = gone[id];
+    if (!p.ll || people[id]) continue;
+    L.marker(p.ll, { zIndexOffset: -500, icon: pinIcon("gone", esc(initials(p.name)), `${p.name} · ${t("goneTxt")} · ${ago(p.fx || p.t)}`) })
+      .on("click", () => openGo({ pid: id, name: p.name, ll: p.ll }, false)).addTo(layer);
+  }
+  for (const id in people) {
+    const p = people[id];
+    if (!p.ll) continue;
+    const fx = p.fx || p.t, old = Date.now() - fx > 5 * 60000, s = p.sos && Date.now() - p.sos < 15 * 60000;
+    const cls = s ? "sos" : old ? "old" : p.lead ? "lead" : "";
+    if (p.acc > 30 && !old) L.circle(p.ll, { radius: p.acc, color: "#005A5C", weight: 1, opacity: .4, fillOpacity: .06 }).addTo(layer);
+    const label = [p.name, floorName(p), p.man ? "✎" : "", batTxt(p), old ? ago(fx) : ""].filter(Boolean).join(" · ");
+    L.marker(p.ll, { zIndexOffset: s ? 900 : 500, icon: pinIcon(cls, p.lead ? "★" : esc(initials(p.name)), label) })   // люди поверх флажков точек
+      .on("click", () => openGo({ pid: id, name: p.name, ll: p.ll }, false)).addTo(layer);
+  }
+  if (me.ll) {
+    if (me.acc > 15) L.circle(me.ll, { radius: me.acc, color: "#F07A1E", weight: 1, opacity: .5, fillOpacity: .08 }).addTo(layer);
+    L.marker(me.ll, { zIndexOffset: 1000, icon: pinIcon("self", esc(initials(me.name || "Я")), t("you") + (me.manual ? " ✎" : "") + (me.share ? "" : " · " + t("hidden"))) }).addTo(layer);
+    const g = nearestGate(me.ll);
+    $("near").style.display = g ? "block" : "none";
+    if (g) $("near").textContent = t("nearGate") + gateTxt(g) + " · " + fmtD(g.d);
+    if (selPoint && selPoint.ll && isOn("lostS")) drawRoute(me.ll, selPoint.ll, layer);
+  } else $("near").style.display = "none";
+  // верхние плашки
+  const on = Object.keys(people).length + 1;
+  $("sub").textContent = group && bus ? [group, t("online") + " " + on, lead ? t("leadMode") : ""].filter(Boolean).join(" · ") : group;
+  const over = group && tripOver();
+  $("banner").style.display = !LIVE || over ? "block" : "none";
+  $("banner").textContent = over ? t("tripDone") : t("demo");
+  renderMeet(); renderNote(); renderChips();
+  if (isOn("lostS")) updateLost();
+  if (isOn("menuS")) renderMenu();
+  if (isOn("rollS")) renderRoll();
+}
+$("me").onclick = () => { if (me.ll) map.flyTo(me.ll, 18); else { startGps(); toast(t("noGps"), 9000, placeByTap); } };
+
+// ---------- «Я потерялся» / «Куда идти» ----------
+let heading = null, compassOn = false;
+function onOrient(e) { const h = e.webkitCompassHeading ?? (e.absolute && e.alpha !== null ? 360 - e.alpha : null); if (h !== null && h !== undefined) { heading = h; updateArrow(); } }
+function askCompass() {   // на iPhone разрешение на компас — только прямо по нажатию
+  if (compassOn) return;
+  const on = () => { compassOn = true; addEventListener("deviceorientationabsolute", onOrient); addEventListener("deviceorientation", onOrient); };
+  try {
+    if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function")
+      DeviceOrientationEvent.requestPermission().then((s) => { if (s === "granted") on(); }).catch(() => {});
+    else on();
+  } catch (e) {}
+}
+function updateArrow() {
+  if (!me.ll || !selPoint || !selPoint.ll) return;
+  const b = bearing(me.ll, selPoint.ll);
+  $("arrow").style.transform = `rotate(${b - (heading ?? 0)}deg)`;
+  $("tDir").textContent = heading === null ? t("dirs")[Math.round(b / 45) % 8] : "";
+}
+function nearestPoint() { return [...allPoints()].sort((a, b) => dist(me.ll, a.ll) - dist(me.ll, b.ll))[0]; }
+function resolveTarget() {
+  if (!selPoint) { const m = meetPoint(); selPoint = m ? { ...m, k: "meet" } : me.ll ? nearestPoint() : CITY[city].pts[city === "mak" ? 1 : 0]; }
+  if (selPoint.pid) { const p = people[selPoint.pid] || gone[selPoint.pid]; if (p && p.ll) selPoint.ll = p.ll; }
+  if (selPoint.k === "meet") { const m = meetPoint(); if (m) Object.assign(selPoint, m); }
+}
+function goChips() {
+  const out = [], m = meetPoint();
+  if (m) out.push({ k: "meet", label: t("tMeet"), tg: m });
+  if (city === "mak") out.push({ k: "hotel", label: t("tHotel"), tg: CITY.mak.pts[0] });
+  if (me.ll) { const g = nearestGate(me.ll, 1500); if (g) out.push({ k: "gate", label: t("gateNo") + g.n, tg: { name: gateTxt(g), ll: g.ll } }); }
+  const ln = leaderNearest(true);
+  if (ln && !(lead && !people[ln.id])) out.push({ k: "lead", label: t("tLead"), tg: { pid: ln.id, name: ln.p.name, ll: ln.p.ll } });
+  if (me.ll) for (const g of ["m", "f"]) { const w = nearestWc(me.ll, g); if (w) out.push({ k: "wc" + g, label: t(g === "m" ? "tWcM" : "tWcF") + " · " + fmtD(walkM(me.ll, w.ll)), tg: { name: t("wcName", w.g, w.n), ll: w.ll } }); }
+  if (me.ll) for (const k of ["med", "pharm", "water", "salon"]) { const p = nearestPoi(me.ll, k); if (p) out.push({ k: "poi" + k, label: t(POI_K[k][0]) + " · " + fmtD(walkM(me.ll, p.ll)), tg: { name: t(POI_K[k][0]) + (p.n ? " · " + p.n : ""), ll: p.ll } }); }
+  out.push({ k: "all", label: t("tAll") });
+  return out;
+}
+function leaderTel() { return lead ? "" : ls.get("tel." + group, ""); }
+const telHref = (tel) => "tel:" + tel.replace(/[^\d+]/g, "");
+function updateLost() {
+  resolveTarget();
+  const s = selPoint, sosOn = me.sos && Date.now() - me.sos < 15 * 60000;
+  $("lH").textContent = goLost ? t("lostH") : t("goH");
+  ["lP", "tCall", "tWa", "tPol", "lTip"].forEach((id) => $(id).style.display = goLost ? "" : "none");
+  $("tFound").style.display = sosOn ? "" : "none";
+  const tel = leaderTel();
+  $("tLead").style.display = tel ? "" : "none"; if (tel) $("tLead").href = telHref(tel);
+  const chips = goChips();
+  $("tChips").innerHTML = chips.map((c, i) => `<button data-i="${i}" class="${s.k === c.k ? "on" : ""}">${esc(c.label)}</button>`).join("");
+  $("tChips").querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const c = chips[+b.dataset.i];
+    if (c.k === "all") { sheet("menuS"); renderMenu(); $("mPoints").scrollIntoView({ block: "center" }); return; }
+    selPoint = { ...c.tg, k: c.k }; fitGo(); render();
+  });
+  $("tName").textContent = s.name + (s.meet ? t("at") + s.meet : "");
+  const r = me.ll && s.ll ? route(me.ll, s.ll) : null;
+  $("tDist").textContent = me.ll && s.ll ? fmtD(r ? r.m : dist(me.ll, s.ll)) : "—";
+  $("tRt").textContent = !r || r.near ? "" : r.line ? t("routeLine") : t("routeOk", Math.max(1, Math.round(r.m / 50)));
+  const from = me.ll ? `&origin=${me.ll[0].toFixed(6)},${me.ll[1].toFixed(6)}` : "";
+  if (s.ll) $("tWalk").href = `https://www.google.com/maps/dir/?api=1${from}&destination=${s.ll[0].toFixed(6)},${s.ll[1].toFixed(6)}&travelmode=walking`;
+  const g = me.ll && nearestGate(me.ll), tg = !goLost && s.ll && nearestGate(s.ll, 150);   // и у каких ворот цель — проще встретиться
+  $("tGate").textContent = [g ? t("nearGate") + gateTxt(g) : "", tg && (!g || tg.n !== g.n) && tg.d > 15 ? t("tgtGate") + gateTxt(tg) : ""].filter(Boolean).join(" · ");
+  const where = me.ll ? `https://maps.google.com/?q=${me.ll[0].toFixed(6)},${me.ll[1].toFixed(6)}` : "";
+  const fl = +me.floor ? " · " + floorsOf(city)[me.floor] : "";
+  $("tWa").href = "https://wa.me/?text=" + encodeURIComponent(`${me.name || ""}: ${t("waMsg")}${where}${fl}${g ? "\n" + t("waGate") + g.n : ""}`);
+  updateArrow();
+}
+function fitGo() {   // и я, и цель — над шторкой
+  if (!selPoint || !selPoint.ll) return;
+  if (me.ll && dist(me.ll, selPoint.ll) < 30000)
+    map.flyToBounds(L.latLngBounds([me.ll, selPoint.ll]), { maxZoom: 18, paddingTopLeft: [40, 80], paddingBottomRight: [40, $("lostS").offsetHeight + 30] });
+  else map.flyTo(selPoint.ll, 18);
+}
+function openGo(target, isLost) {
+  askCompass();
+  goLost = !!isLost; selPoint = target || null;
+  sheet("lostS"); render(); fitGo();
+}
+$("lost").onclick = () => openGo(null, true);
+function sendSos() {
+  me.sos = Date.now(); publish(true);
+  bus && bus.signal("sos", { id: me.id, name: me.name, ll: me.ll, floor: +me.floor, city, t: me.sos });   // по нажатию «Позвать группу» место уходит даже при выключенной галочке
+  toast(t("called"), 4000);
+  if (isOn("lostS")) updateLost();
+}
+$("tCall").onclick = sendSos;
+$("tFound").onclick = () => {
+  me.sos = 0; publish(true);
+  bus && bus.signal("sosOff", { id: me.id, name: me.name });
+  updateLost();
+};
+$("tPol").onclick = openPolice;
+const sosSeen = new Set();
+function onSos(p) {
+  if (!p || !p.id || p.id === me.id) return;
+  const k = p.id + ":" + p.t;
+  if (sosSeen.has(k)) return;
+  sosSeen.add(k);
+  if (Date.now() - p.t > 15 * 60000) return;
+  if (people[p.id]) people[p.id].sos = p.t;
+  sosNow = p;
+  const el = $("sos");
+  el.textContent = "⚠ " + t("sosFrom") + p.name + (p.ll && me.ll ? " · " + fmtD(dist(me.ll, p.ll)) : "") + t("sosTap");
+  el.style.display = "block";
+  el.onclick = () => { el.style.display = "none"; if (p.ll || people[p.id]) openGo({ pid: p.id, name: p.name, ll: p.ll || people[p.id].ll }, false); };
+  alertUser("sos"); render();
+}
+function onSosOff(p) {
+  if (!p || p.id === me.id) return;
+  if (people[p.id]) people[p.id].sos = 0;
+  if (sosNow && sosNow.id === p.id) { $("sos").style.display = "none"; sosNow = null; }
+  toast(t("sosFound", p.name || ""), 4000); render();
+}
+
+// ---------- Карточка для полиции (арабский + английский) ----------
+// кириллицу полицейский не прочтёт — имя показываем латиницей, как в загранпаспорте
+const LAT = { а: "a", ә: "a", б: "b", в: "v", г: "g", ғ: "g", д: "d", е: "e", ё: "yo", ж: "zh", з: "z", и: "i", й: "y", к: "k", қ: "k", л: "l", м: "m", н: "n", ң: "n", о: "o", ө: "o", п: "p",
+  р: "r", с: "s", т: "t", у: "u", ұ: "u", ү: "u", ф: "f", х: "kh", һ: "h", ц: "ts", ч: "ch", ш: "sh", щ: "shch", ъ: "", ы: "y", і: "i", ь: "", э: "e", ю: "yu", я: "ya" };
+const latin = (s) => s.replace(/[а-яёәғқңөұүһі]/gi, (c) => { const l = LAT[c.toLowerCase()]; return c === c.toLowerCase() || !l ? l : l[0].toUpperCase() + l.slice(1); });
+function openPolice() {
+  const g = me.ll && nearestGate(me.ll, 400), tel = leaderTel(), nm = me.name && latin(me.name);
+  const lines = [["أنا من كازاخستان", "I am from Kazakhstan."], ["فقدتُ مجموعتي", "I have lost my group."], ["لا أتكلم العربية", "I don't speak Arabic."], ["أرجو المساعدة", "Please help me."]];
+  if (city === "mak") lines.push(["فندقي: فندق العنوان جبل عمر", "My hotel: Address Jabal Omar."]);
+  if (tel) lines.push([`من فضلك اتصل بمشرف مجموعتي: <span class="ltr">${esc(tel)}</span>`, "Please call my group leader: " + tel]);
+  if (g) lines.push([`أقرب باب: رقم <span class="ltr">${esc(g.n)}</span>`, "Nearest gate: No. " + g.n]);
+  if (nm) lines.push([`اسمي: <span class="ltr">${esc(nm)}</span>`, "My name: " + nm + (nm !== me.name ? " (" + me.name + ")" : "")]);
+  $("polBody").innerHTML = lines.map(([a, e]) => `<div class="pol" dir="rtl" lang="ar">${a}</div><div class="pol-en">${esc(e)}</div>`).join("");
+  $("polCall").style.display = tel ? "" : "none"; if (tel) $("polCall").href = telHref(tel);
+  sheet("polS");
+}
+
+// ---------- Объявления руководителя ----------
+const mine = new Set();
+let notesLoaded = false; const seenNotes = new Set();   // уже показанные объявления — в памяти страницы: первая загрузка и так тихая
+async function loadNotes() {
+  if (!bus) return;
+  let list;
+  try { list = await bus.notes(); } catch (e) { return; }
+  notes = list; ls.set("notes." + group, notes);
+  const fresh = notes.filter((n) => !seenNotes.has(n.id));
+  fresh.forEach((n) => seenNotes.add(n.id));
+  if (notesLoaded) {   // первая загрузка — тихо: старое и так видно на плашке
+    const n = fresh.find((n) => !mine.has(n.id) && Date.now() - n.t < 12 * 3600000);
+    if (n) { alertUser("note"); toast("📣 " + n.body, 7000); }
+  }
+  notesLoaded = true;
+  render();
+}
+function renderNote() {
+  const n = notes.find((n) => Date.now() - n.t < 12 * 3600000), show = n && ls.get("noteX." + group, "") !== n.id;
+  $("note").style.display = show ? "block" : "none";
+  if (!show) return;
+  $("noteBy").textContent = "📣 " + (n.by || t("fromLead")) + " · " + ago(n.t);
+  $("noteTx").textContent = n.body;
+  $("noteX").onclick = (e) => { e.stopPropagation(); ls.set("noteX." + group, n.id); renderNote(); };
+}
+$("note").onclick = () => $("note").classList.toggle("full");
+function openNote() {
+  const m = meetPoint(), tp = t("tpls", m ? m.name : "");
+  $("nTpl").innerHTML = tp.map((s, i) => `<button data-i="${i}">${esc(s)}</button>`).join("");
+  $("nTpl").querySelectorAll("button").forEach((b) => b.onclick = () => { $("nBody").value = tp[+b.dataset.i]; $("nBody").focus(); });
+  $("nBody").value = ""; sheet("noteS");
+}
+$("nSend").onclick = async () => {
+  const body = $("nBody").value.trim().slice(0, 280);
+  if (!body || !bus) return;
+  const n = { id: rid(10), body, by: (me.name || "").slice(0, 40) };
+  mine.add(n.id);
+  try { await bus.addNote(n); toast(t("noteSent")); sheet(null); loadNotes(); } catch (e) { toast(t("err") + e.message, 5000); }
+};
+
+// ---------- Перекличка ----------
+function startRoll(again) {
+  if (!again || !roll) { roll = { rid: rid(6), by: me.name, from: me.id, t: Date.now() }; acks = {}; }
+  else roll = { ...roll, t: Date.now() };   // повтор: тот же номер — ответившие второй раз не спрашиваются
+  ls.set("roll." + group, { roll, acks });
+  bus && bus.signal("roll", roll); publish(true);
+  toast(t("rollStart")); sheet("rollS"); renderRoll();
+}
+function gotAck(a) {
+  if (acks[a.id] && acks[a.id].t >= a.t) return;
+  acks[a.id] = a; ls.set("roll." + group, { roll, acks });
+  if (isOn("rollS")) renderRoll();
+}
+function renderRoll() {
+  if (!roll) return;
+  const ids = new Set([...Object.keys(people), ...Object.keys(gone), ...Object.keys(acks)]); ids.delete(me.id);
+  const rows = [...ids].map((id) => { const p = people[id] || gone[id] || {}, a = acks[id]; return { id, name: p.name || (a && a.name) || "?", a, on: !!people[id], ll: p.ll || (a && a.ll) || null }; });
+  const help = rows.filter((r) => r.a && !r.a.ok), ok = rows.filter((r) => r.a && r.a.ok), no = rows.filter((r) => !r.a);
+  $("rCount").textContent = t("rollCount", help.length + ok.length, rows.length);
+  const li = (r, cls, sub) => `<li><span class="dot ${cls}"></span><span class="nm">${esc(r.name)}${sub ? `<br><span class="mute">${esc(sub)}</span>` : ""}</span>${r.ll ? `<button data-go="${esc(r.id)}">${t("go")}</button>` : ""}</li>`;
+  const sec = (title, list, cls, sub) => list.length ? `<li class="hd">${esc(title)} · ${list.length}</li>` + list.map((r) => li(r, cls, sub(r))).join("") : "";
+  $("rList").innerHTML = sec(t("rollHelp"), help, "sos", (r) => ago(r.a.t)) + sec(t("rollOk"), ok, "", (r) => ago(r.a.t)) +
+    sec(t("rollNo"), no, "old", (r) => r.on ? t("online") : t("offline"));
+  $("rList").querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { const r = rows.find((x) => x.id === b.dataset.go); openGo({ pid: r.id, name: r.name, ll: r.ll }, false); });
+}
+$("rAgain").onclick = () => startRoll(true);
+$("rEnd").onclick = () => {
+  if (roll && bus) bus.signal("rollEnd", { rid: roll.rid });
+  roll = null; acks = {}; ls.set("roll." + group, null); publish(true); sheet(null); render();
+};
+function onRoll(r) {
+  if (!r || !r.rid || r.from === me.id || Date.now() - r.t > 30 * 60000) return;
+  if (ls.get("ans." + group, []).includes(r.rid)) return;   // уже ответил
+  if (curAsk && curAsk.rid === r.rid && curAsk.t === r.t) return;
+  curAsk = r;
+  $("askBy").textContent = t("askBy", r.by || t("fromLead"));
+  sheet("askS"); alertUser("roll");
+}
+function closeAsk() { curAsk = null; if (isOn("askS")) sheet(null); renderChips(); }
+function answer(ok) {
+  if (!curAsk) return;
+  const r = curAsk;
+  ls.set("ans." + group, [...ls.get("ans." + group, []), r.rid].slice(-50));
+  myAck = { rid: r.rid, ok, t: Date.now() };
+  bus && bus.signal("ack", { rid: r.rid, id: me.id, name: me.name, ok, ll: me.share ? me.ll : null, t: myAck.t });
+  publish(true);   // ответ дублируется в присутствии — дойдёт, даже если сигнал потерялся
+  curAsk = null;
+  if (ok) { sheet(null); toast(t("ackSent")); render(); }
+  else { sendSos(); openGo(null, true); }
+}
+$("aOk").onclick = () => answer(true);
+$("aHelp").onclick = () => answer(false);
+
+// ---------- Меню группы ----------
+function renderMenu() {
+  $("mTitle").textContent = t("menu") + " " + group;
+  $("mMode").textContent = [LIVE ? t("live") : t("demo"), t("online") + " " + (Object.keys(people).length + 1), lead ? t("leadMode") : ""].filter(Boolean).join(" · ");
+  $("mShare").checked = me.share;
+  $("mWake").checked = ls.get("wake", false);
+  $("mCity").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.c === city));
+  ["mLead", "mWipe", "mCoLead"].forEach((id) => $(id).style.display = lead ? "" : "none");
+  if (document.activeElement !== $("mTel")) $("mTel").value = lead ? ls.get("tel." + group, "") : "";
+  // участники: ближние сверху
+  const ref = me.ll || (meetPoint() || {}).ll || null;
+  const dOf = (p) => ref && p.ll ? walkM(ref, p.ll) : Infinity;
+  const rows = Object.entries(people).map(([id, p]) => ({ id, p, d: dOf(p) })).sort((a, b) => a.d - b.d);
+  const goneRows = Object.entries(gone).filter(([id, p]) => !people[id] && p.ll).map(([id, p]) => ({ id, p, d: dOf(p) })).sort((a, b) => a.d - b.d);
+  const meRow = `<li><span class="dot me"></span><span class="nm">${esc(me.name)} (${t("you")})${me.share ? "" : `<br><span class="mute">${t("hidden")}</span>`}</span></li>`;
+  $("mPeople").innerHTML = meRow + rows.map(({ id, p, d }) => {
+    const fx = p.fx || p.t, old = p.ll && Date.now() - fx > 5 * 60000, s = p.sos && Date.now() - p.sos < 15 * 60000;
+    const cls = s ? "sos" : !p.ll || old ? "old" : p.lead ? "lead" : "";
+    const sub = [p.ll ? floorName(p) : p.sh === false ? t("hidden") : t("noFix"), batTxt(p)].filter(Boolean).join(" · ");
+    const far = p.lead && me.ll && p.ll && dist(me.ll, p.ll) > 300 ? `<span class="tag">${t("farTag")}</span>` : "";
+    return `<li><span class="dot ${cls}"></span><span class="nm" data-fly="${esc(id)}">${p.lead ? "★ " : ""}${esc(p.name)}${far}${sub ? `<br><span class="mute">${esc(sub)}</span>` : ""}</span><span class="ago">${isFinite(d) ? fmtD(d) + " · " : ""}${p.ll ? ago(fx) : ""}</span>${p.ll ? `<button data-go="${esc(id)}">${t("go")}</button>` : ""}</li>`;
+  }).join("") + goneRows.map(({ id, p, d }) =>
+    `<li><span class="dot gone"></span><span class="nm" data-fly="${esc(id)}">${esc(p.name)}<br><span class="mute">${t("goneTxt")} · ${ago(p.fx || p.t)}</span></span><span class="ago">${isFinite(d) ? fmtD(d) : ""}</span><button data-go="${esc(id)}">${t("go")}</button><button class="x" data-forget="${esc(id)}" title="${t("forget")}" aria-label="${t("forget")}">×</button></li>`).join("");
+  const who = (id) => people[id] || gone[id];
+  $("mPeople").querySelectorAll("[data-fly]").forEach((el) => el.onclick = () => { const p = who(el.dataset.fly); if (p && p.ll) { sheet(null); map.flyTo(p.ll, 18); } });
+  $("mPeople").querySelectorAll("[data-forget]").forEach((b) => b.onclick = () => { delete gone[b.dataset.forget]; ls.set("gone." + group, gone); render(); });   // серая метка устарела — убрать у себя
+  $("mPeople").querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { const p = who(b.dataset.go); if (p) openGo({ pid: b.dataset.go, name: p.name, ll: p.ll }, false); });
+  // объявления
+  $("mNotes").innerHTML = notes.slice(0, 10).map((n) => `<li><span class="nm">${esc(n.body)}<br><span class="mute">${esc(n.by || t("fromLead"))} · ${ago(n.t)}</span></span>${lead ? `<button data-dn="${esc(n.id)}">×</button>` : ""}</li>`).join("") || `<li class="mute">${t("noNotes")}</li>`;
+  $("mNotes").querySelectorAll("[data-dn]").forEach((b) => b.onclick = async () => { try { await bus.delNote(b.dataset.dn); loadNotes(); } catch (e) { toast(t("err") + e.message, 5000); } });
+  // точки текущего города
+  const base = me.ll || CITY[city].c;
+  const pts = allPoints().filter((p) => dist(CITY[city].c, p.ll) < 40000).sort((a, b) => dist(base, a.ll) - dist(base, b.ll));
+  $("mPoints").innerHTML = pts.map((p, i) => `<li><span class="dot" style="background:var(--sun)"></span><span class="nm" data-pe="${i}">${esc(p.name)}${p.meet ? ` <b>· ${esc(p.meet)}</b>` : ""}</span>${me.ll ? `<span class="ago">${fmtD(walkM(me.ll, p.ll))}</span>` : ""}<button data-pt="${i}">${t("go")}</button></li>`).join("") || `<li class="mute">${t("noPts")}</li>`;
+  $("mPoints").querySelectorAll("[data-pt]").forEach((b) => b.onclick = () => { const p = pts[+b.dataset.pt]; openGo(p.meet ? { ...p, k: "meet" } : p, false); });
+  $("mPoints").querySelectorAll("[data-pe]").forEach((el) => el.onclick = () => editPoint(pts[+el.dataset.pe]));
+}
+$("menuBtn").onclick = () => { if (!bus) return; sheet("menuS"); renderMenu(); };
+$("mShare").onchange = (e) => {
+  me.share = e.target.checked; ls.set("share", me.share);
+  if (me.share) startGps(); else bus && bus.signal("forget", { id: me.id });   // серая метка исчезает у всех
+  publish(true); render();
+};
+$("mFloor").onchange = (e) => { me.floor = +e.target.value; ls.set("floor", me.floor); publish(true); render(); };
+$("mHere").onclick = () => { sheet(null); placeByTap(); };
+function placeByTap() {   // GPS в Хараме врёт или молчит — человек сам касается карты там, где стоит
+  toast(t("tapMap"), 6000); map.off("click", placeByTap.h);
+  map.once("click", placeByTap.h = (e) => { me.ll = [e.latlng.lat, e.latlng.lng]; me.acc = 5; me.manual = Date.now(); me.t = Date.now(); autoCity(me.ll); toast(t("placed")); render(); publish(true); });
+}
+$("mCity").querySelectorAll("button").forEach((b) => b.onclick = () => { setCity(b.dataset.c, true); renderMenu(); });
+$("mWake").onchange = (e) => { ls.set("wake", e.target.checked); wake(wantWake()); };
+$("mRoll").onclick = () => { if (roll && Date.now() - roll.t < 30 * 60000) { sheet("rollS"); renderRoll(); } else startRoll(false); };
+$("mNote").onclick = openNote;
+$("mTel").oninput = (e) => { const v = e.target.value.replace(/[^\d+ ()-]/g, "").slice(0, 20); if (v !== e.target.value) e.target.value = v; };
+$("mTel").onchange = (e) => { ls.set("tel." + group, e.target.value.trim()); publish(true); };
+function inviteUrl(extra) {
+  const tel = ls.get("tel." + group, "");
+  return location.origin + location.pathname + "?g=" + encodeURIComponent(group) + "&lang=" + lang + "&city=" + city + (tel ? "&tel=" + encodeURIComponent(tel) : "") + (extra || "");
+}
+async function shareLink(url, text) {
+  try { if (navigator.share) { await navigator.share({ title: t("title"), text, url }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(text + "\n" + url); toast(t("copied")); } catch (e) { showLink(url); }
+}
+function ask(h, p, yes) {
+  $("cH").textContent = h; $("cP").textContent = p;
+  $("cLinkBox").style.display = "none"; $("cBtns").style.display = "";
+  $("cYes").onclick = () => { sheet(null); yes(); };
+  $("cNo").onclick = () => { sheet(null); render(); };
+  sheet("confS");
+}
+function showLink(url) {
+  $("cH").textContent = t("linkH"); $("cP").textContent = t("linkP");
+  $("cLink").value = url; $("cLinkBox").style.display = ""; $("cBtns").style.display = "none";
+  $("cCopy").onclick = async () => {
+    $("cLink").select();
+    try { await navigator.clipboard.writeText(url); toast(t("copied")); } catch (e) { try { document.execCommand("copy"); toast(t("copied")); } catch (e2) {} }
+  };
+  sheet("confS");
+}
+$("mShareLink").onclick = () => shareLink(inviteUrl(), t("inviteTxt"));
+$("mCoLead").onclick = () => {   // ключ — после #: в журналы сервера и в базу не попадает
+  const k = ls.get("lk." + group, null);
+  if (LIVE && !k) { toast(t("leadOnly"), 6000); return; }
+  ask(t("coLead"), t("coLeadWarn"), () => shareLink(inviteUrl() + (k ? "#lk=" + k : ""), t("inviteTxt")));
+};
+$("mWipe").onclick = () => ask(t("wipe"), t("wipeQ"), async () => {
+  try { await bus.wipe(); } catch (e) { toast(t("err") + e.message, 5000); }
+  loadPoints(); loadNotes();
+});
+$("mLeave").onclick = () => {
+  if (bus) { bus.signal("forget", { id: me.id }); bus.bye(); }
+  ls.set("group", ""); setTimeout(() => location.href = location.pathname, 300);
+};
+
+// ---------- Точки сбора: ставят руководитель и сами участники ----------
+let editing = null;
+function editPoint(p) {
+  const own = p && (lead || p.by === me.id) && !isDefault(p);
+  editing = p || null;
+  $("pH").textContent = p ? p.name : t("newPt");
+  $("pP").style.display = p ? "none" : "";
+  $("pName").value = p ? p.name : ""; $("pTime").value = p && p.meet ? p.meet : "";
+  $("pName").disabled = !!p && !own;
+  $("pMeetBox").style.display = lead ? "block" : "none";
+  $("pGo").style.display = p ? "" : "none";
+  $("pSave").style.display = !p || own || lead ? "" : "none";
+  $("pSave").textContent = p && !own ? t("makeMeet") : t("save");
+  $("pDel").style.display = own ? "" : "none";
+  sheet("ptS");
+  if (p) map.flyTo(p.ll, Math.max(map.getZoom(), 18));
+}
+$("addBtn").onclick = () => { if (bus) editPoint(null); };
+$("pGo").onclick = () => { const p = editing; if (p) openGo(p.meet ? { ...p, k: "meet" } : p, false); };
+$("pSave").onclick = async () => {
+  const p = editing, own = p && (lead || p.by === me.id) && !isDefault(p);
+  const raw = $("pTime").value.trim(), mt = raw.match(/^(\d{1,2})[:.](\d{2})$/);
+  const time = mt && +mt[1] < 24 && +mt[2] < 60 ? pad2(+mt[1]) + ":" + mt[2] : null;
+  if (lead && raw && !time) { toast(t("timeBad")); return; }
+  const c = map.getCenter();
+  const pt = p && !own ? { ...p, id: isDefault(p) ? p.id + "-" + group : p.id, by: p.by || me.id }   // точку по умолчанию руководитель делает местом сбора
+                       : { id: p ? p.id : rid(10), name: $("pName").value.trim().slice(0, 60) || t("newPt"), ll: p ? p.ll : [c.lat, c.lng], by: p ? p.by : me.id };
+  pt.meet = lead ? time : (p && p.meet) || null;
+  if (!inRange(pt.ll)) { toast(t("ptRange"), 4000); return; }
+  try { await bus.savePoint(pt); } catch (e) { toast(t("err") + e.message, 5000); return; }
+  if (pt.meet) { myMeet = sigOf(localize({ ...pt })); toast(t("meetSet")); }
+  sheet(null); loadPoints();
+};
+$("pDel").onclick = async () => {
+  if (editing && bus) { try { await bus.delPoint(editing.id); } catch (e) { toast(t("err") + e.message, 5000); return; } }
+  sheet(null); loadPoints();
+};
+
+// ---------- Вход ----------
+async function enter(isNew) {
+  ls.set("group", group); ls.set("name", me.name);
+  sheet(null);
+  gone = ls.get("gone." + group, {}); pruneGone();
+  notes = ls.get("notes." + group, []);
+  const rs = ls.get("roll." + group, null);
+  if (lead && rs && rs.roll && Date.now() - rs.roll.t < 30 * 60000) { roll = rs.roll; acks = rs.acks || {}; }
+  if (LIVE) {
+    try { bus = await liveBus(isNew); }
+    catch (e) { toast("Supabase: " + e.message, 6000); if (isNew) { bus = null; ls.set("group", ""); $("jGroup").value = group.replace(/-[A-Z0-9]{6}$/, ""); $("jName").value = me.name; sheet("join"); return false; } bus = demoBus(); }
+    const j = bus.joined;
+    if (j && !j.ok) { bus.close(); bus = null; ls.set("group", ""); toast(t("noGroup"), 7000); $("jGroup").value = group; $("jName").value = me.name; sheet("join"); return false; }
+    if (j) lead = !!j.lead;   // права руководителя подтверждает база по ключу
+  } else bus = demoBus();
+  ls.set("lead." + group, lead);
+  await Promise.all([loadPoints(), loadNotes()]);
+  if (me.share && !tripOver()) startGps();
+  initBattery();
+  publish(true); render(); netRender();
+  return true;
+}
+function joinGo(isNew) {
+  let code = normCode($("jGroup").value);
+  me.name = $("jName").value.trim().slice(0, 24);
+  if (!me.name) { toast(t("needName")); $("jName").focus(); return; }
+  if (isNew) { code = (code.replace(/-+$/, "").slice(0, 30) || "JURT") + "-" + rid(6, "23456789ABCDEFGHJKMNPQRSTUVWXYZ"); ls.set("lk." + code, rid(24)); }   // случайный хвост — код не угадать; ключ руководителя — только на этом телефоне
+  if (!code) { toast(t("need")); return; }
+  if (!CODE_RE.test(code)) { toast(t("codeBad"), 4000); return; }
+  group = code; lead = isNew || !!ls.get("lk." + group, null) || ls.get("lead." + group, false);
+  me.share = $("jShare").checked; ls.set("share", me.share);
+  enter(isNew).then((ok) => { if (ok && isNew) { toast(t("created"), 5000); sheet("menuS"); renderMenu(); } });
+}
+$("jGo").onclick = () => joinGo(false);
+$("jNew").onclick = () => joinGo(true);
+$("jGroup").onblur = (e) => { e.target.value = normCode(e.target.value); };
+
+setInterval(() => {
+  prayerTick(); renderMeet();
+  if (curAsk && Date.now() - curAsk.t > 30 * 60000) closeAsk();
+  pruneGone();
+}, 20000);
+applyLang(); drawPlaces(); prayerTick(); render(); rtLoad(city);
+if (group && me.name && CODE_RE.test(group)) { lead = !!ls.get("lk." + group, null) || ls.get("lead." + group, false); enter(false); }
+else { $("jGroup").value = group; $("jName").value = me.name; sheet("join"); }
+</script>
+</body>
+</html>

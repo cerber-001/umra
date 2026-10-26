@@ -92,16 +92,26 @@
   #card .mp { display: block; width: 100%; max-width: 340px; margin: 2px auto 8px; }
   .mp .r { opacity: .14; transition: opacity .3s; }
   #ctext[data-from="medina"] .mp .medina, #ctext[data-from="jeddah"] .mp .jeddah, #ctext[data-from="transit"] .mp .transit, #ctext[data-from="stay"] .mp .stay, #ctext[data-from="mecca"] .mp .mecca, #ctext[data-from="missed"] .mp .missed { opacity: 1; }
-  #chips { position: fixed; top: calc(max(14px, env(safe-area-inset-top)) + 42px); left: 0; right: 0; display: none;
-    justify-content: center; gap: 6px; padding: 0 12px; }
+  /* Единая панель шага (п.3): номера шагов, «Умра: X %», крупная подпись действия и субтитр дуа — одним блоком сверху, ничего не накладывается */
+  #stepbar { position: fixed; top: calc(max(14px, env(safe-area-inset-top)) + 48px); left: 50%; transform: translateX(-50%); z-index: 5;
+    width: min(560px, calc(100vw - 24px)); display: none; flex-direction: column; gap: 7px; padding: 8px 10px 10px; pointer-events: none;
+    border-radius: 16px; background: rgba(0,41,44,.86); border: 1px solid rgba(233,160,106,.35); box-shadow: 0 4px 18px rgba(0,0,0,.35); }
+  #stepbar.on { display: flex; }
+  #chips { display: none; justify-content: center; gap: 5px; flex-wrap: wrap; pointer-events: auto; }
   #chips.on { display: flex; }
   #chips button { width: 32px; height: 32px; border-radius: 50%; padding: 0; font: 700 13px "Exo 2", sans-serif;
     color: var(--cream); background: rgba(0,41,44,.85); border: 1px solid rgba(233,160,106,.45); cursor: pointer; }
   #chips button.done { background: var(--sapphire); }
   #chips button.sel { background: var(--orange); border-color: #fff; color: #fff; }
-  #counter { position: fixed; top: calc(max(14px, env(safe-area-inset-top)) + 84px); left: 50%; transform: translateX(-50%);
-    display: none; padding: 6px 14px; border-radius: 20px; font: 600 14px "Exo 2", sans-serif; color: #fff;
-    background: rgba(240,122,30,.92); max-width: calc(100vw - 24px); text-align: center; line-height: 1.25; }   /* длинная подпись на телефоне переносится, не обрезается */
+  #counter { display: none; font: 700 19px/1.25 "Exo 2", sans-serif; color: #fff; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+  #sub { display: none; font: italic 500 15px/1.35 "Exo 2", sans-serif; color: #FFD27A; text-align: center; }
+  @media (max-width: 420px) { #counter { font-size: 17px; } #sub { font-size: 14px; } }
+  /* Телефон боком: панель шага — слева сверху, карточка — справа снизу; середина, где паломник и Кааба, свободна */
+  @media (orientation: landscape) and (max-height: 500px) {
+    #stepbar { left: 12px; transform: none; width: min(400px, 47vw); top: calc(max(8px, env(safe-area-inset-top)) + 40px); }
+    #counter { font-size: 16px; } #sub { font-size: 13.5px; }
+    #card { left: auto; right: 12px; width: min(360px, 44vw); max-height: calc(100vh - 64px); }
+  }
   /* Часы Мекки: идут ускоренно, к намазу — сбор рядов; нажатие — перемотка к ближайшему намазу */
   #clock { position: fixed; right: 12px; top: calc(max(14px, env(safe-area-inset-top)) + 42px); display: none; padding: 5px 10px;
     border-radius: 16px; font: 600 12.5px "Exo 2", sans-serif; color: var(--cream); background: rgba(0,41,44,.88);
@@ -112,13 +122,10 @@
   #runTag { position: fixed; left: 0; top: 0; display: none; padding: 3px 9px; border-radius: 12px; pointer-events: none;
     font: 600 12px "Exo 2", sans-serif; color: var(--deep); background: #FFD27A; white-space: nowrap;
     box-shadow: 0 2px 8px rgba(0,0,0,.35); }
-  #prog { position: fixed; top: calc(max(14px, env(safe-area-inset-top)) + 120px); left: 50%; transform: translateX(-50%);
-    width: min(300px, calc(100vw - 32px)); display: none; pointer-events: none;
-    padding: 5px 10px 7px; border-radius: 12px; background: rgba(0,41,44,.82); }
-  #prog.on { display: block; }
-  #prog .lbl { font: 600 12px "Exo 2", sans-serif; color: var(--cream); text-align: center; margin-bottom: 4px;
-    text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-  #prog .trk { position: relative; height: 8px; border-radius: 4px; background: rgba(0,41,44,.85); border: 1px solid rgba(233,160,106,.4); overflow: hidden; }
+  #prog { display: none; align-items: center; gap: 8px; }
+  #prog.on { display: flex; }
+  #prog .lbl { font: 600 12.5px "Exo 2", sans-serif; color: var(--cream); white-space: nowrap; min-width: 74px; }
+  #prog .trk { flex: 1; position: relative; height: 8px; border-radius: 4px; background: rgba(0,41,44,.85); border: 1px solid rgba(233,160,106,.4); overflow: hidden; }
   #prog .fill { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, #E9A06A, #FFD27A); }
   #prog .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(0,41,44,.9); }
   #card .note { font-size: 11px; color: rgba(244,237,225,.5); margin: 6px 0 0; }
@@ -138,6 +145,8 @@
   #layers b, #near > b { display: block; color: var(--copper); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 4px; }
   #layers label { display: flex; gap: 8px; align-items: center; padding: 5px 0; cursor: pointer; }
   #layers input { accent-color: #F07A1E; width: 17px; height: 17px; }
+  #lyrTop { display: block; width: 100%; margin: 2px 0 4px; padding: 7px 10px; font: 600 13px "Exo 2", sans-serif; color: #fff; cursor: pointer;
+    background: var(--sapphire); border: 1px solid rgba(233,160,106,.45); border-radius: 12px; }
   #layers p, #near p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.4; color: #E8E1D4; }
   #layers p:empty { display: none; }
   /* Легенда слоёв — те же плашки, что на схеме */
@@ -162,10 +171,8 @@
 <div id="load">Загружаем Харам…</div>
 <header><a class="back" href="../" aria-label="Вернуться в «Гид паломника»">← Гид</a><span class="brand">JURT</span><h1>Масджид аль-Харам</h1></header>
 <button id="go"></button>
-<div id="chips"></div>
-<div id="counter"></div>
 <div id="clock" title="Время Мекки (UTC+3), идёт ускоренно. Время намаза — календарь Умм аль-Кура на сегодня (±2 мин). Нажмите — перемотать к ближайшему намазу"></div>
-<div id="prog"><div class="lbl" id="plbl"></div><div class="trk"><div class="fill" id="pfill"></div></div></div>
+<div id="stepbar"><div id="chips"></div><div id="prog"><div class="lbl" id="plbl"></div><div class="trk"><div class="fill" id="pfill"></div></div></div><div id="counter"></div><div id="sub"></div></div>
 <div id="runTag"></div>
 <div id="spots"></div>
 <div class="bar" id="bar">
@@ -178,6 +185,7 @@
   <button id="nearBtn">Ближайшее</button>
 </div>
 <div id="layers"><b>Что показать на схеме</b>
+  <button id="lyrTop">⤒ Вся схема сверху</button>
   <label><input type="checkbox" data-l="umra" checked> Умра: метки 1–11</label>
   <label><input type="checkbox" data-l="gates"> Ворота и их номера</label>
   <label><input type="checkbox" data-l="wc"> Туалеты</label>
@@ -346,9 +354,9 @@ const STEPS = [
 <p>На Сафе и Марве — лицом к Каабе, руки подняты, трижды такбир, тахлиль, дуа. Между зелёными огнями (около 55 м на каждом проходе, на схеме — примерно) мужчины идут быстрым шагом, женщины — обычным.</p>
 <p>Вуду желательно, но не обязательно. Можно отдыхать, есть коляски.</p>` },
   { title: "Бритьё или стрижка", tag: "Шаг 7 · ваджиб", fx: "halq", spots: [9],
-    text: `<p>Не на Марве и не в мечети: сначала выйдите из Харама через ворота № 25 «Баб аль-Марва» у Марвы. Сразу за ними — салоны, где бреют и стригут.</p>
+    text: `<p>Не на Марве и не в мечети: сначала выйдите из Харама через ворота № 25 «Баб аль-Марва» у Марвы. Салоны, где бреют и стригут, — в улицах рядом с выходами у Марвы. На карте OpenStreetMap их отмечено мало, поэтому схема ведёт к ближайшему отмеченному — путь примерный; на месте спросите «халлак».</p>
 <p>Мужчинам лучше побрить голову (халк) или укоротить волосы (таксир) — не меньше длины фаланги пальца, у ханафитов — минимум с четверти головы.</p>
-<p>Женщины только укорачивают — на длину фаланги.</p>
+<p>Женщины только укорачивают — сами, не в салоне: собрать пряди и срезать кончики на длину фаланги, у ханафитов — минимум с четверти волос.</p>
 <p>Только после этого снимаются запреты ихрама.</p>
 <p class="src">аль-Бухари, № 1727; Муслим, № 1302.</p>` },
   { title: "Умра завершена", tag: "Шаг 8 · аль-хамду ли-Ллях", fx: "finish", spots: [],
@@ -652,8 +660,23 @@ walkers.forEach((w) => {
     if (rnd() < 0.55) w.bc = w.hc || new THREE.Color(pick(HAIR));
   }
 });
-// Линия Чёрного камня (камень → зелёная лампа): проходя её, каждый поднимает правую руку ладонью к камню (истилям)
+// Линия Чёрного камня (камень → зелёная лампа). На ней (ханафиты; сверить у знатока): замедлиться, повернуться лицом
+// и грудью к камню, поднять ладони к камню («Бисмиллях, Аллаху акбар»), поцеловать ладони — и дальше, Кааба слева
 const stoneA = new THREE.Vector2(...meta.start[0]), stoneDir = new THREE.Vector2(...meta.start[1]).sub(stoneA).normalize();
+const ss = THREE.MathUtils.smoothstep;
+// g — сколько метров идущий уже прошёл за линию (до линии — минус): веса поворота, поднятых ладоней и поцелуя
+const STONE = { turn: 0, up: 0, kiss: 0 };
+function stoneAt(x, y, fX, fY) {
+  STONE.turn = STONE.up = STONE.kiss = 0;
+  const dx = x - stoneA.x, dy = y - stoneA.y;
+  if (dx * stoneDir.x + dy * stoneDir.y < 0) return STONE;
+  const sg = fX * stoneDir.y - fY * stoneDir.x, g = (dx * stoneDir.y - dy * stoneDir.x) * Math.sign(sg || 1);
+  if (g < -2.2 || g > 2.2) return STONE;
+  STONE.turn = ss(g, -2.0, -1.0) * (1 - ss(g, 1.4, 2.1));
+  STONE.up = ss(g, -1.9, -0.9) * (1 - ss(g, 0.5, 1.1));
+  STONE.kiss = ss(g, 0.5, 1.0) * (1 - ss(g, 1.5, 2.1));
+  return STONE;
+}
 const raiseAt = (x, y) => {
   const dx = x - stoneA.x, dy = y - stoneA.y;
   if (dx * stoneDir.x + dy * stoneDir.y < 0) return 0;
@@ -711,7 +734,7 @@ function placeWalkers(t) {
     const w = walkers[i], dd = Math.max(0, (tawafOut - w.hT) * 2.6);   // на сколько метров уже отошёл от своей дорожки
     // w.q — пройденный путь по дорожке: копится со своей скоростью (тормозит за впереди идущим); на паузе намаза стоит
     if (jump || w.q === undefined) { w.q = w.s0 + t * w.v * SPEED; w.vs = 1; w.sh = 0; w.bk = 0; }
-    else if (dd === 0) w.q += dtc * w.v * SPEED * w.vs;
+    else if (dd === 0) w.q += dtc * w.v * SPEED * w.vs * (1 - 0.7 * (w.st || 0));   // на линии Камня — почти шагом на месте
     w.kv = false;
     if (dd >= 46) { w.vis = false; continue; }
     const s = w.q, p = along(w.lane, s, tmpV);
@@ -721,9 +744,9 @@ function placeWalkers(t) {
       const dx = x - ringPos.x, dy = y - ringPos.y, d = Math.hypot(dx, dy);
       if (d < 3) { x = ringPos.x + dx * 3 / (d || 1); y = ringPos.y + dy * 3 / (d || 1); }
     }
-    {   // ряды намаза за Макамом — поток расступается и обходит их сбоку
-      const dx = x - mq.x, dy = y - mq.y, u = dx * mqOut.x + dy * mqOut.y, v = -dx * mqOut.y + dy * mqOut.x;
-      if (u > 3.4 && u < 8.8 && Math.abs(v) < 4.6) { const nv = Math.sign(v || 1) * 4.6 - v; x += -mqOut.y * nv; y += mqOut.x * nv; }
+    {   // за Макамом молятся только по краям (сцена 1) — поток обходит их: проходит посередине или снаружи
+      const dx = x - mq.x, dy = y - mq.y, u = dx * mqOut.x + dy * mqOut.y, v = -dx * mqOut.y + dy * mqOut.x, av = Math.abs(v);
+      if (u > 3.4 && u < 8.8 && av > 1.6 && av < 4.6) { const nv = Math.sign(v || 1) * (av < 3.1 ? 1.6 : 4.6) - v; x += -mqOut.y * nv; y += mqOut.x * nv; }
     }
     if (dd === 0 && !jump) {
       // впереди кто-то в шаге (до 0,95 м, в полосе ±0,45 м) — сбавляет шаг и обходит сбоку; вплотную — расходятся
@@ -765,6 +788,9 @@ function placeWalkers(t) {
       }
     }
     let rot = Math.atan2(-p.tx, p.ty);
+    const rp = rot, st = dd > 0 ? STONE.turn = STONE.up = STONE.kiss = 0 : stoneAt(x, y, fX, fY).turn;
+    w.st = jump ? st : (w.st || 0) + (st - (w.st || 0)) * Math.min(1, fr * 2);
+    if (STONE.turn) rot = lerpAng(rot, faceTo(stoneA.x - x, stoneA.y - y), STONE.turn);
     if (dd > 0) {
       const rl = Math.hypot(x, y) || 1; let ang = Math.atan2(y, x), r = rl + dd, dir = 0;   // dir: 0 — наружу, ±1 — вбок вдоль дуги
       if (bars) for (const sx of SECX) {   // напротив женского сектора: сначала вдоль его дуги до края (не ближе 0,6 м к ней), потом наружу — снаружи луча барьера
@@ -781,24 +807,30 @@ function placeWalkers(t) {
     }
     // у Йеменского угла: на ближних дорожках касаются стены, чуть дальше — тянутся к ней рукой
     const dY = Math.hypot(x - KS.x, y - KS.y), yem = dd > 0 ? 0 : dY < 2.8 && w.lane.d < 4.5 ? (w.lane.d < 2.6 ? 1 : 0.6) : 0;
-    const k = dd > 0 ? 0 : raiseAt(x, y), sw = (1 - Math.max(k, yem)) * Math.sin((s + dd) * 4.8 + w.ph) * 0.32;   // мах рукой в такт шагу
+    const up = STONE.up, ks = STONE.kiss, k = Math.max(up, ks), sw = (1 - Math.max(k, yem)) * Math.sin((s + dd) * 4.8 + w.ph) * 0.32;   // мах рукой в такт шагу
     const f = fq, kid = dd === 0 ? w.kid : null;
     f.c0.copy(w.c); f.c1.copy(w.s); f.c2.copy(w.woman ? w.hj : (w.hc || w.s)); f.c3.copy(w.bc || w.s);
     f.hair = w.woman ? 1 : (w.hs || 0); f.beard = w.bc ? 1 : 0; f.cover = w.woman || dd > 0 ? 1 : 0; f.sleeve = w.woman ? 1 : 0;
     f.sc = 1; f.tilt = 0; f.drop = 0; f.kneel = 0; f.fsw = sw * 0.45;
-    const kk = Math.max(k, yem * 0.35);
-    setA(R, kk * 2.3 + sw, 0.08 + kk * 0.4 - yem * 1.3, 0.3 + k * 0.45 + yem * 0.3);
-    if (kid) setA(L, 0.05, 0.12, 0.1); else setA(L, -sw, 0.08, 0.3);
+    if (k > 0.01) {   // ладони к камню → к губам
+      const a = 0.5 * up + 0.6 * ks, b = 0.4 * up + 0.05 * ks, c = 2.05 * up + 2.4 * ks, m = 1 - k;   // ладони к камню у ушей → к губам
+      setA(R, a + m * sw, b + m * 0.08, c + m * 0.3);
+      if (kid) setA(L, 0.05, 0.12, 0.1); else setA(L, a - m * sw, b + m * 0.08, c + m * 0.3);
+    } else {
+      const kk = yem * 0.35;
+      setA(R, kk * 2.3 + sw, 0.08 + kk * 0.4 - yem * 1.3, 0.3 + yem * 0.3);
+      if (kid) setA(L, 0.05, 0.12, 0.1); else setA(L, -sw, 0.08, 0.3);
+    }
     w.x = x; w.y = y; w.r = rot; w.vis = true;
     crowdPush(w.woman, x, 0, y, rot);
     if (kid) {   // ребёнок слева, правой рукой держит взрослого; шагает чаще
-      const kx = x - Math.cos(rot) * KID_D, ky = y - Math.sin(rot) * KID_D, ksw = Math.sin((s + dd) * 6.2 + w.ph) * 0.3;
+      const kx = x - Math.cos(rp) * KID_D, ky = y - Math.sin(rp) * KID_D, ksw = Math.sin((s + dd) * 6.2 + w.ph) * 0.3;
       f.c0.copy(kid.c); f.c1.copy(kid.s); f.c2.copy(kid.woman ? kid.hj : kid.hc); f.c3.copy(kid.s);
       f.hair = kid.woman ? 1 : 0.8; f.beard = 0; f.cover = kid.woman ? 1 : 0; f.sleeve = kid.woman ? 1 : 0;
       f.sc = kid.sc; f.fsw = ksw * 0.45;
       setA(R, 0.05, 1.12, 0.05); setA(L, ksw, 0.08, 0.3);
       w.kx = kx; w.ky = ky; w.kv = true;
-      crowdPush(kid.woman, kx, 0, ky, rot);
+      crowdPush(kid.woman, kx, 0, ky, rp);
     }
   }
 }
@@ -1096,9 +1128,15 @@ function updateNur(T) {   // яркость гасим через цвет: в �
   burstGeo.attributes.position.needsUpdate = true; burstGeo.attributes.color.needsUpdate = true;
 }
 
-// Бритьё — вне мечети: от Марвы через ворота № 25 «Баб аль-Марва» (OSM, node 4562391840) к салонам за выходом
-const HALQ = [toV3(124, 310, 2), toV3(160, 322, 2)];
-const halqTag = label("✂ салон у выхода с Марвы", "#F07A1E", "#FFFFFF"); halqTag.position.copy(HALQ[1]).setY(16);
+// Бритьё — вне мечети: от Марвы через ворота № 25 «Баб аль-Марва» по пешеходным путям OSM (A*, выгрузка 26.10.2026)
+// к ближайшему салону, который отмечен в OSM (shop=hairdresser/barber). Отмечены не все — путь примерный.
+const HALQ_P = polyPath([[123.6, 309.6], [139.8, 320.3], [149.3, 243.1], [132.2, 241.3], [136.3, 208.4], [132.1, 207.8], [148.9, 71.5],
+  [212.6, 80.2], [191.1, 41.0], [170.8, -54.1], [155.8, -92.2], [56.4, -169.8], [14.3, -185.1], [4.7, -196.5], [10.9, -218.5],
+  [29.3, -248.5], [-23.0, -253.1], [-32.7, -317.0], [-13.9, -311.0]], () => 2);
+const HALQ = [HALQ_P.v[0], HALQ_P.v[HALQ_P.v.length - 1]], HALQ_T = 12;   // HALQ_T — с на весь путь (ускорено)
+const halqLine = new THREE.Mesh(new THREE.TubeGeometry(HALQ_P.curve, 600, 0.75, 6), new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, opacity: 0.85, depthWrite: false, depthTest: false }));
+halqLine.renderOrder = 5; halqLine.visible = false; scene.add(halqLine);
+const halqTag = label("✂ салон · примерно, по данным OSM", "#F07A1E", "#FFFFFF"); halqTag.position.copy(HALQ[1]).setY(16);
 halqTag.visible = false; scene.add(halqTag);
 // Шкала «Умра: X %» — доля пройденных обрядов, веса этапов по времени и усилию (не мера награды)
 const PROG = { ihram: [0, 5], enter: [5, 15], tawaf: [15, 55], maqam: [55, 62], zamzam: [62, 67], sai: [67, 95], halq: [95, 100], finish: [100, 100] };
@@ -1238,13 +1276,37 @@ function onPath(pl, s) {
   const a = pl.P[i - 1], b = pl.P[i], k = (s - pl.cum[i - 1]) / (pl.cum[i] - pl.cum[i - 1] || 1);
   xq.x = a.x + (b.x - a.x) * k; xq.y = a.y + (b.y - a.y) * k; xq.r = faceTo(b.x - a.x, b.y - a.y);
 }
-// 1. За Макамом молятся 2 ракаата после тавафа — каждый сам по себе (это не джамаат), поэтому не строем:
-//    три неровных «ряда» со сдвигом, у каждого свой темп. Место «вы» (ringPos) — свободно.
+// 1. За Макамом молятся 2 ракаата после тавафа — каждый сам по себе, не строем, и только по краям: между Каабой и Макамом
+//    и посередине за ним идёт таваф и проходят люди. Место «вы» (ringPos) — свободно. Порядок rnd() прежний: средние места
+//    (|j| < 3) отданы рядам общего намаза — они приходят сюда с азаном (свой генератор rndM)
+let seedM = 5; const rndM = () => ((seedM = (seedM * 16807) % 2147483647) / 2147483647);
+const lateRow = (x, y) => {
+  const tIn = 4 + rndM() * 30, sit = rndM() < 0.6, lag = 0.1 + rndM() * 0.35, tOut = 1 + rndM() * 20, r0 = kaabaDir(x, y);
+  let ox = 0, oy = 0, walk = 0;
+  return (t, p) => {
+    if (!walk) { const o = rimAt(Math.atan2(y, x)); ox = o[0] * 0.97; oy = o[1] * 0.97; walk = Math.hypot(x - ox, y - oy) / 2.6; }
+    const ph = CL.phase, T = CL.phT;
+    xq.x = x; xq.y = y; xq.r = r0;
+    if (ph === 0) { xq.hide = true; return; }
+    if (ph === 1) {
+      const k = (T - tIn) / walk;
+      if (k < 0) { xq.hide = true; return; }
+      if (k < 1) { xq.x = ox + (x - ox) * k; xq.y = oy + (y - oy) * k; xq.r = faceTo(x - ox, y - oy); walkSw(t, p, 2); return; }
+      xq.pose = sit ? 3 : 0; xq.bend = sit ? 1.5 : 0; return;
+    }
+    if (ph === 2) { if (sit && T < 20 + lag * 30) { xq.pose = 3; xq.bend = 1.5; } return; }
+    if (ph === 3) { xq.pose = seqPose(JSEQ[CL.key], T - lag); xq.pray = true; return; }
+    const k = (T - tOut) / walk;
+    if (k < 0) { xq.pose = 3; xq.bend = 1.5; return; }
+    if (k >= 1) { xq.hide = true; return; }
+    xq.x = x + (ox - x) * k; xq.y = y + (oy - y) * k; xq.r = faceTo(ox - x, oy - y); walkSw(t, p, 2);
+  };
+};
 const mqSide = new THREE.Vector2(-mqOut.y, mqOut.x);
 for (let row = 0; row < 3; row++) for (let j = -4; j <= 4; j++) {
   const u = 4.6 + row * 1.35 + (rnd() - 0.5) * 0.5, v = j * 0.85 + (row % 2) * 0.4 + (rnd() - 0.5) * 0.3;
-  const x = mq.x + mqOut.x * u + mqSide.x * v, y = mq.y + mqOut.y * u + mqSide.y * v;
-  xPerson(praying(x, y), { sp: 0.9 + rnd() * 0.25, woman: false });
+  const x = mq.x + mqOut.x * u + mqSide.x * v, y = mq.y + mqOut.y * u + mqSide.y * v, edge = Math.abs(j) >= 3;
+  xPerson(edge ? praying(x, y) : lateRow(x, y), { sp: 0.9 + rnd() * 0.25, woman: false, row: !edge });
 }
 // 2. Внутри Хиджра молятся (это часть Каабы); 3. очередь в Хиджр: вход у северного угла, выход у западного
 const HC = new THREE.Vector2(-6.665, 8.763), HN = new THREE.Vector2(-0.605, 0.796);
@@ -1834,18 +1896,6 @@ for (let k = 0; k < 8; k++) {
     xq.x = 6.26 + ox * r; xq.y = -2.06 + oy * r; xq.r = faceTo(-ox, -oy); xq.arm = 0.55 + 0.2 * Math.sin(t * 2.2 + p.ph * 7);
   }, { R: rnd2, woman: false, idt: true });
 }
-// 21. Между Макамом и Каабой — молятся 2 ракаата (там, где не проходит путь паломника и дорога к Макаму)
-{ const tracks = [];
-  for (let s = 0; s < youLane.L; s += 0.5) { const p = along(youLane, s, tmpV); tracks.push([p.x, p.y]); }
-  for (let s = 0; s < toMaqam.L; s += 0.5) { onPath(toMaqam, s); tracks.push([xq.x, xq.y]); }
-  const clearOf = (x, y) => tracks.every(([a, b]) => (a - x) ** 2 + (b - y) ** 2 > 1.4 * 1.4);
-  const put = [];
-  for (let n = 0, tries = 0; n < 10 && tries < 400; tries++) {
-    const u = -5 + rnd2() * 3, v = -2 + rnd2() * 5, x = mq.x + mqOut.x * u + mqSide.x * v, y = mq.y + mqOut.y * u + mqSide.y * v;
-    if (!clearOf(x, y) || put.some(([a, b]) => Math.hypot(a - x, b - y) < 1.1)) continue;
-    put.push([x, y]); xPerson(praying(x, y), { R: rnd2, sp: 0.85 + rnd2() * 0.3, woman: rnd2() < 0.25 }); n++;
-  }
-}
 // детская коляска: корзина и капюшон (цвет свой у каждой) + тёмная рама, ручка, колёса; вперёд — −z
 const PRAM_N = 30;
 const pramBody = new THREE.InstancedMesh(mergeGeometries([new THREE.BoxGeometry(0.42, 0.3, 0.7).translate(0, 0.55, 0),
@@ -1860,6 +1910,53 @@ for (const m of [pramBody, pramFrame]) { m.count = 0; m.frustumCulled = false; s
 pramBody.setColorAt(0, new THREE.Color());
 const xCol = new THREE.Color();
 const flush = (m, cnt) => { m.count = cnt; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; };
+// Женщины из сцен на общий намаз: с азана идут в ближайший женский сектор — через проход в барьере (там полицейский),
+// садятся, на икаму встают, молятся там; после намаза посидели — и обратно на своё место в сцене.
+// Только те, кто на матафе (на саи, во дворе и на улице свои места для женщин рядом — их не трогаем)
+const W_IN = [WL - 1, WL + 1].map((i) => i);   // дорожки до и после передней дуги — проход
+function toWomen(p, t) {
+  const ph = CL.phase, T = CL.phT;
+  if (!ph) { p.wv = undefined; return; }
+  if (p.wv === undefined) {   // решаем один раз за намаз
+    p.wv = null;
+    if (xq.chair || Math.abs(xq.h) > 0.5) return;
+    const r = Math.hypot(xq.x, xq.y), ang = Math.atan2(xq.y, xq.x), rim = Math.hypot(...rimAt(ang));
+    if (r > rim * 0.98) return;
+    let best = WSEC[0]; for (const sc of WSEC) if (angDiff(ang, sc[0]) < angDiff(ang, best[0])) best = sc;
+    if (angDiff(ang, best[0]) < best[1] && r > rWL(ang)) return;   // уже в секторе
+    // путь: по радиусу на дорожку перед барьерами (WL−1), по ней вдоль дуги до середины сектора, в проход у полицейского, на место в ряду
+    const [a, h] = best, ta = a + (p.ph * 2 - 1) * (h - 0.12), nl = lanes.length - WL - 3, ln = lanes[W_IN[0]];
+    const da = Math.atan2(Math.sin(a - ang), Math.cos(a - ang)), n = Math.max(1, Math.ceil(Math.abs(da) / 0.05)), pts = [null];
+    for (let k = 0; k <= n; k++) pts.push(nearestAng(ln, ang + da * k / n));
+    pts.push(nearestAng(lanes[W_IN[1]], a), nearestAng(lanes[WL + 2 + Math.floor(p.ph * 97) % Math.max(1, nl)], ta));
+    p.wv = { pts, t0: 2 + p.ph * 12, tOut: 2 + p.ph * 16, d: 0, lt: 0, lp: 0 };
+  }
+  const v = p.wv; if (!v) return;
+  const P = v.pts, N = P.length; P[0] = tmpW.set(xq.x, xq.y);
+  let L = 0; for (let i = 1; i < N; i++) L += P[i].distanceTo(P[i - 1]);
+  if (ph === 1 || ph === 4) {   // идёт не медленнее 2,6 м/с и так, чтобы успеть до конца фазы (по часам Мекки)
+    if (v.lp !== ph) { v.lp = ph; v.lt = T; v.d = 0; }
+    const dT = Math.max(0, T - v.lt); v.lt = T;
+    if (T >= (ph === 1 ? v.t0 : v.tOut)) {
+      const dm = CL.m - CL.t[CL.key], rem = (ph === 1 ? -dm : 13 + RAKAAT[CL.key] * 1.6 - dm) * 60 / CL.rate;
+      v.d = Math.min(L, v.d + dT * Math.max(2.6, (L - v.d) / Math.max(0.5, rem - 2)));
+    }
+  }
+  const d = ph === 1 ? v.d : ph === 4 ? L - v.d : L;   // сколько метров пути уже пройдено от места в сцене
+  if (d <= 0) return;   // ещё (или уже) на своём месте в сцене
+  const back = ph === 4, pr = xq.pram;   // коляска уходит вместе с мамой и стоит перед ней в секторе
+  if (d >= L) {   // в секторе: ждёт сидя, на икаму встаёт, в джамаате — общий намаз (ниже), после — сидит
+    const tg = P[N - 1]; xq.x = tg.x; xq.y = tg.y; xq.r = kaabaDir(tg.x, tg.y);
+    xq.pose = ph === 2 || ph === 3 ? 0 : 3; xq.bend = xq.pose === 3 ? 1.5 : 0;
+  } else {
+    let i = 1, acc = 0; while (i < N - 1 && acc + P[i].distanceTo(P[i - 1]) < d) { acc += P[i].distanceTo(P[i - 1]); i++; }
+    const A = P[i - 1], B = P[i], l = A.distanceTo(B) || 1, e = Math.min(1, (d - acc) / l);
+    xq.x = A.x + (B.x - A.x) * e; xq.y = A.y + (B.y - A.y) * e;
+    xq.r = back ? faceTo(A.x - B.x, A.y - B.y) : faceTo(B.x - A.x, B.y - A.y); xq.pose = 0; xq.bend = 0; walkSw(t, p, 2);
+  }
+  xq.h = 0; xq.arm = 0; xq.both = false; xq.pray = false; xq.push = pr && d < L; xq.pram = pr; xq.lean = 0; xq.wall = 0; xq.tool = 0; xq.guide = false;
+}
+const tmpW = new THREE.Vector2();
 // Люди сцен: каждый кадр — где стоит, поза и обе руки; запоминаем место (lx…) — по нему идёт ребёнок и его обходят идущие
 function placeExtras(t) {
   const nt = [0, 0, 0, 0], f = fq, R = f.R, L = f.L; let nc = 0, np = 0;
@@ -1869,10 +1966,11 @@ function placeExtras(t) {
     xq.both = false; xq.pray = false; xq.push = false; xq.kidHand = false; xq.hasKid = false; xq.pram = false; xq.lean = 0; xq.wall = 0;
     p.f(t, p);
     if (xq.hide) { p.lx = undefined; continue; }
+    if (p.woman && !p.kid && !p.row && !p.police) toWomen(p, t);
     if (salah && !p.row && !xq.chair && (!p.police || p.prays)) {   // намаз: все, кто не в рядах, встают там, где стоят, лицом к Каабе
       xq.pose = seqPose(JSEQ[CL.key], CL.phT - 0.15 - p.ph * 0.4); xq.r = kaabaDir(xq.x, xq.y);
       xq.arm = 0; xq.sw = 0; xq.bend = 0; xq.tool = 0; xq.guide = false;
-      xq.both = false; xq.push = false; xq.kidHand = false; xq.pram = false; xq.lean = 0; xq.wall = 0; xq.pray = true;
+      xq.both = false; xq.push = false; xq.kidHand = false; xq.lean = 0; xq.wall = 0; xq.pray = true;   // коляска остаётся перед молящимся
     }
     p.lx = xq.x; p.ly = xq.y; p.lr = xq.r; p.lh = xq.h; p.lpose = xq.pose; p.lk = xq.hasKid || p.hasKid;
     const pose = xq.pose, X = XPOSE[pose], sw = xq.sw, arm = xq.arm, bend = xq.bend;
@@ -1940,21 +2038,25 @@ const TAW_FIRST = [[0, "relaxed"], [0.4, "relaxed"], [0.52, "takbir"], [0.62, "t
 const TAW_NEXT = [[0, "relaxed"], [0.2, "istilam"], [0.55, "istilam"], [0.75, "kiss"], [1, "relaxed"]];
 // Замзам: камера — сзади-сбоку от паломника, смотрит на Каабу (в кадре только она и мечеть вокруг матафа).
 // Кадр: [наружу от Каабы, вбок по кругу, высота, доля пути к Каабе для точки взгляда, высота точки взгляда]
-const ZS = { walk: [10, 6, 13, 0.6, 5], close: [6.5, 3, 3.4, 0.25, 3.2], side: [4.5, 4.8, 3, 0.2, 2.6], ist: [7, -2, 4.5, 0.35, 4], end: [-4, -14, 13, 0.5, 4] };   // финал — изнутри матафа: снаружи от кулеров стоит османская галерея
-const Z_CAM = [[0, "walk"], [3, "walk"], [5, "close"], [8.4, "close"], [9.4, "side"], [11.8, "side"], [12.8, "ist"], [14.2, "ist"], [16.5, "end"]];
-const Z_END = 17.3, zShot = [0, 0, 0, 0, 0], zEnd = new THREE.Vector2();
+// Крупные планы (w = 0): камера спереди-сбоку (3/4), смотрит на самого паломника — он в центре кадра, лицом к Каабе
+const ZS = { walk: [7, 5, 5, 0.1, 2], close: [-1.7, 2.3, 1.75, 0, 1.3], side: [-0.3, 2.9, 1.7, 0, 1.4], ist: [3.5, -2.2, 2.4, 0.06, 1.3], end: [-4, -14, 13, 0.5, 4] };   // финал — изнутри матафа
+// по времени шага без сдвига на дуа (fxT): глотки и дуа — крупно, умывание — сбоку, истилям — с Каабой в кадре
+const Z_CAM = [[0, "walk"], [3, "walk"], [5, "close"], [8.4, "close"], [9.4, "side"], [11.8, "side"], [12.4, "close"], [14.3, "close"], [15.4, "ist"], [16.8, "ist"], [19.1, "end"]];
+const SAI_CAM = [14, 60, 50, 0.5, 0.33, 0.58];   // саи: [назад по ходу, наружу от Каабы, высота — м; и ещё по столько на каждый метр до Каабы: наружу, вверх; вес Каабы в точке взгляда]
+const Z_END = 17.3, ZD = 2.6, zShot = [0, 0, 0, 0, 0], zEnd = new THREE.Vector2();
 function zFrame(hx, hy, T, outC, outT) {   // кадр Замзама для паломника в (hx, hy) на секунде T
   let j = 0; while (j < Z_CAM.length - 2 && T > Z_CAM[j + 1][0]) j++;
   const [t0, a] = Z_CAM[j], [t1, b] = Z_CAM[j + 1], e = THREE.MathUtils.smoothstep(T, t0, t1);
   for (let i = 0; i < 5; i++) zShot[i] = ZS[a][i] + (ZS[b][i] - ZS[a][i]) * e;
-  const r = Math.hypot(hx, hy) || 1, ux = hx / r, uy = hy / r, narrow = camera.aspect < 1 ? 0.4 : 1;
-  const side = zShot[1] * narrow + 0.08 * T;   // медленный боковой пролёт
-  const [dU, , h, w, th] = zShot;
+  const r = Math.hypot(hx, hy) || 1, ux = hx / r, uy = hy / r, tall = camera.aspect < 1, near = zShot[3] < 0.05;
+  // на узком экране: общие планы — ближе к оси на Каабу, крупные — чуть дальше, чтобы паломник поместился целиком
+  const k = tall && near ? 1.7 : 1, side = zShot[1] * (tall && !near ? 0.4 : k) + 0.03 * T;   // медленный боковой пролёт
+  const dU = zShot[0] * k, [, , h, w, th] = zShot;
   outC.set(hx + ux * dU - uy * side, h, -(hy + uy * dU + ux * side));
   outT.set(hx * (1 - w), th, -hy * (1 - w));
 }
 function setFx(name) {
-  fx = name; cine = name === "zamzam" || name === "tawaf"; cineA = null;
+  fx = name; cine = name === "zamzam" || name === "tawaf" || name === "sai" || name === "halq"; cineA = null; setSub("");
   syncSai();
   you.visible = !!name;
   youUpper.rotation.x = 0; youFig.position.y = 0; you.rotation.y = 0;
@@ -1967,15 +2069,24 @@ function setFx(name) {
   runner.visible = name !== "enter";   // на шаге 2 по маршруту идёт сам паломник
   route.visible = routeOn || name === "enter";
   ring.visible = name === "maqam"; zamzam.visible = name === "zamzam"; burst.visible = name === "finish";
-  halqTag.visible = name === "halq";
-  controls.minDistance = name ? 5 : 14;
+  halqTag.visible = halqLine.visible = name === "halq";
+  controls.minDistance = name === "zamzam" ? 2.5 : name ? 5 : 14;   // у кулеров — крупный план паломника
   $("prog").classList.toggle("on", !!name);
-  setCounter("");
+  setCounter(""); syncBar();
 }
 function setCounter(t) {
   if (t === counterTxt) return;
-  counterTxt = t; $("counter").textContent = t; $("counter").style.display = t ? "block" : "none";
+  counterTxt = t; $("counter").textContent = t; $("counter").style.display = t ? "block" : "none"; syncBar();
 }
+let subTxt = "";
+function setSub(t) {   // субтитр под подписью: слова дуа (транслитерация · перевод) или уточнение
+  if (t === subTxt) return;
+  subTxt = t; $("sub").textContent = t; $("sub").style.display = t ? "block" : "none"; syncBar();
+}
+function syncBar() {   // панель видна, только когда в ней что-то есть
+  $("stepbar").classList.toggle("on", $("chips").classList.contains("on") || $("prog").classList.contains("on") || !!counterTxt || !!subTxt);
+}
+const halqV = new THREE.Vector3(), halqDir = new THREE.Vector3(), saiD = new THREE.Vector3(), saiO = new THREE.Vector3(), saiK = new THREE.Vector3();
 const saiA = new THREE.Vector3(), saiB = new THREE.Vector3(), followV = new THREE.Vector3(), runV = new THREE.Vector3();
 const WALK_SPEED = 65;   // м/с на экране: 930 м пути за ~14 с
 let tagTxt = "";
@@ -2055,15 +2166,19 @@ function updateFx(dt) {
       g.material.opacity = o * THREE.MathUtils.clamp((g.position.distanceTo(camera.position) - 8) / 30, camD < 25 ? 0.06 : 1, 1);
     });
     // Хронометраж (с): 0–4 к кулеру · 4–5,3 налить и повернуться к Каабе · 5,3–8,6 три глотка · 8,6–10,1 умыть лицо ·
-    // 10,1–12 полить голову · 12–14,5 истилям издали, лицом к камню · 14,5–17,3 к Сафе
-    const T = fxT, sm = THREE.MathUtils.smoothstep;
+    // 10,1–12 полить голову · 12–14,6 дуа (ZD) · дальше со сдвигом на ZD: 12–14,5 истилям издали, лицом к камню · 14,5–17,3 к Сафе
+    const T0 = fxT, inDua = T0 >= 12 && T0 < 12 + ZD, T = T0 >= 12 + ZD ? T0 - ZD : Math.min(T0, 12), sm = THREE.MathUtils.smoothstep;
     const walkH = faceTo(zH.x - ringPos.x, zH.y - ringPos.y), cupH = faceTo(cooler.x - zH.x, cooler.y - zH.y);
     const kH = kaabaDir(zH.x, zH.y), stH = faceTo(stoneA.x - zH.x, stoneA.y - zH.y);
     zEnd.copy(SAFA2).sub(zH).normalize();
     const safaH = faceTo(zEnd.x, zEnd.y);
-    let x = zH.x, y = zH.y, h = 0, r = kH, msg;
+    let x = zH.x, y = zH.y, h = 0, r = kH, msg, sub = "";
     youUpper.rotation.x = 0; cup.rotation.set(0, 0, 0); cup.visible = T > 4.45 && T < 11.95; zDrops.visible = false;
-    if (T < 4) {
+    if (inDua) {   // дуа после Замзама — стоя лицом к Каабе, руки подняты
+      setArms("relaxed", "dua", sm(T0, 12, 12.4) - sm(T0, 12 + ZD - 0.4, 12 + ZD));
+      msg = "Дуа после Замзама";
+      sub = "«Аллаху́мма инни́ ас’алюка ‘и́льман на́фи‘ан, ва-ри́зкан ва́си‘ан, ва-шифа́’ан мин ку́лли да́’» — О Аллах, прошу у Тебя полезного знания, обильного удела и исцеления от всякой болезни";
+    } else if (T < 4) {
       const e = ease(T / 4);
       x = ringPos.x + (zH.x - ringPos.x) * e; y = ringPos.y + (zH.y - ringPos.y) * e;
       h = 0.05 * Math.sin(T * 6) ** 2 * Math.min(1, T / 0.4, (4 - T) / 0.4); r = walkH;
@@ -2077,6 +2192,7 @@ function updateFx(dt) {
       poseTrack([[0, "cupChest"], [0.3, "drink"], [0.75, "drink"], [1, "cupChest"]], tau);
       cup.rotation.x = 0.9 * (sm(tau, 0.25, 0.45) - sm(tau, 0.7, 0.85));
       msg = tau < 0.8 ? `«Бисмиллях» · глоток ${n + 1} из 3` : "«Альхамдулиллях»";
+      sub = "Стоя, лицом к Каабе, в три глотка";
     } else if (T < 10.1) {   // умыть лицо: ладони у лица вверх-вниз, капли с подбородка
       if (T < 8.9) setArms("cupChest", "face", sm(T, 8.6, 8.9));
       else if (T < 9.8) setArms("face", "face2", 0.5 - 0.5 * Math.cos((T - 8.9) * Math.PI * 2 / 0.45));
@@ -2100,20 +2216,33 @@ function updateFx(dt) {
       setArms("relaxed"); msg = T < Z_END ? "К Сафе — на саи" : "Замзам и истилям ✓ — дальше саи";
     }
     you.position.set(x, h, -y); you.rotation.y = r;
-    setCounter(msg);
-    pct = setProg(T / Z_END);
+    setCounter(msg); setSub(sub);
+    pct = setProg(T0 / (Z_END + ZD));
     if (cine && !fly) {   // медленный пролёт над кулерами: в кадре паломник и Кааба; касание экрана отпускает
-      zFrame(x, y, T, tawCam, tawTgt);
+      zFrame(x, y, T0, tawCam, tawTgt);
       cineTo(tawCam, tawTgt, 2);
     }
   } else if (fx === "sai" || fx === "halq") {
     saiA.copy(safaV).setY(saiY - 1.2); saiB.copy(marwaV).setY(saiY - 1.2);
-    if (fx === "halq") {   // от Марвы — наружу, к салонам
-      const u = Math.min(1, fxT / 4);
-      if (u < 0.5) you.position.lerpVectors(saiB, HALQ[0], u * 2); else you.position.lerpVectors(HALQ[0], HALQ[1], u * 2 - 1);
-      if (u < 1) { const to = u < 0.5 ? HALQ[0] : HALQ[1]; you.rotation.y = faceTo(to.x - you.position.x, you.position.z - to.z); }
+    if (fx === "halq") {   // от Марвы — через ворота № 25 наружу и по улицам к салону (путь OSM)
+      const u = Math.min(1, fxT / HALQ_T), u0 = 1.5 / HALQ_T;
+      if (u < u0) { you.position.lerpVectors(saiB, HALQ[0], ease(u / u0)); halqV.copy(HALQ[0]); }
+      else { HALQ_P.at((u - u0) / (1 - u0) * HALQ_P.L, you.position); HALQ_P.at((u - u0) / (1 - u0) * HALQ_P.L + 6, halqV); }
+      if (u < 1 && halqV.distanceToSquared(you.position) > 0.01) you.rotation.y = faceTo(halqV.x - you.position.x, you.position.z - halqV.z);
+      you.position.y += u < 1 ? Math.abs(Math.sin(fxT * 8)) * 0.06 : 0;
       pct = setProg(u);
-      setCounter(u >= 1 ? "Бритьё в салоне у выхода с Марвы ✓" : "Выходим через ворота № 25 у Марвы");
+      const km = (HALQ_P.L / 1000).toFixed(1).replace(".", ",");
+      setCounter(u >= 1 ? "Бритьё (халк) или укорачивание ✓" : u < u0 + 0.06 ? "Выходим через ворота № 25 у Марвы" : `К салону · ~${km} км пешком`);
+      setSub(u >= 1 ? "Женщины укорачивают сами — не в салоне" : "Путь и салон — примерно, по данным OpenStreetMap: отмечены не все салоны");
+      if (cine && !fly) {   // камера идёт следом: сзади-сверху по ходу, поворачивает плавно — на углах улиц не дёргается
+        saiD.subVectors(halqV, you.position).setY(0);
+        if (fxT < 0.06 || halqDir.lengthSq() < 0.5) halqDir.copy(saiD.lengthSq() > 0.01 ? saiD.normalize() : saiD.set(0, 0, -1));
+        else if (saiD.lengthSq() > 0.01) halqDir.lerp(saiD.normalize(), 1 - Math.exp(-dt * 1.5)).normalize();
+        const nar = camera.aspect < 1 ? 1.3 : 1;
+        tawCam.copy(you.position).addScaledVector(halqDir, -30 * nar).setY(you.position.y + 40 * nar);
+        tawTgt.copy(you.position).addScaledVector(halqDir, 9);
+        cineTo(tawCam, tawTgt, 2.5);
+      }
     } else {
       const k = Math.min(fxT / SAI_LEG, 7), leg = Math.min(Math.floor(k), 6), back = leg % 2;
       const ga = back ? 1 - GREEN[1] : GREEN[0], gb = back ? 1 - GREEN[0] : GREEN[1];   // зона огней в долях этого прохода
@@ -2127,6 +2256,17 @@ function updateFx(dt) {
       setArms("dua", "relaxed", Math.min(1, u / 0.12));   // на холме — дуа, потом в путь
       const fromSafa = back ? 1 - u : u, inGreen = k < 7 && fromSafa > GREEN[0] && fromSafa < GREEN[1];
       pct = setProg(k / 7);
+      if (cine && !fly) {   // камера: сверху, наружу по линии «Кааба → паломник» и чуть сзади по ходу — по диагонали; паломник внизу кадра, Кааба вверху
+        saiD.subVectors(back ? saiA : saiB, back ? saiB : saiA).setY(0).normalize();
+        const hx = you.position.x, hz = you.position.z, r = Math.hypot(hx, hz) || 1, [B, S0, H0, kS, kH, wK] = SAI_CAM;
+        const Sd = S0 + kS * r, H = H0 + kH * r;   // чем дальше Кааба (у Марвы ~280 м), тем выше и дальше камера — иначе оба не входят в кадр
+        saiO.set(hx / r, 0, hz / r);   // наружу от Каабы: так паломник и Кааба на одной вертикали кадра — и на узком экране тоже
+        tawCam.set(hx - saiD.x * B + saiO.x * Sd, saiA.y + H, hz - saiD.z * B + saiO.z * Sd);
+        // смотрим между паломником и Каабой (чуть ближе к ней): он ниже центра, она выше — оба между верхней плашкой и карточкой шага
+        saiD.set(hx, saiA.y + 1, hz).sub(tawCam).normalize(); saiK.set(0, 9, 0).sub(tawCam).normalize();
+        tawTgt.copy(saiD).multiplyScalar(1 - wK).addScaledVector(saiK, wK).normalize().multiplyScalar(r).add(tawCam);
+        cineTo(tawCam, tawTgt, 2.5);
+      }
       setCounter(k >= 7 ? "Саи завершён на Марве ✓" : `Проход ${leg + 1} из 7 · ${back ? "Марва → Сафа" : "Сафа → Марва"}${inGreen ? " · зелёные огни: мужчинам — быстрым шагом" : ` · осталось ~${((7 - k) * LEG / 1000).toFixed(1).replace(".", ",")} км`}`);
     }
   } else if (fx === "ihram") {
@@ -2369,10 +2509,11 @@ function setMini(on) {
 }
 $("more").onclick = () => setMini(!$("card").classList.contains("mini"));
 let mapMode = false;
-$("lyrBtn").onclick = () => {   // слои = карта: камера уходит строго вверх, север сверху, весь Харам в кадре
+$("lyrBtn").onclick = () => {   // только открыть/свернуть панель — включённые слои остаются на схеме
   $("near").classList.remove("on");
   mapMode = $("layers").classList.toggle("on"); placeGo();
-  if (!mapMode) return;
+};
+$("lyrTop").onclick = () => {   // вся карта сверху: камера уходит строго вверх, север сверху, весь Харам в кадре
   if (step >= 0) closeCard();
   cine = false; tour = null;
   const half = 330, tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
@@ -2409,8 +2550,12 @@ function zView() {   // Замзам: подлёт сразу в первый к
 }
 zView();
 const saiMid = new THREE.Vector3();
-STEPS[5].view = [saiMid, 560, new THREE.Vector3(0.1, 1.2, 0.5)];      // весь путь Сафа — Марва в кадре
-STEPS[6].view = [toV3(128, 312, 4), 230, new THREE.Vector3(-0.55, 0.95, 0.75)];   // выход у Марвы, где бреют/стригут: общий план со стороны Каабы
+{   // саи: подлёт по диагонали — снаружи от Каабы, со стороны Сафы, сверху (потом следящая камера)
+  const d = MARWA2.clone().sub(SAFA2).normalize(), n = new THREE.Vector2(d.y, -d.x);
+  if (n.dot(MARWA2) < 0) n.negate();
+  STEPS[5].view = [saiMid, 520, new THREE.Vector3(n.x * 0.8 - d.x * 0.45, 1.1, -(n.y * 0.8 - d.y * 0.45))];
+}
+STEPS[6].view = [toV3(90, 0, 4), 980, new THREE.Vector3(0.55, 1.25, 0.35)];   // весь путь от Марвы к салону (OSM) сверху
 STEPS[7].view = [toV3(-60, 60, 0), 820, new THREE.Vector3(0.5, 0.72, 0.48)];
 
 let fxT = 0;
@@ -2423,7 +2568,7 @@ function openStep(i) {
   $("next").onclick = () => step < STEPS.length - 1 ? openStep(step + 1) : closeCard();
   chipEls.forEach((e, k) => { e.classList.toggle("sel", k === step); e.classList.toggle("done", k < step); });
   spotEls.forEach((e) => e.classList.remove("sel"));
-  $("chips").classList.add("on"); $("go").classList.add("on"); $("go").textContent = "✕ Выйти";
+  $("chips").classList.add("on"); $("go").classList.add("on"); $("go").textContent = "✕ Выйти"; syncBar();
   saiMid.lerpVectors(safaV, marwaV, 0.5).setY(saiY);
   setFx(st.fx); tour = null;
   if (step === 0) setFrom(fromWhere());
@@ -2449,7 +2594,7 @@ $("ctext").addEventListener("click", (e) => {
 });
 function leaveSteps() {
   step = -1; setFx(null);
-  $("chips").classList.remove("on"); $("go").classList.remove("on"); $("go").innerHTML = GO_HTML;
+  $("chips").classList.remove("on"); $("go").classList.remove("on"); $("go").innerHTML = GO_HTML; syncBar();
   $("prev").style.visibility = ""; $("next").textContent = "Далее →";
   $("next").onclick = () => step >= 0 ? openStep(step + 1) : openCard(cur + 1);
 }
@@ -2570,6 +2715,13 @@ renderer.setAnimationLoop((now) => {
   }
   updateSpots();
 });
+if (new URLSearchParams(location.search).has("dbg")) window.__d = {   // проверка: ?dbg — доступ к толпе и шаг симуляции
+  scene, SAI_CAM, ZS, CL, XP, walkers, xq, STONE, stoneA, stoneDir, mq, mqOut, WSEC, BGRID, camera, controls, you, get cine() { return cine; },
+  get crowdT() { return crowdT; },
+  run(n = 1, dt = 0.05) { for (let i = 0; i < n; i++) { updateClock(dt); crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); flushCrowd(); gridBuild(); } },
+  get fxT() { return fxT; },
+  fx(n = 1, dt = 0.05) { fly = null; flyQ = []; for (let i = 0; i < n; i++) { updateFx(dt); controls.update(); } },   // перемотка шага без ожидания кадров
+};
 addEventListener("resize", () => {
   camera.aspect = innerWidth / innerHeight; viewShift += 0.0011; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); fitHotel();
 });
@@ -2643,8 +2795,7 @@ document.querySelectorAll("#layers input").forEach((c) => c.onchange = () => {
 // Подписи не налезают друг на друга: Абу Джахль и главные ворота первыми, дальше туалеты, эскалаторы, остальные ворота.
 // Подпись, которая перекрыла бы уже показанную, прячется — приближаешь карту, и она появляется
 const lblV = new THREE.Vector3(), lblBox = [];
-function updateLayers() {   // второстепенные подписи — только вблизи, чтобы не было каши
-  const far = !$("layers").classList.contains("on") && camera.position.distanceTo(controls.target) > 450;   // в режиме карты — все
+function updateLayers() {   // что отмечено галочкой — видно всегда; наложения убираются по месту на экране
   const k2px = innerHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   lblBox.length = 0;
   const place = (l) => {
@@ -2654,7 +2805,7 @@ function updateLayers() {   // второстепенные подписи — �
     if (lblV.z > 1 || lblBox.some((b) => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < hh + b[3])) return false;
     lblBox.push([x, y, hw, hh]); return true;
   };
-  const pass = (k, minor) => { if (LYR[k]?.visible) LYR[k].children.forEach((l) => { if (!!l.userData.minor === minor) l.visible = !(far && minor) && place(l); }); };
+  const pass = (k, minor) => { if (LYR[k]?.visible) LYR[k].children.forEach((l) => { if (!!l.userData.minor === minor) l.visible = place(l); }); };
   pass("abujahl", false); pass("gates", false); pass("wc", true); pass("esc", true); pass("gates", true);
 }
 
