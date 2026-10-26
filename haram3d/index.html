@@ -383,6 +383,12 @@ const scene = new THREE.Scene();
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.55;
 const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.5, 5000);
+// Ближняя плоскость — по расстоянию до точки взгляда: на обзоре города точность глубины нужна вдали,
+// иначе соседние на сантиметры поверхности (мрамор Матафа, земля, крыши) мерцают «бликами»
+function fitNear() {
+  const n = THREE.MathUtils.clamp(camera.position.distanceTo(controls.target) * 0.01, 0.3, 10);
+  if (Math.abs(n - camera.near) > camera.near * 0.05) { camera.near = n; camera.updateProjectionMatrix(); }
+}
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.08;
 controls.minDistance = 14; controls.maxDistance = 2100;
@@ -432,7 +438,9 @@ gltf.scene.traverse((o) => {
   }
   if (m.name === "gold") { m.color.set(0xd4af37); m.metalness = 1; m.roughness = 0.26; m.emissive.set(0x3a2a08); m.emissiveIntensity = 0.25; m.envMapIntensity = 1.4; }   // дверь, хизам, мизаб, Макам — тёплый блик и лёгкое свечение в ночной подсветке
   if (m.name === "start") { startMat = m; m.emissive.set(0xf07a1e); }
-  o.castShadow = ["kiswa", "gold", "marble", "minaret"].includes(m.name);
+  if (m.name === "glass") { m.flatShading = false; m.transparent = true; m.opacity = 0.28; m.depthWrite = false; m.roughness = 0.05; m.envMapIntensity = 1.6; o.renderOrder = 2; }   // купол Макама: видно след внутри
+  if (m.name === "granite") { m.flatShading = false; m.roughness = 0.3; m.envMapIntensity = 1.2; }
+  o.castShadow = ["kiswa", "gold", "marble", "minaret", "sitara", "granite", "silver"].includes(m.name);
   o.receiveShadow = true;
   occluders.push(o);
 });
@@ -454,7 +462,9 @@ new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath("./vendor/draco
   base.traverse((o) => {
     if (!o.isMesh) return;
     o.receiveShadow = true;
-    if (!/Земля/.test(o.parent?.name || o.name)) occluders.push(o);   // метки прячутся и за гостиницами
+    if (/Земля/.test(o.name + " " + (o.parent?.name || ""))) {   // земля на 6 см ниже пола мечети — отодвигаем по глубине, чтобы не мерцала сквозь мрамор
+      o.material.polygonOffset = true; o.material.polygonOffsetFactor = 4; o.material.polygonOffsetUnits = 4;
+    } else occluders.push(o);   // метки прячутся и за гостиницами
   });
   LIVE_HARAM.forEach((o) => o.visible = false);
   masaaTop = base.children.filter((o) => /Масъа.*(верх|купол)/.test(o.name));
@@ -1423,7 +1433,7 @@ function saiFloor() { saiWorld.position.y = saiG.position.y = saiY - 1.2; saiWor
   saiWorld.visible = false; scene.add(saiWorld);
 
   // зона быстрого шага — зелёная площадь на всю ширину прохода и две полосы-границы
-  const a = GREEN[0], b = GREEN[1], gm = new THREE.MeshBasicMaterial({ color: 0x4dff8a, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide });
+  const a = GREEN[0], b = GREEN[1], gm = new THREE.MeshBasicMaterial({ color: 0x4dff8a, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const quad = [[a, -SAI_W], [a, SAI_W], [b, SAI_W], [b, -SAI_W]].map(([q, l]) => saiXY(q, l, 0.06, new THREE.Vector3()));
   const ag = new THREE.BufferGeometry().setFromPoints([quad[0], quad[1], quad[2], quad[0], quad[2], quad[3]]);
   green.add(new THREE.Mesh(ag, gm));
@@ -1438,7 +1448,7 @@ function saiFloor() { saiWorld.position.y = saiG.position.y = saiY - 1.2; saiWor
   for (const back of [0, 1]) {
     const lst = [];
     for (let d = 20; d < LEG - 15; d += 24) { const q = d / LEG; if (q < GREEN[0] - 0.01 || q > GREEN[1] + 0.01) for (const l of [5.4, 8.3]) lst.push(q, (back ? 1 : -1) * l); }
-    const im = new THREE.InstancedMesh(cg, new THREE.MeshBasicMaterial({ color: back ? 0x0b7d80 : 0xf07a1e, transparent: true, opacity: 0.85, depthWrite: false }), lst.length / 2);
+    const im = new THREE.InstancedMesh(cg, new THREE.MeshBasicMaterial({ color: back ? 0x0b7d80 : 0xf07a1e, transparent: true, opacity: 0.85, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), lst.length / 2);
     const rq = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), saiRot + (back ? Math.PI : 0)), sc = new THREE.Vector3(1.3, 1, 1.3);
     for (let i = 0; i < lst.length / 2; i++) { saiXY(lst[i * 2], lst[i * 2 + 1], 0.05, v); im.setMatrixAt(i, m4.compose(v, rq, sc)); }
     saiG.add(im);
@@ -2637,8 +2647,10 @@ function updateFx(dt) {
 }
 
 // ---------- Подсветки мест (по открытой метке) ----------
-// Углы Каабы (OSM, м от центра): В — Чёрный камень, Ю — Йеменский угол, З, С. Стена СВ (В → С) — Мультазам и дверь.
-const KE = new THREE.Vector2(6.26, -2.06), KS = new THREE.Vector2(-2.14, -7.78), KN = new THREE.Vector2(-0.21, 7.62);
+// Углы Каабы (OSM, м от центра): В — Чёрный камень, Ю — Йеменский угол, З (Шами), С (Иракский). Стена СВ (В → С) — Мультазам и дверь.
+// Все размеры Каабы — из haram_meta.json → kaaba (их же использует сборка модели в Blender), чтобы накладки совпадали с моделью.
+const KM = meta.kaaba;
+const KE = new THREE.Vector2(...KM.A), KS = new THREE.Vector2(...KM.C), KN = new THREE.Vector2(...KM.B);
 const spotFx = {};
 const hiMat = (color, opacity) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, side: THREE.DoubleSide,
   depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2 });
@@ -2656,12 +2668,13 @@ function wallFrame(a, b, z0, z1, off, color) {   // светящаяся рам�
   return g;
 }
 const onWall = (t) => KE.clone().lerp(KN, t);   // точка на стене СВ: 0 — Чёрный камень, 1 — северный угол
+const KAB = KE.distanceTo(KN), onWallM = (m) => onWall(m / KAB);   // то же, но в метрах от угла камня
 
 // ---------- Кааба: убранство ----------
-// По фотографиям кисвы: хизам — чёрная лента с золотым шитьём на высоте ≈ 8,7–9,65 м (в модели пояс сплошной золотой — накладываем вязь);
-// под ним — круглые «Самадии» (сура 112 «Аль-Ихлас») и ламповидные картуши с именами Аллаха; над дверью — ситара (занавес двери);
-// у подножия — наклонный мраморный шазарван с медными кольцами, к которым крепят кисву. Всё — накладки на стены модели.
-const KW = KS.clone().add(KN).sub(KE);
+// По фотографиям кисвы: хизам — чёрная лента с золотым шитьём на высоте ≈ 8,7–9,65 м (накладка с вязью на стене);
+// под ним — круглые «Самадии» (сура 112 «Аль-Ихлас») и ламповидные картуши с именами Аллаха; дверь закрыта ситарой —
+// её объём и шазарван (наклонный мраморный цоколь) есть в модели, здесь — шитьё ситары по её UV и медные кольца кисвы.
+const KW = new THREE.Vector2(...KM.D);
 const K_WALLS = [[KE, KN], [KN, KW], [KW, KS], [KS, KE]];   // против часовой (как в wallQuad): нормаль наружу, u растёт слева направо для смотрящего
 const K_FONT = "'Amiri','Scheherazade New','Noto Naskh Arabic','Geeza Pro','Baghdad',serif";
 const IKHLAS = ["قل هو الله أحد", "الله الصمد", "لم يلد ولم يولد", "ولم يكن له كفوا أحد"];
@@ -2697,7 +2710,7 @@ const kaabaDecor = new THREE.Group();
       for (const px of [70, w - 70]) { x.beginPath(); x.moveTo(px, 40); x.lineTo(px + 22, h / 2); x.lineTo(px, h - 40); x.lineTo(px - 22, h / 2); x.closePath(); x.fill(); }
       x.fit(HZ[i], w - 300, 92); x.fillText(HZ[i], w / 2, h / 2 + 4);
     });
-    kaabaDecor.add(wallPanel(a, b, 0.01, 0.99, 8.7, 9.65, 0.09, mat));
+    kaabaDecor.add(wallPanel(a, b, 0.01, 0.99, KM.hizam[0], KM.hizam[1], 0.03, mat));
   });
   // Самадия (круг с сурой 112) и ламповидный картуш — под хизамом
   const samad = embMat(384, 384, (x, w, h) => {
@@ -2718,50 +2731,57 @@ const kaabaDecor = new THREE.Group();
     kaabaDecor.add(kind ? wallPanel(a, b, t - 0.475 / l, t + 0.475 / l, 6.55, 8.05, 0.06, lamps[(i + k) % 3])
       : wallPanel(a, b, t - 0.55 / l, t + 0.55 / l, 6.75, 7.85, 0.06, samad));
   }));
-  // Ситара — занавес над дверью (дверь в модели 2,13–6,6 м) и его полотнища по бокам
-  const stTop = embMat(1024, 576, (x, w, h) => {
-    x.lineWidth = 12; x.strokeRect(22, 22, w - 44, h - 44); x.lineWidth = 3; x.strokeRect(44, 44, w - 88, h - 88);
-    for (const [cx, cy] of [[90, 90], [w - 90, 90], [90, h - 90], [w - 90, h - 90]]) { x.lineWidth = 6; x.beginPath(); x.arc(cx, cy, 30, 0, Math.PI * 2); x.stroke(); }
-    x.fit("بسم الله الرحمن الرحيم", w - 300, 104); x.fillText("بسم الله الرحمن الرحيم", w / 2, h * 0.36);
-    x.fit("يا حنان يا منان", w - 300, 80); x.fillText("يا حنان يا منان", w / 2, h * 0.7);
-  });
-  const stSide = embMat(192, 1152, (x, w, h) => {
-    x.lineWidth = 8; x.strokeRect(14, 14, w - 28, h - 28);
-    for (let k = 0; k < 4; k++) { const cy = 150 + k * 285; x.lineWidth = 7; x.beginPath(); x.arc(w / 2, cy, 58, 0, Math.PI * 2); x.stroke();
-      x.fit(k % 2 ? "محمد" : "الله", 96, 40); x.fillText(k % 2 ? "محمد" : "الله", w / 2, cy); }
-  });
-  const dw = 1 / KE.distanceTo(KN);   // доля стены на 1 м
-  kaabaDecor.add(wallPanel(KE, KN, 0.264 - 1.65 * dw, 0.264 + 1.65 * dw, 6.7, 8.55, 0.08, stTop));
-  kaabaDecor.add(wallPanel(KE, KN, 0.206 - 0.7 * dw, 0.206, 2.1, 6.7, 0.08, stSide), wallPanel(KE, KN, 0.322, 0.322 + 0.7 * dw, 2.1, 6.7, 0.08, stSide));
-  // Шазарван — наклонный мраморный цоколь и медные кольца кисвы
-  const marble = new THREE.MeshStandardMaterial({ color: 0xd9d3c7, roughness: 0.55 });
-  const C = KE.clone().add(KN).add(KW).add(KS).multiplyScalar(0.25);
-  const ring = (d) => [KE, KN, KW, KS].map((k) => k.clone().sub(C).normalize().multiplyScalar(d * Math.SQRT2).add(k));
-  const lo = ring(0.55), hi = ring(0.1), v = [];
-  for (let i = 0; i < 4; i++) { const j = (i + 1) % 4;
-    v.push(toV3(lo[i].x, lo[i].y, 0), toV3(lo[j].x, lo[j].y, 0), toV3(hi[j].x, hi[j].y, 0.45), toV3(lo[i].x, lo[i].y, 0), toV3(hi[j].x, hi[j].y, 0.45), toV3(hi[i].x, hi[i].y, 0.45)); }
-  const sh = new THREE.Mesh(new THREE.BufferGeometry().setFromPoints(v), marble); sh.geometry.computeVertexNormals(); sh.receiveShadow = true; kaabaDecor.add(sh);
+  // Ситара (занавес двери) — шитьё на лицевой грани объёма «sitara» из модели: u — от камня, v — вверх (как в Blender).
+  // Контур двери под ней — по тем же числам, что и модель (KM.door), поэтому рамка шитья совпадает с дверью.
+  const [st0, st1, sz0, sz1] = KM.sitara, [dt0, dt1, dz0, dz1] = KM.door;
+  const SW = 700, SH = Math.round(SW * (sz1 - sz0) / (st1 - st0));
+  const du0 = (dt0 - st0) / (st1 - st0) * SW, du1 = (dt1 - st0) / (st1 - st0) * SW;
+  const dv0 = (1 - (dz1 - sz0) / (sz1 - sz0)) * SH, dv1 = (1 - (dz0 - sz0) / (sz1 - sz0)) * SH;   // верх и низ двери на холсте
+  const sitaraMat = embMat(SW, SH, (x, w, h) => {
+    x.lineWidth = 12; x.strokeRect(14, 14, w - 28, h - 28); x.lineWidth = 3; x.strokeRect(34, 34, w - 68, h - 68);
+    const band = (y0, y1, s) => { x.lineWidth = 3; x.strokeRect(52, y0, w - 104, y1 - y0); x.fit(s, w - 170, (y1 - y0) * 0.62); x.fillText(s, w / 2, (y0 + y1) / 2 + 3); };
+    const top = 56, step = (dv0 - 40 - top) / 4;   // над дверью — четыре пояса надписей
+    band(top, top + step - 10, "بسم الله الرحمن الرحيم");
+    band(top + step, top + 2 * step - 10, "لا إله إلا الله محمد رسول الله");
+    band(top + 2 * step, top + 3 * step - 10, "يا حنان يا منان");
+    band(top + 3 * step, top + 4 * step - 10, "سبحان الله وبحمده");
+    x.lineWidth = 10; x.strokeRect(du0 - 14, dv0 - 14, du1 - du0 + 28, dv1 - dv0 + 14);   // рамка двери
+    x.lineWidth = 3; x.strokeRect(du0 + 8, dv0 + 8, du1 - du0 - 16, dv1 - dv0 - 16);
+    x.beginPath(); x.moveTo((du0 + du1) / 2, dv0 + 8); x.lineTo((du0 + du1) / 2, dv1 - 8); x.stroke();   // створки
+    for (const [cy, s] of [[dv0 + (dv1 - dv0) * 0.28, "الله"], [dv0 + (dv1 - dv0) * 0.62, "محمد"]])
+      for (const cx of [(du0 * 3 + du1) / 4, (du0 + du1 * 3) / 4]) { x.lineWidth = 5; x.beginPath(); x.arc(cx, cy, 44, 0, Math.PI * 2); x.stroke(); x.fit(s, 64, 34); x.fillText(s, cx, cy + 2); }
+    for (const cx of [du0 / 2 + 10, (w + du1) / 2 - 10])   // по бокам двери — медальоны
+      for (let k = 0; k < 3; k++) { const cy = dv0 + 60 + k * (dv1 - dv0 - 120) / 2; x.lineWidth = 6; x.beginPath(); x.arc(cx, cy, 52, 0, Math.PI * 2); x.stroke();
+        x.fit(k % 2 ? "محمد" : "الله", 72, 36); x.fillText(k % 2 ? "محمد" : "الله", cx, cy + 2); }
+  }, { polygonOffset: false });
+  for (const t of [sitaraMat.map, sitaraMat.metalnessMap]) t.flipY = false;   // UV из glTF: v = 0 — верх холста
+  const sitaraMesh = gltf.scene.getObjectByName("sitara");
+  if (sitaraMesh) { sitaraMesh.material = sitaraMat; sitaraMesh.castShadow = true; }
+  // Медные кольца кисвы — на скате шазарвана (выступ KM.shad.w, высота KM.shad.h); у стены Хиджра шазарвана нет, под дверью — разрыв
   const copper = new THREE.MeshStandardMaterial({ color: 0xb87333, metalness: 1, roughness: 0.4 }), rings = [];
-  K_WALLS.forEach(([a, b]) => { const l = a.distanceTo(b), n = Math.round(l / 1.1), nx = (b.y - a.y) / l, ny = -(b.x - a.x) / l;
-    for (let k = 0; k < n; k++) { const p = a.clone().lerp(b, (k + 0.5) / n); rings.push([p.x + nx * 0.3, p.y + ny * 0.3, nx, ny]); } });
+  const RO = 0.12, RZ = KM.shad.h * (1 - (RO + 0.02) / (KM.shad.w + 0.02)) + 0.07;   // центр кольца над скатом
+  K_WALLS.forEach(([a, b], i) => { if (i === 1) return;
+    const l = a.distanceTo(b), n = Math.round(l / 1.1), nx = (b.y - a.y) / l, ny = -(b.x - a.x) / l;
+    for (let k = 0; k < n; k++) { const m = (k + 0.5) / n * l; if (i === 0 && m > KM.shad.gap[0] - 0.15 && m < KM.shad.gap[1] + 0.15) continue;
+      const p = a.clone().lerp(b, m / l); rings.push([p.x + nx * RO, p.y + ny * RO, nx, ny]); } });
   const im = new THREE.InstancedMesh(new THREE.TorusGeometry(0.07, 0.018, 6, 14), copper, rings.length), o3 = new THREE.Object3D();
-  rings.forEach(([x, y, nx, ny], i) => { o3.position.copy(toV3(x, y, 0.3)); o3.lookAt(o3.position.clone().add(toV3(nx, ny, 0))); o3.updateMatrix(); im.setMatrixAt(i, o3.matrix); });
+  rings.forEach(([x, y, nx, ny], i) => { o3.position.copy(toV3(x, y, RZ)); o3.lookAt(o3.position.clone().add(toV3(nx, ny, 0))); o3.updateMatrix(); im.setMatrixAt(i, o3.matrix); });
   kaabaDecor.add(im);
 }
 scene.add(kaabaDecor);
 
-{ // 2. Мультазам — от камня до двери, от пола до ~2,5 м (бирюза)
-  const g = new THREE.Group(), a = onWall(0.035), b = onWall(0.2);
-  g.add(wallQuad(a, b, 0, 2.5, 0.14, hiMat(0x3fe0d0, 0.45)), wallFrame(a, b, 0, 2.5, 0.16, 0x7ff5ea));
+{ // 2. Мультазам — от камня до двери (≈ 2 м), над шазарваном до ~2,5 м (бирюза)
+  const g = new THREE.Group(), a = onWall(0.004), b = onWallM(KM.door[0] - 0.03);
+  g.add(wallQuad(a, b, KM.shad.h, 2.5, 0.14, hiMat(0x3fe0d0, 0.45)), wallFrame(a, b, KM.shad.h, 2.5, 0.16, 0x7ff5ea));
   spotFx.multazam = g;
 }
-{ // 3. Дверь — золотая рамка, 2,1 м над полом
-  const g = new THREE.Group(), a = onWall(0.206), b = onWall(0.322);
-  g.add(wallQuad(a, b, 2.13, 5.6, 0.16, hiMat(0xffc94d, 0.35)), wallFrame(a, b, 2.13, 5.6, 0.2, 0xffd76b));
+{ // 3. Дверь — золотая рамка по контуру двери под ситарой (низ ≈ 2,2 м над полом)
+  const g = new THREE.Group(), [t0, t1, z0, z1] = KM.door, a = onWallM(t0), b = onWallM(t1), o = KM.sitara[4];
+  g.add(wallQuad(a, b, z0, z1, o + 0.04, hiMat(0xffc94d, 0.35)), wallFrame(a, b, z0, z1, o + 0.08, 0xffd76b));
   spotFx.door = g;
 }
 { // 4. Хиджр — сияние по полукруглой стене (центр, радиус и высота — по модели)
-  const g = new THREE.Group(), R = 5.21, H = 1.31, a0 = 0.251, a1 = 3.961, c = toV3(-6.665, 8.763, 0);
+  const g = new THREE.Group(), R = 5.21, H = KM.hijr_h, a0 = 0.251, a1 = 3.961, c = toV3(-6.665, 8.763, 0);
   const band = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.35, R + 0.35, H + 0.5, 64, 1, true, a0 + Math.PI / 2, a1 - a0), hiMat(0x4dff8a, 0.32));
   band.position.copy(c).setY((H + 0.5) / 2); g.add(band);
   const pts = []; for (let i = 0; i <= 48; i++) { const f = a0 + (a1 - a0) * i / 48; pts.push(toV3(-6.665 + (R + 0.35) * Math.cos(f), 8.763 + (R + 0.35) * Math.sin(f), H + 0.3)); }
@@ -2772,7 +2792,7 @@ scene.add(kaabaDecor);
 { // 6. Йеменский угол — кисва внизу подвёрнута, виден камень стены; подсвечен участок, которого касаются
   const g = new THREE.Group(), stone = new THREE.MeshStandardMaterial({ color: 0x9a8b76, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });
   const sw = KS.clone().add(new THREE.Vector2(-0.554, 0.832).multiplyScalar(1.1)), se = KS.clone().add(new THREE.Vector2(0.827, 0.563).multiplyScalar(1.1));
-  for (const [a, b] of [[KS, se], [sw, KS]]) g.add(wallQuad(a, b, 0, 2.3, 0.06, stone), wallQuad(a, b, 0.6, 2.0, 0.1, hiMat(0xffd76b, 0.28)));
+  for (const [a, b] of [[KS, se], [sw, KS]]) g.add(wallQuad(a, b, KM.shad.h - 0.05, 2.3, 0.06, stone), wallQuad(a, b, 0.6, 2.0, 0.1, hiMat(0xffd76b, 0.28)));
   const t = label("касаются правой рукой — не целуют", "#005A5C", "#F4EDE1"); t.position.copy(toV3(-3.6, -10.6, 3.6)); g.add(t);
   spotFx.yemeni = g;
 }
@@ -2835,7 +2855,7 @@ const SPOT_CAM = {
     flyQ = [[s.pos, 24, back, 3200, 400], narrow ? [mid, 95, new THREE.Vector3(-0.52, 1.0, -0.2), 1800] : [mid, 105, new THREE.Vector3(0.355, 1.1, -0.935), 1800]];
   },
   multazam: (s) => flyTo(s.pos, 12, NE_OUT),
-  door: () => flyTo(toV3(...onWall(0.264).toArray(), 3.9), 15, NE_OUT),
+  door: () => flyTo(toV3(...onWallM((KM.door[0] + KM.door[1]) / 2).toArray(), 3.8), 15, NE_OUT),
   hijr: () => {   // подлёт и облёт снаружи Хиджра с отъездом 20 → 42 м
     const c = new THREE.Vector2(-6.665, 8.763), a0 = 1.0, r0 = 20, h0 = 12;
     fly = { t0: performance.now(), dur: 1300, fromT: controls.target.clone(), fromC: camera.position.clone(),
@@ -3057,6 +3077,7 @@ renderer.setAnimationLoop((now) => {
   pulseSpotFx(now / 1000); pulseNear(now / 1000);
   updateLayers();
   if (saiG.visible) saiLblClamp();
+  fitNear();
   renderer.render(scene, camera);
   if (you.visible) {   // паломник — поверх зданий, отдельной сценой
     renderer.autoClear = false; renderer.clearDepth(); renderer.render(heroScene, camera); renderer.autoClear = true;
