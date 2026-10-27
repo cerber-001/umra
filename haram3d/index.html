@@ -456,12 +456,23 @@ const glowSprite = (color, size, opacity = 1) => {
   s.scale.setScalar(size); return s;
 };
 
-const [gltf, meta, walk] = await Promise.all([
+const DRACO = new DRACOLoader().setDecoderPath("./vendor/draco/");
+const [gltf, meta, walk, props] = await Promise.all([
   new GLTFLoader().loadAsync("haram.glb"),
   fetch("haram_meta.json").then((r) => r.json()),
   fetch("walk_route.json").then((r) => r.json()),
+  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb"),
 ]);
 $("load").remove();
+// Все предметы и люди сцены сделаны в Blender (props.blend → props.glb): толпа, герой, перила и фонари саи, стулья, коляски,
+// барьеры, инструменты уборщиков, кулеры Замзама, кольца кисвы, колонны и купола галереи, птицы, флажок гида.
+// Сайт берёт из файла форму (и материал, где он обычный); правка — в Blender и экспорт тем же скриптом (24_AI/Конвейер 3D Харама).
+const PROPS = props.scene;
+PROPS.updateMatrixWorld(true);
+const pNode = (n) => { const o = PROPS.getObjectByName(n); if (!o || !o.isMesh) throw new Error("props.glb: нет " + n); return o; };
+const propGeo = (n) => pNode(n).geometry.clone();
+const propMat = (n) => pNode(n).material;
+const pNode0 = (n) => { const o = PROPS.getObjectByName(n); if (!o) throw new Error("props.glb: нет " + n); return o; };
 
 const occluders = [];
 let startMat = null;
@@ -493,7 +504,7 @@ function setCut(on) {
   cut = on;
   masaaTop.forEach((o) => o.visible = !on);
 }
-new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath("./vendor/draco/")).loadAsync("haram_city.glb").then((city) => {
+new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb").then((city) => {
   const base = city.scene.getObjectByName("L_base");
   if (!base) return;
   base.traverse((o) => {
@@ -559,40 +570,16 @@ const fPart = (g, bone, mat) => {
   g.setAttribute("aPart", new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count).fill(bone * 8 + mat), 1));
   return g;
 };
-const lathe = (pts, seg, zs) => new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), seg).scale(1, 1, zs);
+// Детали фигуры — объекты коллекции «Люди_толпы» в props.blend: имя «mn_b<кость>m<материал>_<что>»; руки там стоят у плеч,
+// здесь их переносим в систему плечевого сустава (шейдер сам ставит их на место и поворачивает).
 function figGeo(woman, near) {
-  const S = near ? 14 : 6, W = near ? 10 : 6, H = near ? 7 : 4, C = near ? 8 : 5, G = [];
-  const add = (bone, mat, ...gs) => { for (const g of gs) G.push(fPart(g, bone, mat)); };
-  const ball = (r, x, y, z, sx = 1, sy = 1, sz = 1, w = W, h = H) => new THREE.SphereGeometry(r, w, h).scale(sx, sy, sz).translate(x, y, z);
-  const tube = (rT, rB, yT, yB, x = 0) => new THREE.CylinderGeometry(rT, rB, yT - yB, C, 1, near).translate(x, (yT + yB) / 2, 0);
-  if (woman) {
-    add(0, 0, lathe([[0, 0.05], [0.3, 0.05], [0.29, 0.15], [0.26, 0.5], [0.235, 0.85], [0.22, 1.02], [0, 1.05]], S, 0.75));   // абая до пола
-    add(1, 0, lathe([[0, 1.0], [0.22, 1.0], [0.215, 1.2], [0.2, 1.36], [0, 1.4]], S, 0.66));
-    add(1, 2, lathe([[0, 1.35], [0.27, 1.36], [0.22, 1.45], [0.15, 1.53], [0.125, 1.6], [0.125, 1.7], [0.09, 1.77], [0, 1.79]], S, 0.8));   // химар: голова и плечи
-    add(1, 1, ball(0.075, 0, 1.655, -0.085, 1, 1.2, 0.7));   // лицо
-  } else {
-    add(0, 0, lathe([[0, 0.08], [0.235, 0.08], [0.245, 0.3], [0.235, 0.7], [0.215, 1.0], [0.2, 1.04], [0, 1.04]], S, 0.72));   // изар
-    add(1, 7, lathe([[0, 1.0], [0.19, 1.0], [0.205, 1.15], [0.215, 1.3], [0.2, 1.42], [0.15, 1.48], [0.06, 1.52], [0, 1.53]], S, 0.62));   // торс
-    add(1, 0, ball(0.08, -0.205, 1.405, 0));     // левое плечо — под ридой
-    add(1, 4, ball(0.085, 0.205, 1.41, 0));      // правое плечо под ридой (вне тавафа); в идтибе сжимается в точку
-    add(1, 1, tube(0.05, 0.055, 1.6, 1.48), ball(0.11, 0, 1.665, 0, 0.85, 1.05, 0.98));   // шея и голова
-    if (near) add(1, 1, ball(0.022, 0, 1.652, -0.1, 0.7, 1.1, 1.1, 6, 4),   // нос и уши
-      ball(0.026, 0.093, 1.665, 0, 0.45, 1, 0.75, 6, 4), ball(0.026, -0.093, 1.665, 0, 0.45, 1, 0.75, 6, 4));
-    add(1, 2, new THREE.SphereGeometry(0.118, W, H, 0, Math.PI * 2, 0, 1.45).rotateX(0.25).scale(0.88, 1.07, 1).translate(0, 1.665, 0));   // волосы
-    add(1, 3, ball(0.07, 0, 1.6, -0.06, 1.25, 0.8, 0.9));   // борода
-  }
-  for (const [u, f, mu] of [[2, 3, 6], [4, 5, 0]]) {   // руки — в системе плечевого сустава, висят вниз по −y
-    if (near) add(u, mu, ball(0.062, 0, 0, 0), ball(0.047, 0, -0.29, 0));
-    add(u, mu, tube(0.055, 0.048, 0, -0.29));
-    add(f, 5, tube(0.046, 0.038, -0.29, -0.52));
-    if (near) add(f, 1, ball(1, 0, -0.565, 0, 0.017, 0.045, 0.038, 7, 5), ball(1, 0, -0.57, -0.045, 0.011, 0.028, 0.011, 5, 3),   // ладонь и большой палец
-      ...[-0.027, -0.009, 0.009, 0.027].map((z) => ball(1, 0, -0.632, z, 0.011, 0.034, 0.0095, 5, 3)));   // четыре пальца
-    else add(f, 1, ball(0.045, 0, -0.58, 0, 0.55, 1.3, 0.85, 5, 3));
-  }
-  if (!woman) for (const [b, x] of [[8, 0.095], [9, -0.095]]) add(b, 0, tube(0.09, 0.07, 0.9, 0.1, x));   // штанины формы (полиция, уборщики); у остальных схлопнуты
-  for (const [b, x] of [[6, 0.09], [7, -0.09]]) {   // ступни; у мужчин видны и щиколотки
-    add(b, woman ? 0 : 1, ball(0.05, x, 0.035, -0.04, 1, 0.6, 2, near ? 8 : 5, near ? 5 : 3));
-    if (near && !woman) add(b, 1, tube(0.035, 0.04, 0.13, 0.03, x));
+  const root = pNode0("fig_" + (woman ? "w" : "m") + "_" + (near ? "near" : "far")), JX = woman ? 0.2 : 0.215, JY = woman ? 1.39 : 1.42, G = [];
+  const inv = root.matrixWorld.clone().invert(), M = new THREE.Matrix4();
+  for (const o of root.children) {
+    const [, b, m] = o.name.match(/_b(\d+)m(\d+)_/).map(Number);
+    const g = o.geometry.clone().applyMatrix4(M.multiplyMatrices(inv, o.matrixWorld));
+    if (b >= 2 && b <= 5) g.translate(b < 4 ? -JX : JX, -JY, 0);
+    G.push(fPart(g, b, m));
   }
   return mergeGeometries(G);
 }
@@ -1112,27 +1099,19 @@ const heroScene = new THREE.Scene();
 heroScene.environment = scene.environment; heroScene.environmentIntensity = 0.55;
 heroScene.add(new THREE.HemisphereLight(0xfff4e2, 0x2a3a3a, 1.3));
 { const l = new THREE.DirectionalLight(0xfff1dc, 2.2); l.position.set(-60, 120, 70); heroScene.add(l); }
-const heroCloth = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, emissive: 0xfff1d0, emissiveIntensity: 0.3, flatShading: true });
-const heroSkin = new THREE.MeshStandardMaterial({ color: 0xc89a72, roughness: 0.7, flatShading: true });
+// Герой — коллекция «Герой» в props.blend: низ (изар, стопы), верх с осью в поясе (ткань, кожа, накидка правого плеча), звенья рук и кисть
+const heroCloth = propMat("hero_cloth_upper"), heroSkin = propMat("hero_skin_upper");
 const HIP = 1.0;
-const upG = (g) => g.translate(0, -HIP, 0);
 const you = new THREE.Group(), youFig = new THREE.Group(), youUpper = new THREE.Group();
 youUpper.position.y = HIP;
-const youCover = new THREE.Mesh(upG(new THREE.BoxGeometry(0.27, 0.21, 0.49).translate(0.16, 1.42, 0)), heroCloth);   // правое плечо под тканью
-youUpper.add(
-  new THREE.Mesh(upG(mergeGeometries([cyl(0.258, 0.278, 0.98, 1.27, 0, 16),
-    new THREE.BoxGeometry(0.62, 0.15, 0.5).rotateZ(-0.62).translate(-0.04, 1.3, 0),
-    new THREE.BoxGeometry(0.24, 0.2, 0.46).translate(-0.17, 1.42, 0)])), heroCloth),
-  new THREE.Mesh(upG(mergeGeometries([cyl(0.2, 0.24, 1.2, 1.47, 0, 14), cyl(0.055, 0.06, 1.46, 1.58, 0, 10),
-    new THREE.SphereGeometry(0.115, 16, 12).translate(0, 1.68, 0)])), heroSkin),
-  youCover);
+const youCover = new THREE.Mesh(propGeo("hero_cover"), propMat("hero_cover"));   // правое плечо под тканью
+youUpper.add(new THREE.Mesh(propGeo("hero_cloth_upper"), heroCloth), new THREE.Mesh(propGeo("hero_skin_upper"), heroSkin), youCover);
 // Руки: плечо 0,30 м, предплечье 0,26 м; звено — цилиндр вдоль +Y, ставится от сустава к суставу
 const ARM_A = 0.3, ARM_B = 0.26, Y1 = new THREE.Vector3(0, 1, 0);
-const segGeo = (r0, r1, l) => new THREE.CylinderGeometry(r1, r0, l, 10).translate(0, l / 2, 0);
 const heroArm = (side) => {
   const a = { side, S: new THREE.Vector3(0.28 * side, 1.44 - HIP, 0),
-    up: new THREE.Mesh(segGeo(0.075, 0.065, ARM_A), heroCloth), fore: new THREE.Mesh(segGeo(0.06, 0.05, ARM_B), heroSkin),
-    hand: new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), heroSkin) };
+    up: new THREE.Mesh(propGeo("hero_arm_up"), propMat("hero_arm_up")), fore: new THREE.Mesh(propGeo("hero_arm_fore"), propMat("hero_arm_fore")),
+    hand: new THREE.Mesh(propGeo("hero_hand"), propMat("hero_hand")) };
   youUpper.add(a.up, a.fore, a.hand); return a;
 };
 const armR = heroArm(1), armL = heroArm(-1);
@@ -1177,8 +1156,7 @@ function poseTarget(name, k, out) {   // k: 0 — правая, 1 — левая
 function setArms(a, b = a, e = 1) {   // переход от позы a к позе b, e = 0…1
   [armR, armL].forEach((arm, k) => solveArm(arm, poseTarget(a, k, armTmp[0]).lerp(poseTarget(b, k, armTmp[1]), e)));
 }
-youFig.add(new THREE.Mesh(mergeGeometries([cyl(0.27, 0.33, 0.08, 1.03, 0, 16),                    // изар
-  new THREE.BoxGeometry(0.1, 0.04, 0.27).translate(-0.1, 0.02, -0.04), new THREE.BoxGeometry(0.1, 0.04, 0.27).translate(0.1, 0.02, -0.04)]), heroCloth), youUpper);
+youFig.add(new THREE.Mesh(propGeo("hero_lower"), propMat("hero_lower")), youUpper);   // изар и стопы
 const youGlow = glowSprite(0xffcf6a, 7, 0.9); youGlow.position.y = 1.2; youGlow.material.depthTest = false;
 // Метка «вы»: оранжевое кольцо под ногами и покачивающийся треугольник над головой — видно в любой толпе
 const youMark = new THREE.Group();
@@ -1192,8 +1170,7 @@ youMark.add(youRing, youPin); youMark.renderOrder = 5;
 you.add(youFig, youGlow, youMark); you.visible = false; heroScene.add(you);
 setArms("relaxed");
 // Стакан Замзама — в правой кисти (наклон: rotation.x — к себе, rotation.z — влево, в ладонь)
-const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.028, 0.09, 14).translate(0, 0.03, 0),
-  new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, emissive: 0xffffff, emissiveIntensity: 0.2 }));
+const cup = new THREE.Mesh(propGeo("cup"), propMat("cup"));
 cup.position.set(-0.015, 0, -0.035); cup.visible = false; armR.hand.add(cup);
 // Капли: с лица при умывании и со стакана над головой; падают с ускорением g, прозрачность 0 — капли нет
 const ZD_N = 48, zdPos = new Float32Array(ZD_N * 3), zdCol = new Float32Array(ZD_N * 4).fill(1);
@@ -1397,8 +1374,7 @@ const kaabaDir = (x, y) => faceTo(-x, -y);
 const zU = cooler.clone().normalize(), zT = new THREE.Vector2(-zU.y, zU.x);
 const zH = cooler.clone().addScaledVector(zT, 1.15).addScaledVector(zU, -0.35);
 // Кулеры Замзама — голубые бочонки у кромки матафа (там же, где голубые огоньки)
-{ const g = mergeGeometries([cyl(0.42, 0.42, 0, 1.1, 0, 14), cyl(0.3, 0.42, 1.1, 1.3, 0, 14)]);
-  const m = new THREE.MeshStandardMaterial({ color: 0x1fa9c9, roughness: 0.4, metalness: 0.2, emissive: 0x0b5a6a, emissiveIntensity: 0.5 });
+{ const g = propGeo("zamzam_cooler"), m = propMat("zamzam_cooler");
   zamzam.children.filter((s) => s.userData.c).forEach((s) => { const c = new THREE.Mesh(g, m); c.position.set(s.position.x, 0, s.position.z); c.scale.setScalar(1.8); zamzam.add(c); }); }
 // Саи: Сафа — Марва ≈ 380 м по схеме; зелёные огни — участок быстрого шага (харвала, для мужчин) ≈ 55 м, ближе к Сафе.
 // В OSM огней нет: место и длина — по описаниям и снимкам, приблизительно.
@@ -1422,11 +1398,11 @@ function saiFloor() { saiWorld.position.y = saiG.position.y = saiY - 1.2; saiWor
 { const v = new THREE.Vector3(), m4 = new THREE.Matrix4(), qt = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), saiRot), one = new THREE.Vector3(1, 1, 1);
   const q0 = SAI_END / LEG, q1 = 1 - q0, railL = (q1 - q0) * LEG;
   // перила: два поручня и стойки через 4 м
-  const steel = new THREE.MeshStandardMaterial({ color: 0xc9ced3, metalness: 0.8, roughness: 0.35 });
-  const nP = Math.floor(railL / 4) + 1, posts = new THREE.InstancedMesh(new THREE.BoxGeometry(0.08, 1, 0.08), steel, nP * 2);
+  const steel = propMat("sai_post"), railGeo = propGeo("sai_rail").scale(1, 1, railL);   // поручень в файле — 1 м, тянем на длину пути
+  const nP = Math.floor(railL / 4) + 1, posts = new THREE.InstancedMesh(propGeo("sai_post"), steel, nP * 2);
   let n = 0;
   for (const lat of [-SAI_RAIL, SAI_RAIL]) {
-    for (const h of [0.3, 0.95]) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, railL), steel); saiXY(0.5, lat, h, r.position); r.rotation.y = saiRot; saiWorld.add(r); }
+    for (const h of [0.3, 0.95]) { const r = new THREE.Mesh(railGeo, steel); saiXY(0.5, lat, h, r.position); r.rotation.y = saiRot; saiWorld.add(r); }
     for (let i = 0; i < nP; i++) { saiXY(q0 + (q1 - q0) * i / (nP - 1), lat, 0.5, v); posts.setMatrixAt(n++, m4.compose(v, qt, one)); }
   }
   saiWorld.add(posts);
@@ -1436,8 +1412,8 @@ function saiFloor() { saiWorld.position.y = saiG.position.y = saiY - 1.2; saiWor
     for (let d = 5; d < LEG - 4; d += 10) { const q = d / LEG; if (q < GREEN[0] || q > GREEN[1]) heads.push(q, lat, 0); }
     for (let d = GREEN[0] * LEG + 1.5; d < GREEN[1] * LEG; d += 4.5) heads.push(d / LEG, lat, 1);
   }
-  const nH = heads.length / 3, hg = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.22, 0.3, 0.55, 6), new THREE.MeshBasicMaterial(), nH);
-  const rods = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.025, 0.025, 1.3, 4), steel, nH), cW = new THREE.Color(0xffe2ad), cG = new THREE.Color(0x4dff8a);
+  const nH = heads.length / 3, hg = new THREE.InstancedMesh(propGeo("sai_head"), new THREE.MeshBasicMaterial(), nH);
+  const rods = new THREE.InstancedMesh(propGeo("sai_rod"), steel, nH), cW = new THREE.Color(0xffe2ad), cG = new THREE.Color(0x4dff8a);
   for (let i = 0; i < nH; i++) {
     const g = heads[i * 3 + 2];
     saiXY(heads[i * 3], heads[i * 3 + 1], 4.75, v); hg.setMatrixAt(i, m4.compose(v, qt, one)); hg.setColorAt(i, g ? cG : cW);
@@ -1520,10 +1496,8 @@ function syncSai() {   // путь саи и зелёные огни — на ш
 // Зелёная лампа — светящаяся панель на стене матафа, обращена к Каабе (по линии Чёрного камня)
 //   v3.3: панель выдвинута из-под карниза колоннады (раньше тонула в стене и была закрыта крышей сверху), крупнее и с кронштейном
 { const p = glAt(0.7), r = kaabaDir(gl[0], gl[1]);
-  const lamp = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.0, 0.3), new THREE.MeshStandardMaterial({ color: 0x4dff8a, emissive: 0x4dff8a, emissiveIntensity: 2.6 }));
-  const back = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.4, 0.2), new THREE.MeshStandardMaterial({ color: 0x2b2b2b, roughness: 0.6 }));
-  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 1.0), back.material);
-  back.position.z = 0.2; arm.position.z = 0.75; lamp.add(back, arm); lamp.position.copy(p); lamp.rotation.y = r; scene.add(lamp); }
+  const lamp = new THREE.Mesh(propGeo("lamp_panel"), propMat("lamp_panel"));
+  lamp.add(new THREE.Mesh(propGeo("lamp_back"), propMat("lamp_back")), new THREE.Mesh(propGeo("lamp_arm"), propMat("lamp_arm"))); lamp.position.copy(p); lamp.rotation.y = r; scene.add(lamp); }
 // Мизаб: вода стекает из золотого жёлоба на крыше в сторону Хиджра (показываем, когда открыта метка 6)
 // струя начинается с кончика жёлоба (замер по haram.glb) и падает по параболе в Хиджр
 const mz = [-5.06, 6.09, 13.0], MZ_N = 140, mzPos = new Float32Array(MZ_N * 3), mzPh = Array.from({ length: MZ_N }, () => rnd());
@@ -1549,15 +1523,10 @@ function updateWater(t) {
 // Каждый человек — функция времени: где стоит, куда смотрит, в какой позе. Фигура одна (выше, «Фигуры v3.7»): поза
 // (стоя, руку, суджуд, сидя, наклон к камню, бег) и обе руки — числами в буфере. Сцены условные — по описаниям и снимкам.
 const XPOSE = [[0, 0, 0], [-1.35, 0, 0], [-1.95, -0.58, 1], [0, -0.58, 1], [-0.55, 0, 0], [-0.22, 0, 0]];   // наклон, опускание, колени; 5 — бег (корпус вперёд)
-const chairs = new THREE.InstancedMesh(mergeGeometries([new THREE.BoxGeometry(0.62, 0.08, 0.6).translate(0, 0.5, 0.05),
-  new THREE.BoxGeometry(0.62, 0.62, 0.08).translate(0, 0.82, 0.36), cyl(0.33, 0.33, -0.04, 0.04, 0, 14).rotateZ(Math.PI / 2).translate(0.36, 0.33, 0.15),
-  cyl(0.33, 0.33, -0.04, 0.04, 0, 14).rotateZ(Math.PI / 2).translate(-0.36, 0.33, 0.15)]),
-  new THREE.MeshStandardMaterial({ color: 0x3a4147, roughness: 0.5, metalness: 0.4 }), 80);
+const chairs = new THREE.InstancedMesh(propGeo("chair"), propMat("chair"), 80);
 chairs.count = 0; chairs.frustumCulled = false; scene.add(chairs);
 const flag = new THREE.Group();   // флажок гида — оранжевый, его видно поверх толпы
-flag.add(new THREE.Mesh(cyl(0.025, 0.025, 0, 3.2, 0, 6), new THREE.MeshStandardMaterial({ color: 0x555555 })));
-{ const f = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), new THREE.MeshStandardMaterial({ color: 0xf07a1e, emissive: 0xf07a1e, emissiveIntensity: 0.5, side: THREE.DoubleSide }));
-  f.position.set(0.45, 2.9, 0); flag.add(f); }
+flag.add(new THREE.Mesh(propGeo("flag_pole"), propMat("flag_pole")), new THREE.Mesh(propGeo("flag_cloth"), propMat("flag_cloth")));
 scene.add(flag);
 const XP = [];   // люди
 function xPerson(f, o = {}) {   // o.R — свой генератор случайных (новые сцены не сдвигают старые)
@@ -1923,8 +1892,7 @@ for (const [x, y] of MROWS) rowPerson(x, y, false);
 for (const [x, y] of WROWS) rowPerson(x, y, true);
 // временные барьеры: белые пластиковые секции 1,4 м встык — сплошной цепью по обоим лучам сектора (от дорожки WL до края
 // матафа) и по передней дуге (дорожка WL) с проходом 2 м посередине, где стоит полицейский
-const barGeo = mergeGeometries([new THREE.BoxGeometry(1.4, 1.0, 0.06).translate(0, 0.55, 0), new THREE.BoxGeometry(0.5, 0.08, 0.4).translate(0, 0.04, 0)]);
-const barriers = new THREE.InstancedMesh(barGeo, new THREE.MeshStandardMaterial({ color: 0xf2f2f0, roughness: 0.7 }), 300);
+const barriers = new THREE.InstancedMesh(propGeo("barrier"), propMat("barrier"), 300);
 barriers.frustumCulled = false; barriers.castShadow = true; scene.add(barriers);
 let nBars = 0; const BARSEG = [];   // отрезки барьеров — чтобы идущие их обходили
 const BAR = 1.45;   // шаг: секция 1,4 м + стык
@@ -2056,12 +2024,11 @@ for (const mv of [MOVERS[0], MOVERS[9]].filter(Boolean).map((p) => p.mv)) {   //
   }), ["Сёстры — в свой сектор"], 10, rnd() * 10);
 }
 // --- уборщики: синяя форма и кепка; швабра, метла или мини-поломоечная машина; паломники иногда дают им садака
-const toolIM = (geo, hex) => { const m = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: hex, roughness: 0.6, metalness: 0.3 }), 16); m.count = 0; m.frustumCulled = false; scene.add(m); return m; };
-const stickGeo = cyl(0.014, 0.014, -0.585, 0.585, 0, 5).rotateX(0.59).translate(0, 0.52, -0.22);
+const toolIM = (n) => { const m = new THREE.InstancedMesh(propGeo(n), propMat(n), 16); m.count = 0; m.frustumCulled = false; scene.add(m); return m; };
 const TOOLS = [null,
-  [toolIM(stickGeo, 0xd9dde0), toolIM(new THREE.BoxGeometry(0.42, 0.05, 0.12).translate(0, 0.03, -0.56), 0x1f5fa8)],                       // швабра
-  [toolIM(stickGeo, 0xd9dde0), toolIM(new THREE.BoxGeometry(0.34, 0.09, 0.08).translate(0, 0.05, -0.56), 0xd9a441)],                       // метла
-  [toolIM(cyl(0.014, 0.014, -0.3, 0.3, 0, 5).rotateX(0.9).translate(0, 0.85, -0.4), 0xd9dde0), toolIM(new THREE.BoxGeometry(0.55, 0.5, 0.7).translate(0, 0.25, -0.75), 0x4b5563)]];   // машина
+  [toolIM("tool_stick"), toolIM("tool_mop")],          // швабра
+  [toolIM("tool_stick"), toolIM("tool_broom")],        // метла
+  [toolIM("tool_mhandle"), toolIM("tool_machine")]];   // машина
 const toolM = new THREE.Matrix4();
 const pauseT = (t, off) => off === undefined ? t : t - 3.5 * Math.floor((t + off) / 42) - THREE.MathUtils.clamp((t + off) % 42 - 9, 0, 3.5);   // стоит 3,5 с, пока ему дают садака
 const inPause = (t, off) => off !== undefined && (t + off) % 42 >= 9 && (t + off) % 42 < 12.5;
@@ -2112,10 +2079,7 @@ for (const c of CLN) if (c.off !== undefined) {   // садака: паломн�
   }, { street: rnd() < 0.5, woman: false });
 }
 // --- птицы: ласточки кругами над двором (три стаи), голуби на площади у ворот 79 и во дворе; раз в ~34 с стая взлетает
-const birdGeo = new THREE.BufferGeometry();
-birdGeo.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0.08, -0.22, 0.02, -0.12, 0, 0, -0.1, 0, 0, 0.08, 0, 0, -0.1, 0.22, 0.02, -0.12], 3));
-birdGeo.computeVertexNormals();
-const birds = new THREE.InstancedMesh(birdGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }), 100);
+const birds = new THREE.InstancedMesh(propGeo("bird"), new THREE.MeshBasicMaterial({ color: propMat("bird").color, side: THREE.DoubleSide }), 100);
 birds.frustumCulled = false; scene.add(birds);
 const BIRDS = [], FLOCKS = [[20, -30], [-45, 25], [60, 40]];
 for (let i = 0; i < 60; i++) { const [cx, cy] = FLOCKS[i % 3]; BIRDS.push({ kind: 0, cx, cy, r: 18 + rnd() * 12, h: 24 + rnd() * 16, w: (0.35 + rnd() * 0.25) * (i % 3 === 1 ? -1 : 1), ph: rnd() * 6.28, col: new THREE.Color(0x23262a) }); }
@@ -2260,14 +2224,8 @@ for (let k = 0; k < 8; k++) {
 }
 // детская коляска: корзина и капюшон (цвет свой у каждой) + тёмная рама, ручка, колёса; вперёд — −z
 const PRAM_N = 30;
-const pramBody = new THREE.InstancedMesh(mergeGeometries([new THREE.BoxGeometry(0.42, 0.3, 0.7).translate(0, 0.55, 0),
-  new THREE.SphereGeometry(0.24, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.9, 1, 1).translate(0, 0.7, 0.18)]),
-  new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }), PRAM_N);
-const pramFrame = new THREE.InstancedMesh(mergeGeometries([new THREE.BoxGeometry(0.42, 0.03, 0.03).translate(0, 1.0, 0.42),
-  ...[-1, 1].map((s) => new THREE.BoxGeometry(0.025, 0.42, 0.025).rotateX(0.29).translate(s * 0.2, 0.8, 0.36)),
-  ...[[-1, -1], [-1, 1], [1, -1], [1, 1]].flatMap(([a, b]) => [cyl(0.1, 0.1, -0.02, 0.02, 0, 10).rotateZ(Math.PI / 2).translate(a * 0.2, 0.1, b * 0.25),
-    new THREE.BoxGeometry(0.025, 0.35, 0.025).translate(a * 0.2, 0.3, b * 0.22)])]),
-  new THREE.MeshStandardMaterial({ color: 0x2a2c30, roughness: 0.5, metalness: 0.4 }), PRAM_N);
+const pramBody = new THREE.InstancedMesh(propGeo("pram_body"), propMat("pram_body"), PRAM_N);
+const pramFrame = new THREE.InstancedMesh(propGeo("pram_frame"), propMat("pram_frame"), PRAM_N);
 for (const m of [pramBody, pramFrame]) { m.count = 0; m.frustumCulled = false; scene.add(m); }
 pramBody.setColorAt(0, new THREE.Color());
 const xCol = new THREE.Color();
@@ -2882,7 +2840,7 @@ const kaabaDecor = new THREE.Group();
     const l = a.distanceTo(b), n = Math.round(l / 1.1), nx = (b.y - a.y) / l, ny = -(b.x - a.x) / l;
     for (let k = 0; k < n; k++) { const m = (k + 0.5) / n * l; if (i === 0 && m > KM.shad.gap[0] - 0.15 && m < KM.shad.gap[1] + 0.15) continue;
       const p = a.clone().lerp(b, m / l); rings.push([p.x + nx * RO, p.y + ny * RO, nx, ny]); } });
-  const im = new THREE.InstancedMesh(new THREE.TorusGeometry(0.07, 0.018, 6, 14), copper, rings.length), o3 = new THREE.Object3D();
+  const im = new THREE.InstancedMesh(propGeo("kiswa_ring"), copper, rings.length), o3 = new THREE.Object3D();
   rings.forEach(([x, y, nx, ny], i) => { o3.position.copy(toV3(x, y, RZ)); o3.lookAt(o3.position.clone().add(toV3(nx, ny, 0))); o3.updateMatrix(); im.setMatrixAt(i, o3.matrix); });
   kaabaDecor.add(im);
 }
@@ -3255,11 +3213,11 @@ mkLayer("abujahl", [[150, 340, "дом Абу Джахля · ныне WC", "#F4
       domes.push([x0 + (x1 - x0) * tm + nx * DEEP / 2, y0 + (y1 - y0) * tm + ny * DEEP / 2]);
     }
   });
-  const stone = new THREE.MeshStandardMaterial({ color: 0xece3d0, roughness: 0.75 });
+  const stone = propMat("gallery_column");
   const put = (geo, pts, z) => { const im = new THREE.InstancedMesh(geo, stone, pts.length), m = new THREE.Matrix4();
     pts.forEach(([x, y], i) => im.setMatrixAt(i, m.makeTranslation(...toV3(x, y, z).toArray()))); scene.add(im); };
-  put(new THREE.CylinderGeometry(0.32, 0.4, 6.5, 8).translate(0, 3.25, 0), cols, 0);   // тонкие колонны
-  put(new THREE.SphereGeometry(2.3, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.75, 1), domes, 7.3);   // куполки над каждым пролётом
+  put(propGeo("gallery_column"), cols, 0);   // тонкие колонны
+  put(propGeo("gallery_dome"), domes, 7.3);   // куполки над каждым пролётом
   // кровля галереи — кольцо шириной DEEP
   const ring = (d) => RIM.map(([x, y]) => { const r = Math.hypot(x, y); return new THREE.Vector2(x * (r + d) / r, y * (r + d) / r); });
   const roof = new THREE.Shape(ring(0.6)); roof.holes.push(new THREE.Path(ring(-DEEP - 0.6)));
