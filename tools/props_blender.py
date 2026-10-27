@@ -170,63 +170,15 @@ def empty(name, c, loc=(0, 0, 0), parent=None):
 for o in list(bpy.data.objects): bpy.data.objects.remove(o)
 bpy.context.scene.unit_settings.system = "METRIC"
 
-# ---------- Люди толпы: 4 набора (мужчина/женщина × вблизи/издали) ----------
-FIGM = [mat("fig_m0_cloth", 0xf2f0ea), mat("fig_m1_skin", 0xc89a72), mat("fig_m2_hair", 0x2a2522), mat("fig_m3_beard", 0x2a2522),
-        mat("fig_m4_shoulder", 0xf2f0ea), mat("fig_m5_forearm", 0xc89a72), mat("fig_m6_sleeve", 0xf2f0ea), mat("fig_m7_torso", 0xd9b08a)]
+# ---------- Люди толпы: мужчина и женщина × 3 уровня детализации — реалистичные тела MPFB2 (CC0), см. figs_blender.py ----------
+# Корни fig_{m|w}_{near|mid|far} (в свойствах — суставы и мерки для шейдера), внутри одна сетка из материалов fig_m0..m12;
+# у вершины uv = (вес, 1 − кость): кость 0 изар/абая, 1 тело, 2/3 правые плечо/предплечье, 4/5 левые, 6/7 ноги.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import figs_blender
+FIGC = [0xf2f0ea, 0xc89a72, 0x2a2522, 0x2a2522, 0xf2f0ea, 0xc89a72, 0xc89a72, 0xf2f0ea, 0xebe6dc, 0x100c08, 0xa86a5c, 0x30201a, 0x3a4a3a]
 C_FIG = coll("Люди_толпы")
-for si, (woman, near) in enumerate([(False, True), (False, False), (True, True), (True, False)]):
-    tag = ("w" if woman else "m") + ("n" if near else "f")
-    root = empty("fig_" + ("w" if woman else "m") + "_" + ("near" if near else "far"), C_FIG, loc=(si * 1.2 - 1.8, 0, 6))
-    S, W, H, CC = (14, 10, 7, 8) if near else (6, 6, 4, 5)
-    JX, JY = (0.2, 1.39) if woman else (0.215, 1.42)
-    parts = []
-
-    def add(bone, m, label, g): parts.append((bone, m, label, g))
-
-    def fball(r, x, y, z, sx=1, sy=1, sz=1, w=W, h=H): return ball(r, x, y, z, sx, sy, sz, w, h)
-
-    def tube(rT, rB, yT, yB, x=0.0):   # трубка как в сайте: вблизи без крышек, издали с крышками
-        return cylinder(rT, rB, yT - yB, CC, open_=near).move(x, (yT + yB) / 2, 0)
-
-    if woman:
-        add(0, 0, "abaya", lathe([[0, .05], [.3, .05], [.29, .15], [.26, .5], [.235, .85], [.22, 1.02], [0, 1.05]], S, .75))
-        add(1, 0, "chest", lathe([[0, 1.0], [.22, 1.0], [.215, 1.2], [.2, 1.36], [0, 1.4]], S, .66))
-        add(1, 2, "scarf", lathe([[0, 1.35], [.27, 1.36], [.22, 1.45], [.15, 1.53], [.125, 1.6], [.125, 1.7], [.09, 1.77], [0, 1.79]], S, .8))
-        add(1, 1, "face", fball(.075, 0, 1.655, -.085, 1, 1.2, .7))
-    else:
-        add(0, 0, "izar", lathe([[0, .08], [.235, .08], [.245, .3], [.235, .7], [.215, 1.0], [.2, 1.04], [0, 1.04]], S, .72))
-        add(1, 7, "torso", lathe([[0, 1.0], [.19, 1.0], [.205, 1.15], [.215, 1.3], [.2, 1.42], [.15, 1.48], [.06, 1.52], [0, 1.53]], S, .62))
-        add(1, 0, "shoulderL", fball(.08, -.205, 1.405, 0))
-        add(1, 4, "shoulderR", fball(.085, .205, 1.41, 0))
-        add(1, 1, "neck", tube(.05, .055, 1.6, 1.48))
-        add(1, 1, "head", fball(.11, 0, 1.665, 0, .85, 1.05, .98))
-        if near:
-            add(1, 1, "nose", fball(.022, 0, 1.652, -.1, .7, 1.1, 1.1, 6, 4))
-            add(1, 1, "earR", fball(.026, .093, 1.665, 0, .45, 1, .75, 6, 4))
-            add(1, 1, "earL", fball(.026, -.093, 1.665, 0, .45, 1, .75, 6, 4))
-        add(1, 2, "hair", sphere(.118, W, H, 0, 1.45).rotX(.25).scale(.88, 1.07, 1).move(0, 1.665, 0))
-        add(1, 3, "beard", fball(.07, 0, 1.6, -.06, 1.25, .8, .9))
-    for side, (u, f, mu) in (("R", (2, 3, 6)), ("L", (4, 5, 0))):   # руки висят вдоль −y от плечевого сустава
-        sx = JX if side == "R" else -JX
-        arm = []
-        if near: arm += [(u, mu, "shoulderball", fball(.062, 0, 0, 0)), (u, mu, "elbow", fball(.047, 0, -.29, 0))]
-        arm.append((u, mu, "upper", tube(.055, .048, 0, -.29)))
-        arm.append((f, 5, "fore", tube(.046, .038, -.29, -.52)))
-        if near:
-            arm.append((f, 1, "palm", fball(1, 0, -.565, 0, .017, .045, .038, 7, 5)))
-            arm.append((f, 1, "thumb", fball(1, 0, -.57, -.045, .011, .028, .011, 5, 3)))
-            for n, z in enumerate((-.027, -.009, .009, .027)):
-                arm.append((f, 1, "finger%d" % (n + 1), fball(1, 0, -.632, z, .011, .034, .0095, 5, 3)))
-        else:
-            arm.append((f, 1, "hand", fball(.045, 0, -.58, 0, .55, 1.3, .85, 5, 3)))
-        for b, m, lab, g in arm: add(b, m, "arm" + side + "_" + lab, g.move(sx, JY, 0))
-    if not woman:
-        for b, x, s in ((8, .095, "R"), (9, -.095, "L")): add(b, 0, "leg" + s, tube(.09, .07, .9, .1, x))
-    for b, x, s in ((6, .09, "R"), (7, -.09, "L")):
-        add(b, 0 if woman else 1, "foot" + s, fball(.05, x, .035, -.04, 1, .6, 2, 8 if near else 5, 5 if near else 3))
-        if near and not woman: add(b, 1, "ankle" + s, tube(.035, .04, .13, .03, x))
-    for b, m, lab, g in parts:
-        obj("%s_b%dm%d_%s" % (tag, b, m, lab), g, FIGM[m], C_FIG, parent=root)
+for i, r in enumerate(figs_blender.build(C_FIG, lambda k: mat("fig_m%d" % k, FIGC[k]))):
+    r.location = (i * 0.9 - 2.2, -6, 0)
 
 # ---------- Герой «Вы» ----------
 C_HERO = coll("Герой")
@@ -872,7 +824,7 @@ for c in (C_YM, C_SZ):
 
 os.makedirs(OUT, exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "props.blend"))
-kw = dict(filepath=os.path.join(OUT, "props.glb"), export_format="GLB", export_texcoords=False, export_vertex_color="ACTIVE", export_normals=True,
+kw = dict(filepath=os.path.join(OUT, "props.glb"), export_format="GLB", export_texcoords=True, export_extras=True, export_vertex_color="ACTIVE", export_normals=True,
           export_yup=True, export_apply=False, export_cameras=False, export_lights=False,
           export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
           export_draco_position_quantization=14, export_draco_normal_quantization=10)
