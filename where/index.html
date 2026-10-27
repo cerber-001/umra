@@ -8,7 +8,6 @@
 <meta name="theme-color" content="#00292C">
 <link rel="icon" href="../icon-192.png">
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="vendor/maplibre-gl.css">
 <style>
 @font-face{font-family:'Exo 2';src:url(../exo2-regular.woff2) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'Exo 2';src:url(../exo2-semibold.woff2) format('woff2');font-weight:600;font-display:swap}
@@ -138,41 +137,6 @@ textarea{min-height:84px;resize:vertical}
 #tRt{display:block;margin-top:2px;font-size:12px}
 #cLink{font-size:13px;margin:6px 0}
 body.sheeton #toast{bottom:auto;top:calc(64px + env(safe-area-inset-top))}   /* при открытой шторке — сверху, чтобы не закрывать кнопки */
-/* ---- v2.18 «как iPhone»: один экран — одно главное. Старые плашки остаются в DOM (на них завязана логика), но не показываются ---- */
-#meet,#near,#top>.chips,#note,#banner,#addBtn,#tCall{display:none!important}
-#now{display:none;background:#fff;color:var(--ink);border-radius:16px;padding:12px 44px 12px 14px;box-shadow:0 4px 14px rgba(0,41,44,.18);cursor:pointer;font-weight:700;font-size:16px;line-height:1.25;border-left:6px solid var(--sea);position:relative}
-#now small{display:block;font-weight:500;font-size:13px;color:var(--mute);margin-top:3px}
-#now .nx{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:26px;color:var(--sea);font-weight:400}
-#now.meet{border-left-color:var(--sun)}
-#now.go{border-left-color:var(--red);animation:pulseR 1.6s infinite}
-#now.ask{background:var(--sun);color:#fff;border-left-color:#fff}
-#now.ask small,#now.ask .nx{color:#fff}
-#now.note{border-left-color:var(--sun);white-space:pre-wrap}
-#avatars{display:none;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-#avatars::-webkit-scrollbar{display:none}
-.av{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:var(--sea);color:#fff;font-weight:700;font-size:15px;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,41,44,.2);position:relative;font-family:inherit}
-.av.off{background:#9AA9AA}
-.av.lead{box-shadow:0 0 0 3px var(--sun),0 2px 6px rgba(0,41,44,.2)}
-.av.lead::after{content:"★";position:absolute;top:-10px;right:-6px;font-size:14px;color:var(--sun);text-shadow:0 0 3px #fff,0 0 3px #fff}
-.av.sos{background:var(--red);animation:pulseR 1.6s infinite}
-#lost{background:var(--red);min-height:60px;font-size:19px;border-radius:18px}
-#leadPlus{display:none;position:fixed;z-index:500;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:var(--sun);color:#fff;font-size:36px;line-height:1;cursor:pointer;box-shadow:0 4px 12px rgba(0,41,44,.3);font-family:inherit}
-#leadPlus.on{display:block}
-body.sheeton #leadPlus{display:none}
-#leadS .b{padding:18px;font-size:18px}
-#join.simple .adv{display:none!important}
-#join:not(.simple) .smp{display:none!important}
-#join.simple #jGo{padding:18px;font-size:19px}
-#jCode{font-weight:700;color:var(--sea);font-size:15px;margin:0 0 8px;letter-spacing:.02em}
-#iLead{display:block;width:100%;text-align:center;color:var(--mute);font-size:13px;margin-top:16px;text-decoration:underline;cursor:pointer;background:none;border:0;font-family:inherit}
-#join .chk{margin-top:10px;font-size:13.5px}
-#lostS .target{flex-direction:column;text-align:center;gap:10px;padding:16px 12px}
-#lostS .arrow{width:108px;height:108px}
-#lostS .arrow svg{width:58px;height:58px}
-#lostS .target .d{font-size:40px}
-#lostS .target b{font-size:19px}
-#lostS #lP{font-size:17px;line-height:1.35;color:var(--deep);font-weight:600;white-space:pre-line}
-#lostS .btns .b,#ptS .btns .b,#askS .btns .b{padding:17px 14px;font-size:17px;min-height:56px}
 </style>
 </head>
 <body>
@@ -180,20 +144,17 @@ body.sheeton #leadPlus{display:none}
 <header>
   <a class="hb" href="../" data-t="back">← Гид</a>
   <h1><span data-t="title">Где группа</span><small id="sub"></small></h1>
-  <button class="hb" id="menuBtn" aria-label="Настройки" title="Настройки" style="font-size:18px;padding:3px 11px">⚙</button>
+  <button class="hb" id="menuBtn" data-t="menu">Группа</button>
 </header>
 <div id="top">
   <div id="sos"></div>
   <div id="net"></div>
-  <div id="now"></div>
-  <div id="avatars"></div>
   <div id="note"><button id="noteX" aria-label="×">×</button><small id="noteBy"></small><div id="noteTx"></div></div>
   <div id="meet"></div>
   <div class="chips"><button class="chip" id="prChip"></button><button class="chip soon" id="askChip" style="display:none"></button><button class="chip far" id="farChip" style="display:none"></button></div>
   <div id="banner"></div>
 </div>
 <button id="me" aria-label="Моё место">◎</button>
-<button id="leadPlus" aria-label="+">＋</button>
 <div id="dock">
   <div id="near"></div>
   <div class="row">
@@ -206,19 +167,17 @@ body.sheeton #leadPlus{display:none}
 <!-- Вход в группу -->
 <section class="sheet" id="join">
   <h2 data-t="joinH">Где группа</h2>
-  <p class="smp" id="jCode"></p>
-  <p class="adv" data-t="joinP"></p>
-  <div class="adv"><label class="f" for="jGroup" data-t="code">Код группы</label>
-  <input type="text" id="jGroup" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="UMRA-0009-…" maxlength="40"></div>
+  <p data-t="joinP"></p>
+  <label class="f" for="jGroup" data-t="code">Код группы</label>
+  <input type="text" id="jGroup" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="UMRA-0009-…" maxlength="40">
   <label class="f" for="jName" data-t="name">Ваше имя</label>
   <input type="text" id="jName" autocomplete="given-name" maxlength="24">
-  <div class="btns"><button class="b s" id="jGo" data-t="start">Начать</button></div>
-  <label class="chk"><input type="checkbox" id="jShare" checked><span class="adv" data-t="consent"></span><span class="smp" data-t="consent1"></span></label>
+  <label class="chk"><input type="checkbox" id="jShare" checked><span data-t="consent"></span></label>
   <div class="langs" id="jLangs"></div>
-  <p class="mute adv" data-t="joinNote"></p>
-  <div class="btns adv"><button class="b l" id="jNew" data-t="create"></button></div>
-  <p class="mute adv" data-t="createNote"></p>
-  <button type="button" class="smp" id="iLead" data-t="iLead">Я руководитель</button>
+  <div class="btns"><button class="b s" id="jGo" data-t="start">Начать</button></div>
+  <p class="mute" data-t="joinNote"></p>
+  <div class="btns"><button class="b l" id="jNew" data-t="create"></button></div>
+  <p class="mute" data-t="createNote"></p>
 </section>
 
 <!-- Я потерялся / Куда идти -->
@@ -231,26 +190,14 @@ body.sheeton #leadPlus{display:none}
     <div><b id="tName">—</b><span class="d" id="tDist">—</span> <span class="mute" id="tDir"></span><span class="mute" id="tRt"></span></div></div>
   <p class="mute" id="tGate"></p>
   <div class="btns">
-    <a class="b s big2" id="tLead" data-t="callLead"></a>
+    <a class="b o" id="tWalk" target="_blank" rel="noopener" data-t="walk"></a>
+    <button class="b r" id="tCall" data-t="call"></button>
+    <button class="b l" id="tFound" data-t="found"></button>
+    <a class="b s" id="tLead" data-t="callLead"></a>
     <a class="b s" id="tWa" target="_blank" rel="noopener" data-t="wa"></a>
     <button class="b l" id="tPol" data-t="police"></button>
-    <button class="b o" id="tFound" data-t="found"></button>
-    <button class="b r" id="tCall" data-t="call"></button>
-    <a class="b l" id="tWalk" target="_blank" rel="noopener" data-t="walk"></a>
   </div>
   <p class="mute" id="lTip" data-t="lostTip"></p>
-</section>
-
-<!-- Руководителю: «＋» на карте -->
-<section class="sheet" id="leadS">
-  <button class="x" data-close>×</button>
-  <h2 data-t="leadTools"></h2>
-  <div class="btns">
-    <button class="b o" id="lsMeet" data-t="makeMeet"></button>
-    <button class="b s" id="lsRoll" data-t="roll"></button>
-    <button class="b s" id="lsNote" data-t="noteH"></button>
-  </div>
-  <p class="mute" data-t="leadHint"></p>
 </section>
 
 <!-- Карточка для полиции -->
@@ -330,7 +277,7 @@ body.sheeton #leadPlus{display:none}
   </div>
   <div class="langs" id="mLangs"></div>
   <p class="mute" data-t="privacy"></p>
-  <p class="mute">© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors (ODbL) — карта, улицы и пешие маршруты</p>
+  <p class="mute">© OpenStreetMap contributors (ODbL) — карта, улицы и пешие маршруты</p>
 </section>
 
 <!-- Новая точка / назначить сбор -->
@@ -358,8 +305,6 @@ body.sheeton #leadPlus{display:none}
 
 <script src="config.js"></script>
 <script src="vendor/leaflet.js"></script>
-<script src="vendor/maplibre-gl.js"></script>
-<script src="vendor/leaflet-maplibre-gl.js"></script>
 <script src="../prayer.js"></script>
 <script>
 "use strict";
@@ -490,22 +435,6 @@ const T = {
     ptsMak:["Address Jabal Omar hotel — lobby","King Fahd Gate No. 79","King Abdulaziz Gate No. 1","Gate No. 25 by Marwa (exit after sa'i)","Clock Tower — plaza entrance"],
     ptsMed:["Gate No. 1 — Bab as-Salam","King Fahd Gates No. 20–22 (north)","Gate No. 5 — Bab Quba","Gate No. 41 — al-Baqi","King Abdulaziz Gates No. 33–35"]}
 };
-// v2.18 «как iPhone»: короткие и спокойные тексты поверх прежних
-const T1 = {
-  ru: { settings: "Настройки", lostH: "Я потерялся", login: "Войти", iLead: "Я руководитель группы", consent1: "Показывать моё место группе",
-        lostP: "Всё хорошо. Вы не одни.\nСтойте на месте — к вам идут.", found: "Я нашёлся — всё в порядке", police: "Показать адрес таксисту / полиции",
-        wa: "Написать в WhatsApp, где я", walk: "Маршрут в Google Maps", leadHint: "Сбор ставится по прицелу на карте, с временем. Остальное — в ⚙ наверху.",
-        nowNear: "Вы рядом: ", nowRead: "нажмите, когда прочитали", lostTip: "Не уходите в толпу. Телефон держите в руке — так вас легче найти." },
-  kk: { settings: "Баптаулар", lostH: "Мен адастым", login: "Кіру", iLead: "Мен топ жетекшісімін", consent1: "Орнымды топқа көрсету",
-        lostP: "Бәрі жақсы. Сіз жалғыз емессіз.\nОрныңызда тұрыңыз — сізге келе жатыр.", found: "Мен табылдым — бәрі жақсы", police: "Мекенжайды таксистке / полицияға көрсету",
-        wa: "WhatsApp-қа қайда екенімді жазу", walk: "Google Maps-та бағыт", leadHint: "Жиналу орны картадағы нысана бойынша, уақытымен қойылады. Қалғаны — жоғарыдағы ⚙ ішінде.",
-        nowNear: "Сіз жаныңызда: ", nowRead: "оқыған соң басыңыз", lostTip: "Топ ішіне кірмеңіз. Телефонды қолда ұстаңыз — сізді табу оңай болады." },
-  en: { settings: "Settings", lostH: "I'm lost", login: "Enter", iLead: "I am the group leader", consent1: "Show my location to the group",
-        lostP: "All is well. You are not alone.\nStay where you are — someone is coming.", found: "I'm found — all good", police: "Show my address to a taxi / police",
-        wa: "Write on WhatsApp where I am", walk: "Route in Google Maps", leadHint: "The meeting point is set by the crosshair on the map, with a time. Everything else is in ⚙ at the top.",
-        nowNear: "You are near: ", nowRead: "tap when read", lostTip: "Don't walk into the crowd. Keep the phone in your hand — it's easier to find you." }
-};
-for (const k in T1) Object.assign(T[k], T1[k]);
 const ls = { get(k, d) { try { const v = localStorage.getItem("where." + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
              set(k, v) { try { localStorage.setItem("where." + k, JSON.stringify(v)); } catch (e) {} } };
 let lang = Q.get("lang") || ls.get("lang", (navigator.language || "ru").slice(0, 2));
@@ -558,63 +487,8 @@ function tripOver() {
 
 // ---------- Карта ----------
 const map = L.map("map", { zoomControl: false, attributionControl: true }).setView(CITY[city].c, 17);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors (ODbL)" }).addTo(map);
 map.attributionControl.setPrefix(false);
-
-// ---------- Подложка: векторные тайлы OpenFreeMap, рисует MapLibre GL внутри Leaflet (плагин maplibre-gl-leaflet) —
-// подписи улиц и мест на языке пользователя. Запасной вариант (нет WebGL2, не загрузилась библиотека или стиль) —
-// прежний растр OpenStreetMap с арабскими подписями. Тайлы, шрифты и значки — с tiles.openfreemap.org;
-// без сети видно только то, что браузер уже скачал (как и было с растром). ----------
-const NAME_EXPR = {   // какое название показывать: казахский → русский → английский → латиница → местное
-  kk: ["coalesce", ["get", "name:kk"], ["get", "name:ru"], ["get", "name:en"], ["get", "name:latin"], ["get", "name"]],
-  ru: ["coalesce", ["get", "name:ru"], ["get", "name:en"], ["get", "name:latin"], ["get", "name"]],
-  en: ["coalesce", ["get", "name:en"], ["get", "name:latin"], ["get", "name"]]
-};
-const OFM_ATTR = "© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors";
-let glLayer = null, glNameLayers = [];   // слой MapLibre и id symbol-слоёв с названиями (для смены языка на лету)
-const rasterBasemap = () => L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap contributors (ODbL)" }).addTo(map);
-const hasWebGL2 = () => { try { return !!(window.WebGL2RenderingContext && document.createElement("canvas").getContext("webgl2")); } catch (e) { return false; } };
-const fetchJSON = (url, ms) => { const ac = new AbortController(), h = setTimeout(() => ac.abort(), ms);
-  return fetch(url, { signal: ac.signal }).then((r) => { if (!r.ok) throw new Error(url + " " + r.status); return r.json(); }).finally(() => clearTimeout(h)); };
-function setBasemapLang(l) {   // подписи на лету, без перезагрузки стиля
-  const gl = glLayer && glLayer.getMaplibreMap(), ex = NAME_EXPR[l] || NAME_EXPR.ru;
-  if (!gl) return;
-  glNameLayers.forEach((id) => { try { if (gl.getLayer(id)) gl.setLayoutProperty(id, "text-field", ex); } catch (e) {} });
-}
-async function initBasemap() {
-  if (!window.maplibregl || !L.maplibreGL || !hasWebGL2()) return rasterBasemap();
-  let style, src;
-  try { style = await fetchJSON("vendor/style.json", 8000); } catch (e) { return rasterBasemap(); }
-  // Адрес тайлов (TileJSON) берём с сервера и запоминаем: без сети подойдёт сохранённый, а сами тайлы — из кэша браузера
-  try { src = await fetchJSON("https://tiles.openfreemap.org/planet", 6000); ls.set("ofmTiles", { tiles: src.tiles, minzoom: src.minzoom, maxzoom: src.maxzoom }); }
-  catch (e) { src = ls.get("ofmTiles", null); }
-  if (!src || !src.tiles || !style.sources || !style.layers) return rasterBasemap();
-  style.sources.openmaptiles = { type: "vector", tiles: src.tiles, minzoom: src.minzoom ?? 0, maxzoom: src.maxzoom ?? 14, attribution: OFM_ATTR };
-  const ex = NAME_EXPR[lang] || NAME_EXPR.ru;
-  glNameLayers = [];
-  style.layers.forEach((l) => {   // все symbol-слои с названиями (дороги, места, POI, вода); номера трасс (ref) не трогаем
-    const tf = l.type === "symbol" && l.layout && l.layout["text-field"];
-    if (tf && JSON.stringify(tf).includes("name")) { l.layout["text-field"] = ex; glNameLayers.push(l.id); }
-  });
-  try {
-    glLayer = L.maplibreGL({ style, pane: "tilePane", attributionControl: { customAttribution: OFM_ATTR } }).addTo(map);
-    const gl = glLayer.getMaplibreMap();
-    let ready = false;
-    gl.on("load", () => { ready = true; setBasemapLang(lang); });
-    gl.on("styleimagemissing", (e) => { try { gl.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) }); } catch (e2) {} });   // в спрайте OFM нет пары значков — пустая картинка вместо предупреждений
-    gl.on("error", (e) => {   // без обработчика MapLibre пишет каждую ошибку в консоль; без сети тайлы/шрифты/значки просто не придут — это не повод для растра
-      const msg = e && e.error ? String(e.error.message || e.error.name || e.error) : "";
-      if (ready || !e || !e.error || e.tile || e.sourceId || e.source || gl.isStyleLoaded() ||
-          /tile|glyph|sprite|font|openfreemap|fetch|abort|network|timeout/i.test(msg)) return;
-      try { map.removeLayer(glLayer); } catch (e2) {}   // сам стиль не поднялся — назад на растр
-      glLayer = null; rasterBasemap();
-      console.warn("Подложка: MapLibre не запустился, показан растр OpenStreetMap:", msg);
-    });
-  } catch (e) {   // WebGL-контекст не создался (слабое железо, много вкладок) — растр
-    if (glLayer) { try { if (glLayer._container) glLayer._container.remove(); delete map._layers[L.Util.stamp(glLayer)]; } catch (e2) {} }
-    glLayer = null; rasterBasemap();
-  }
-}
-initBasemap();
 const dist = (a, b) => map.distance(a, b);
 function bearing(a, b) {
   const r = Math.PI / 180, y = Math.sin((b[1] - a[1]) * r) * Math.cos(b[0] * r),
@@ -837,16 +711,7 @@ function applyLang() {
   $("mFloor").value = me.floor;
   CITY.mak.pts.forEach((p, i) => p.name = t("ptsMak")[i]);
   CITY.med.pts.forEach((p, i) => p.name = t("ptsMed")[i]);
-  $("menuBtn").setAttribute("aria-label", t("settings")); $("menuBtn").title = t("settings");
-  setBasemapLang(lang);   // подписи на карте — тоже на языке пользователя
 }
-// Вход по ссылке с кодом: только имя и большая «Войти»; всё остальное — за ссылкой «Я руководитель»
-function joinMode(simple) {
-  $("join").classList.toggle("simple", simple);
-  $("jGo").dataset.t = simple ? "login" : "start"; $("jGo").textContent = t(simple ? "login" : "start");
-  $("jCode").textContent = simple ? group : "";
-}
-$("iLead").onclick = () => { joinMode(false); $("jGroup").focus(); };
 
 function toast(s, ms = 2600, act) {   // act — что сделать по нажатию на подсказку
   const el = $("toast"); el.textContent = s; el.style.display = "block"; el.classList.toggle("act", !!act);
@@ -858,14 +723,14 @@ function sheet(id) {
   document.body.classList.toggle("sheeton", !!id && id !== "ptS");
   document.querySelectorAll(".sheet").forEach((s) => s.classList.toggle("on", s.id === id));
   $("cross").style.display = id === "ptS" ? "block" : "none";
-  wake(wantWake()); renderChips(); renderNow();
+  wake(wantWake()); renderChips();
 }
 document.querySelectorAll("[data-close]").forEach((b) => b.onclick = () => { sheet(null); render(); });
 document.querySelectorAll("[data-back]").forEach((b) => b.onclick = () => { sheet(b.dataset.back); render(); });
 
 // ---------- Экран не гаснет, пока открыта карта или «Я потерялся» ----------
 let wl = null, wlReq = null;
-const wantWake = () => ls.get("wake", true) || isOn("lostS") || isOn("polS");   // по умолчанию экран не гаснет, пока открыта карта
+const wantWake = () => ls.get("wake", false) || isOn("lostS") || isOn("polS");
 function wake(on) {
   if (!("wakeLock" in navigator)) return;
   if (on && !wl && !wlReq && document.visibilityState === "visible")
@@ -1254,54 +1119,12 @@ function render() {
   const over = group && tripOver();
   $("banner").style.display = !LIVE || over ? "block" : "none";
   $("banner").textContent = over ? t("tripDone") : t("demo");
-  renderMeet(); renderNote(); renderChips(); renderNow(); renderAvatars();
-  $("leadPlus").classList.toggle("on", !!(lead && bus));
+  renderMeet(); renderNote(); renderChips();
   if (isOn("lostS")) updateLost();
   if (isOn("menuS")) renderMenu();
   if (isOn("rollS")) renderRoll();
 }
 $("me").onclick = () => { if (me.ll) map.flyTo(me.ll, 18); else { startGps(); toast(t("noGps"), 9000, placeByTap); } };
-
-// ---------- Карточка «Сейчас»: одна, по приоритету перекличка > объявление > сбор > ворота рядом > намаз ----------
-function nextPrayerTxt() {
-  if (!PR) return "";
-  const c = CITY[city].c, nx = PR.next(new Date(), c[0], c[1], 3);
-  return nx ? `${t("azan")} · ${prName(nx.key, nx.friday)} ${PR.hhmm(nx.min)} · ${fmtLeft(nx.left)}` : "";
-}
-function renderNow() {
-  const el = $("now"); let cls = "", html = "", on = null;
-  const n = notes.find((n) => Date.now() - n.t < 12 * 3600000), noteNew = n && ls.get("noteX." + group, "") !== n.id;
-  const m = meetPoint(), g = me.ll && nearestGate(me.ll, 400);
-  if (curAsk && !isOn("askS")) { cls = "ask"; html = esc(t("askChip")); on = () => sheet("askS"); }
-  else if (noteNew) { cls = "note"; html = esc(n.body) + `<small>📣 ${esc(n.by || t("fromLead"))} · ${esc(ago(n.t))} · ${esc(t("nowRead"))}</small>`; on = () => { ls.set("noteX." + group, n.id); renderNote(); renderNow(); }; }
-  else if (m) { const mi = meetInfo(m); cls = "meet" + (mi.go ? " go" : ""); html = "★ " + esc(t("meetTxt") + m.name + (m.meet ? t("at") + m.meet : "")) + (mi.info ? `<small>${esc(mi.info)}</small>` : ""); on = () => openGo({ ...m, k: "meet" }, false); }
-  else if (g) { html = esc(t("nowNear") + gateTxt(g)); const p = nextPrayerTxt(); if (p) html += `<small>${esc(p)}</small>`; on = () => { sheet("prS"); renderPrayer(); }; }
-  else { const p = nextPrayerTxt(); if (p) { html = esc(p); on = () => { sheet("prS"); renderPrayer(); }; } }
-  el.className = cls; el.innerHTML = html ? html + '<span class="nx">›</span>' : ""; el.onclick = on;
-  el.style.display = html ? "block" : "none";
-}
-// ---------- Ряд участников: инициалы; онлайн — цветные, офлайн — серые; руководитель — с ★; нажатие — «Куда идти» ----------
-function renderAvatars() {
-  const el = $("avatars");
-  const rows = Object.entries(people).map(([id, p]) => ({ id, p, on: true }))
-    .concat(Object.entries(gone).filter(([id, p]) => !people[id] && p.ll).map(([id, p]) => ({ id, p, on: false })));
-  rows.sort((a, b) => (b.p.lead ? 1 : 0) - (a.p.lead ? 1 : 0) || (b.on ? 1 : 0) - (a.on ? 1 : 0) || String(a.p.name || "").localeCompare(String(b.p.name || "")));
-  el.innerHTML = rows.map((r) => {
-    const fx = r.p.fx || r.p.t, off = !r.on || !r.p.ll || Date.now() - fx > 5 * 60000, s = r.p.sos && Date.now() - r.p.sos < 15 * 60000;
-    const nm = String(r.p.name || "?");
-    return `<button class="av${s ? " sos" : off ? " off" : ""}${r.p.lead ? " lead" : ""}" data-id="${esc(r.id)}" title="${esc(nm)}" aria-label="${esc(nm)}">${esc(initials(nm))}</button>`;
-  }).join("");
-  el.style.display = rows.length ? "flex" : "none";
-  el.querySelectorAll(".av").forEach((b) => b.onclick = () => {
-    const p = people[b.dataset.id] || gone[b.dataset.id];
-    if (p && p.ll) openGo({ pid: b.dataset.id, name: p.name, ll: p.ll }, false); else toast((p && p.name ? p.name + ": " : "") + t("noFix"));
-  });
-}
-// ---------- Руководителю: «＋» → Сбор здесь / Перекличка / Объявление ----------
-$("leadPlus").onclick = () => { if (lead && bus) sheet("leadS"); };
-$("lsMeet").onclick = () => { editPoint(null); };
-$("lsRoll").onclick = () => { if (roll && Date.now() - roll.t < 30 * 60000) { sheet("rollS"); renderRoll(); } else startRoll(false); };
-$("lsNote").onclick = openNote;
 
 // ---------- «Я потерялся» / «Куда идти» ----------
 let heading = null, compassOn = false;
@@ -1323,10 +1146,7 @@ function updateArrow() {
 }
 function nearestPoint() { return [...allPoints()].sort((a, b) => dist(me.ll, a.ll) - dist(me.ll, b.ll))[0]; }
 function resolveTarget() {
-  if (!selPoint) {   // куда вести по умолчанию: сбор → (если потерялся) руководитель онлайн → ближайшая точка
-    const m = meetPoint(), ln = !m && goLost && !lead ? leaderNearest(false) : null;
-    selPoint = m ? { ...m, k: "meet" } : ln && ln.p.ll ? { pid: ln.id, name: ln.p.name, ll: ln.p.ll, k: "lead" } : me.ll ? nearestPoint() : CITY[city].pts[city === "mak" ? 1 : 0];
-  }
+  if (!selPoint) { const m = meetPoint(); selPoint = m ? { ...m, k: "meet" } : me.ll ? nearestPoint() : CITY[city].pts[city === "mak" ? 1 : 0]; }
   if (selPoint.pid) { const p = people[selPoint.pid] || gone[selPoint.pid]; if (p && p.ll) selPoint.ll = p.ll; }
   if (selPoint.k === "meet") { const m = meetPoint(); if (m) Object.assign(selPoint, m); }
 }
@@ -1349,7 +1169,7 @@ function updateLost() {
   const s = selPoint, sosOn = me.sos && Date.now() - me.sos < 15 * 60000;
   $("lH").textContent = goLost ? t("lostH") : t("goH");
   ["lP", "tCall", "tWa", "tPol", "lTip"].forEach((id) => $(id).style.display = goLost ? "" : "none");
-  $("tFound").style.display = goLost || sosOn ? "" : "none";
+  $("tFound").style.display = sosOn ? "" : "none";
   const tel = leaderTel();
   $("tLead").style.display = tel ? "" : "none"; if (tel) $("tLead").href = telHref(tel);
   const chips = goChips();
@@ -1383,10 +1203,7 @@ function openGo(target, isLost) {
   goLost = !!isLost; selPoint = target || null;
   sheet("lostS"); render(); fitGo();
 }
-$("lost").onclick = () => {   // одна кнопка: открыть «куда идти» и сразу сообщить группе (повторно за 15 минут не шлём)
-  openGo(null, true);
-  if (bus && !(me.sos && Date.now() - me.sos < 15 * 60000)) sendSos();
-};
+$("lost").onclick = () => openGo(null, true);
 function sendSos() {
   me.sos = Date.now(); publish(true);
   bus && bus.signal("sos", { id: me.id, name: me.name, ll: me.ll, floor: +me.floor, city, t: me.sos });   // по нажатию «Позвать группу» место уходит даже при выключенной галочке
@@ -1395,9 +1212,9 @@ function sendSos() {
 }
 $("tCall").onclick = sendSos;
 $("tFound").onclick = () => {
-  const had = me.sos; me.sos = 0; publish(true);
-  if (had) bus && bus.signal("sosOff", { id: me.id, name: me.name });
-  goLost = false; sheet(null); render();
+  me.sos = 0; publish(true);
+  bus && bus.signal("sosOff", { id: me.id, name: me.name });
+  updateLost();
 };
 $("tPol").onclick = openPolice;
 const sosSeen = new Set();
@@ -1537,7 +1354,7 @@ function renderMenu() {
   $("mTitle").textContent = t("menu") + " " + group;
   $("mMode").textContent = [LIVE ? t("live") : t("demo"), t("online") + " " + (Object.keys(people).length + 1), lead ? t("leadMode") : ""].filter(Boolean).join(" · ");
   $("mShare").checked = me.share;
-  $("mWake").checked = ls.get("wake", true);
+  $("mWake").checked = ls.get("wake", false);
   $("mCity").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.c === city));
   ["mLead", "mWipe", "mCoLead"].forEach((id) => $(id).style.display = lead ? "" : "none");
   if (document.activeElement !== $("mTel")) $("mTel").value = lead ? ls.get("tel." + group, "") : "";
@@ -1577,24 +1394,10 @@ $("mShare").onchange = (e) => {
 };
 $("mFloor").onchange = (e) => { me.floor = +e.target.value; ls.set("floor", me.floor); publish(true); render(); };
 $("mHere").onclick = () => { sheet(null); placeByTap(); };
-function placeAt(latlng) { me.ll = [latlng.lat, latlng.lng]; me.acc = 5; me.manual = Date.now(); me.t = Date.now(); autoCity(me.ll); toast(t("placed")); render(); publish(true); }
 function placeByTap() {   // GPS в Хараме врёт или молчит — человек сам касается карты там, где стоит
   toast(t("tapMap"), 6000); map.off("click", placeByTap.h);
-  map.once("click", placeByTap.h = (e) => placeAt(e.latlng));
+  map.once("click", placeByTap.h = (e) => { me.ll = [e.latlng.lat, e.latlng.lng]; me.acc = 5; me.manual = Date.now(); me.t = Date.now(); autoCity(me.ll); toast(t("placed")); render(); publish(true); });
 }
-(() => {   // долгое нажатие на карту (0,65 с без движения) = «я здесь»
-  const c = map.getContainer(); let tm = null, p0 = null;
-  const clr = () => { clearTimeout(tm); tm = null; };
-  c.addEventListener("pointerdown", (e) => {
-    if (!e.isPrimary || e.target.closest(".leaflet-marker-icon,.leaflet-control")) return;
-    p0 = [e.clientX, e.clientY]; clr();
-    tm = setTimeout(() => { tm = null; if (!bus) return; placeAt(map.mouseEventToLatLng(e)); try { navigator.vibrate && navigator.vibrate(30); } catch (x) {} }, 650);
-  });
-  c.addEventListener("pointermove", (e) => { if (tm && p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 10) clr(); });
-  ["pointerup", "pointercancel", "pointerleave"].forEach((ev) => c.addEventListener(ev, clr));
-  c.addEventListener("contextmenu", (e) => e.preventDefault());
-  map.on("zoomstart movestart", clr);
-})();
 $("mCity").querySelectorAll("button").forEach((b) => b.onclick = () => { setCity(b.dataset.c, true); renderMenu(); });
 $("mWake").onchange = (e) => { ls.set("wake", e.target.checked); wake(wantWake()); };
 $("mRoll").onclick = () => { if (roll && Date.now() - roll.t < 30 * 60000) { sheet("rollS"); renderRoll(); } else startRoll(false); };
@@ -1716,13 +1519,13 @@ $("jNew").onclick = () => joinGo(true);
 $("jGroup").onblur = (e) => { e.target.value = normCode(e.target.value); };
 
 setInterval(() => {
-  prayerTick(); renderMeet(); renderNow();
+  prayerTick(); renderMeet();
   if (curAsk && Date.now() - curAsk.t > 30 * 60000) closeAsk();
   pruneGone();
 }, 20000);
 applyLang(); drawPlaces(); prayerTick(); render(); rtLoad(city);
 if (group && me.name && CODE_RE.test(group)) { lead = !!ls.get("lk." + group, null) || ls.get("lead." + group, false); enter(false); }
-else { $("jGroup").value = group; $("jName").value = me.name; joinMode(!!group && CODE_RE.test(group)); sheet("join"); }
+else { $("jGroup").value = group; $("jName").value = me.name; sheet("join"); }
 </script>
 </body>
 </html>
