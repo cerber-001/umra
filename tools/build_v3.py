@@ -143,7 +143,7 @@ dua_wo_zikr = dua_in.replace(duaZikr, '')
 
 # ---------------------------------------------------------------- пути к ресурсам: v3/ лежит на уровень ниже
 def repath(h):
-    h = re.sub(r'(src|href)="(?!https?:|//|#|mailto:|tel:|data:|\.\./|/)(?=[a-zA-Z0-9_])', r'\1="../', h)
+    h = re.sub(r'(src|href)="(?!https?:|//|#|mailto:|tel:|sms:|whatsapp:|javascript:|data:|blob:|\.\./|/)(?=[a-zA-Z0-9_])', r'\1="../', h)
     return h
 
 # ---------------------------------------------------------------- новая разметка
