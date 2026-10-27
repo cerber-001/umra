@@ -485,6 +485,154 @@ obj("maqam_crystal", G().add(lathe(cr, 40), lathe(ci, 40)), CRYS, C_MQ, parent=M
 for o in C_MQ.objects:
     if o.type == "MESH": print("MQV", o.name, len(o.data.vertices))
 
+# ---------- Хиджр Исмаила (Хатым) и Мизаб ар-Рахма (v3.16) ----------
+# Хатым: полукруглая стена 1,32 м (haram_meta hijr_h), толщина ≈ 1,2–1,3 м; контур — кольцо OSM из haram.glb (вершины ниже, по углу от
+# конца у Иракского угла к концу у Шами), сглажено сплайном. Облицовка — белый мрамор: цоколь, гладкое тело, филёнки с инкрустацией
+# серо-зелёным мрамором и розетками, поясок под карнизом, скруглённый карниз с выносом. Фонарей на стене не ставим: на нынешних
+# фотографиях их не подтвердили. Начало координат — центр дуги на полу (meta −6,665; 8,763).
+# Мизаб: 2,58 м, из них 58 см в стене (Saudipedia; ajel.sa), наружу ≈ 2,0 м; ширина дна 26 см, борта 23 см; тик в золоте, открыт
+# сверху и в сторону Хиджра, на кромках шипы от голубей (ajel.sa); на конце «борода» (лихйа) — пластина, отводящая струю от стены.
+# Начало координат — середина стены Б→Д на уровне дна жёлоба, локальная +z — наружу, к Хиджру.
+C_HJ = coll("Хатым_и_Мизаб")
+HJ = empty("hatim", C_HJ)
+HC = (-6.665, 8.763)
+H_IN = [(-2.12, 9.93), (-2.88, 11.41), (-4.11, 12.53), (-5.67, 13.14), (-7.33, 13.16), (-8.9, 12.59), (-10.21, 11.47), (-11.0, 9.94),
+        (-11.19, 8.23), (-10.72, 6.57), (-9.69, 5.2)]
+H_OUT = [(-1.01, 10.49), (-1.87, 12.17), (-3.45, 13.59), (-5.42, 14.36), (-7.54, 14.4), (-9.54, 13.68), (-11.2, 12.24), (-12.22, 10.31),
+         (-12.45, 8.13), (-11.86, 6.02), (-10.68, 4.46)]
+
+
+def crom(P, t):   # Catmull — Rom по точкам P, t от 0 до 1 (концы закреплены)
+    n = len(P) - 1; u = min(max(t, 0), 1) * n; i = min(int(u), n - 1); s = u - i
+    p0, p1, p2, p3 = P[max(i - 1, 0)], P[i], P[i + 1], P[min(i + 2, n)]
+    return tuple(.5 * (2 * p1[k] + (-p0[k] + p2[k]) * s + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * s * s + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * s ** 3) for k in (0, 1))
+
+
+def hframe(t):   # точка внутренней и внешней грани, нормаль (внутр → наруж) и касательная, в плане meta
+    a, b = crom(H_IN, t), crom(H_OUT, t)
+    dx, dy = b[0] - a[0], b[1] - a[1]; L = math.hypot(dx, dy); n = (dx / L, dy / L)
+    return a, b, L, n, (n[1], -n[0])
+
+
+def h3(x, y, h):   # meta (x, y) и высота → three относительно центра дуги
+    return (x - HC[0], h, -(y - HC[1]))
+
+
+def hpt(t, k, off, h):   # k: 0 — внутренняя грань, 1 — внешняя (дробное — между ними); off — метры по нормали наружу
+    a, b, L, n, _ = hframe(t)
+    return h3(a[0] + (b[0] - a[0]) * k + n[0] * off, a[1] + (b[1] - a[1]) * k + n[1] * off, h)
+
+
+def sweep(prof, t0, t1, seg):   # замкнутое сечение prof [(k, off, h)] протянуто по дуге от t0 до t1, торцы закрыты
+    v, f, m = [], [], len(prof)
+    for j in range(seg + 1):
+        t = t0 + (t1 - t0) * j / seg; v += [hpt(t, *p) for p in prof]
+    for j in range(seg):
+        for i in range(m): f.append([j * m + i, j * m + (i + 1) % m, (j + 1) * m + (i + 1) % m, (j + 1) * m + i])
+    f.append(list(range(m - 1, -1, -1))); f.append([seg * m + i for i in range(m)])
+    return G(v, f)
+
+
+ARC = [0.0]   # длина дуги по внешней и внутренней грани — чтобы филёнки были одной ширины
+for side in (H_OUT, H_IN):
+    s, pr = 0.0, crom(side, 0)
+    for j in range(1, 401):
+        q = crom(side, j / 400); s += math.dist(pr, q); pr = q
+    ARC.append(s)
+L_OUT, L_IN = ARC[1], ARC[2]
+HN = 140
+HMARB = mat("hatim_marble", 0xf5f3ee, .27)
+HBASE = mat("hatim_base", 0xd6d2c9, .33)
+HINL = mat("hatim_inlay", 0x8e9a92, .3, .02)          # серо-зелёный мрамор инкрустации
+HCAP = mat("hatim_cap", 0xfbfaf6, .22)                # карниз — светлее и глаже, на нём блик
+body = sweep([(0, 0, .12), (0, 0, 1.17), (1, 0, 1.17), (1, 0, .12)], 0, 1, HN)
+base = sweep([(0, -.03, 0), (0, -.03, .1), (0, -.012, .135), (1, .012, .135), (1, .03, .1), (1, .03, 0)], 0, 1, HN)
+cap = sweep([(0, -.035, 1.165), (0, -.05, 1.2), (0, -.05, 1.25), (0, -.035, 1.29), (0, 0, 1.312), (.5, 0, 1.335), (1, 0, 1.312), (1, .035, 1.29),
+             (1, .05, 1.25), (1, .05, 1.2), (1, .035, 1.165)], 0, 1, HN)
+obj("hatim_body", body, HMARB, C_HJ, parent=HJ, smooth=30)
+obj("hatim_base", base, HBASE, C_HJ, parent=HJ, smooth=30)
+obj("hatim_cap", cap, HCAP, C_HJ, parent=HJ, smooth=50)
+
+
+def hloc(t, k, off, x, y, z):   # локальная рамка на грани: x — вдоль дуги, y — вверх, z — по нормали от грани наружу (sign по стороне)
+    a, b, L, n, tg = hframe(t); sg = 1 if k else -1
+    px, py = (b if k else a)
+    return h3(px + tg[0] * x + n[0] * sg * (off + z), py + tg[1] * x + n[1] * sg * (off + z), y)
+
+
+inl = G()
+band = [(.0, .0), (.004, .0), (.004, .05), (.0, .05)]
+for k, Lside, npan in ((1, L_OUT, 20), (0, L_IN, 16)):
+    sg = 1 if k else -1
+    pr = lambda o, h: (k, sg * o, h)
+    inl.add(sweep([pr(0, 1.075), pr(.005, 1.075), pr(.005, 1.115), pr(0, 1.115)], 0, 1, HN))      # поясок под карнизом
+    inl.add(sweep([pr(0, .17), pr(.005, .17), pr(.005, .195), pr(0, .195)], 0, 1, HN))           # поясок над цоколем
+    dt = 1 / npan; m = .07 / Lside                                                                # отступ рамки 7 см
+    for p in range(npan):
+        t0, t1 = p * dt + m, (p + 1) * dt - m
+        for h0, h1 in ((.26, .29), (.98, 1.01)):                                                 # верх и низ рамки
+            inl.add(sweep([pr(0, h0), pr(.005, h0), pr(.005, h1), pr(0, h1)], t0, t1, 8))
+        for tt in (t0, t1):                                                                      # стойки рамки
+            w = .015 / Lside
+            inl.add(sweep([pr(0, .26), pr(.005, .26), pr(.005, 1.01), pr(0, 1.01)], tt - w, tt + w, 1))
+        tc = (p + .5) * dt                                                                       # розетка в центре филёнки
+        st8 = slab(star(.085, .04), 0, .006).tf(lambda x, y, z, tc=tc, k=k: hloc(tc, k, 0, x, y + .635, z))
+        inl.add(st8)
+        ring = slab([(.13 * math.sin(TAU * i / 32), .13 * math.cos(TAU * i / 32)) for i in range(32)], 0, .003)
+        inl.add(ring.tf(lambda x, y, z, tc=tc, k=k: hloc(tc, k, 0, x, y + .635, z)))
+    # швы между плитами облицовки — между филёнками, чуть темнее
+    for p in range(npan + 1):
+        tt = min(max(p * dt, .0005), .9995); w = .006 / Lside
+        inl.add(sweep([pr(-.001, .2), pr(.002, .2), pr(.002, 1.07), pr(-.001, 1.07)], tt - w, tt + w, 1))
+obj("hatim_inlay", inl, HINL, C_HJ, parent=HJ, smooth=0)
+# торцы стены у проходов — полированные плиты с рамкой
+ends = G()
+for t in (0.0, 1.0):
+    a, b, L, n, tg = hframe(t); sg = 1 if t == 0 else -1   # касательная смотрит к началу дуги: у t=0 наружу, у t=1 внутрь
+    mid = ((a[0] + b[0]) / 2 + tg[0] * sg * .003, (a[1] + b[1]) / 2 + tg[1] * sg * .003)
+    for (x0, x1, y0, y1) in ((-L / 2 + .07, L / 2 - .07, .26, .29), (-L / 2 + .07, L / 2 - .07, .98, 1.01), (-L / 2 + .07, -L / 2 + .1, .26, 1.01), (L / 2 - .1, L / 2 - .07, .26, 1.01)):
+        q = [(mid[0] + n[0] * x0, mid[1] + n[1] * x0), (mid[0] + n[0] * x1, mid[1] + n[1] * x1)]
+        ends.add(G([h3(q[0][0] + tg[0] * sg * e, q[0][1] + tg[1] * sg * e, y) for e in (0, .005) for y in (y0, y1)] +
+                   [h3(q[1][0] + tg[0] * sg * e, q[1][1] + tg[1] * sg * e, y) for e in (0, .005) for y in (y0, y1)],
+                   [[0, 1, 3, 2], [4, 6, 7, 5], [0, 4, 5, 1], [2, 3, 7, 6], [1, 5, 7, 3], [0, 2, 6, 4]]))
+obj("hatim_end", ends, HINL, C_HJ, parent=HJ, smooth=0)
+
+# Мизаб
+MZ = empty("mizab", C_HJ)
+MGOLD = mat("mizab_gold", 0xdcb54e, .2, 1)
+MORN = mat("mizab_orn", 0xb98f2e, .3, 1)
+MIN, MOUT, MW, MS = .58, 2.0, .26, .23
+mzg = G().add(box(MW + .05, .03, MIN + MOUT).move(0, -.015, (MOUT - MIN) / 2))                           # дно
+for s in (-1, 1):
+    mzg.add(box(.025, MS, MIN + MOUT).move(s * (MW / 2 + .0125), MS / 2 - .03, (MOUT - MIN) / 2))       # борта
+    mzg.add(rotY(cylinder(.018, .018, MIN + MOUT, 10).rotX(math.pi / 2), 0).move(s * (MW / 2 + .0125), MS - .03, (MOUT - MIN) / 2))   # валик по кромке
+    mzg.add(box(.035, .03, MIN + MOUT).move(s * (MW / 2 + .0125), -.04, (MOUT - MIN) / 2))             # нижний поясок
+# «борода»: щит под концом жёлоба, низ — стрельчатый
+mzg.add(slab([(-.16, -.02), (.16, -.02), (.16, -.24), (.05, -.38), (0, -.46), (-.05, -.38), (-.16, -.24)][::-1], MOUT - .03, MOUT - .005))
+obj("mizab_gold", mzg, MGOLD, C_HJ, parent=MZ, smooth=35)
+orn = G()
+for s in (-1, 1):   # бортовой орнамент: рамка-кант, ряд розеток, филёнки (по фото — чеканка на бортах)
+    xo = s * (MW / 2 + .026)
+    for y in (.02, .17):
+        orn.add(box(.006, .012, MOUT - .06).move(xo, y, MOUT / 2))
+    for i in range(9):
+        zc = .14 + i * (MOUT - .28) / 8
+        orn.add(rotY(slab(star(.04, .018), 0, .006), s * math.pi / 2).move(xo - s * .003, .095, zc))
+    for i in range(8):
+        z0 = .14 + i * (MOUT - .28) / 8
+        for dz in (.045, (MOUT - .28) / 8 - .045):
+            orn.add(box(.006, .1, .008).move(xo, .095, z0 + dz))
+# шипы от голубей по кромкам
+for s in (-1, 1):
+    for i in range(int(MOUT / .07)):
+        orn.add(cylinder(.0, .006, .05, 4).move(s * (MW / 2 + .0125), MS - .03 + .035, .05 + i * .07))
+# чеканка на «бороде»: звезда в круге
+orn.add(slab(star(.07, .032), MOUT - .002, MOUT + .004).move(0, -.2, 0))
+orn.add(slab([(.1 * math.sin(TAU * i / 28), -.2 + .1 * math.cos(TAU * i / 28)) for i in range(28)], MOUT - .003, MOUT + .001))
+obj("mizab_orn", orn, MORN, C_HJ, parent=MZ, smooth=0)
+for o in C_HJ.objects:
+    if o.type == "MESH": print("HJV", o.name, len(o.data.vertices))
+
 os.makedirs(OUT, exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "props.blend"))
 kw = dict(filepath=os.path.join(OUT, "props.glb"), export_format="GLB", export_texcoords=False, export_vertex_color="NONE", export_normals=True,

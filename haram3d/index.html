@@ -285,7 +285,8 @@ const SPOTS = [
   { key: "hijr", tag: "Важно для тавафа", title: "Хиджр Исмаила (Хатым)",
     text: `<p>Полукруглая стена высотой около 1,3 м. Пространство внутри относится к Каабе.</p>
 <p><b>Таваф — только снаружи Хиджра.</b> Круг, пройденный через Хиджр, не засчитывается — его нужно повторить.</p>
-<p>Внутри молятся по очереди: вход с одной стороны, выход с другой. Помолились — уступите место и вернитесь к тавафу.</p>`, dist: 38 },
+<p>Внутрь пускают партиями: очередь ведут сотрудники, мужчины и женщины — в разные часы. С 22.06.2026 объявлено: женщины — 06:00–09:00, мужчины — 22:00–01:00. Часы могут меняться — уточняйте у сотрудников.</p>
+<p>Помолились, сделали короткое дуа — уступите место и вернитесь к тавафу.</p>`, dist: 38 },
   { key: "mizab", tag: "Кааба", title: "Мизаб ар-Рахма",
     text: `<p>Золотой водосток на крыше Каабы. Смотрит на Хиджр: дождевая вода стекает именно туда.</p>
 <p>Молиться в Хиджре — всё равно что внутри Каабы: Хиджр — часть Дома. В книгах о хадже, в том числе ханафитских, место под Мизабом называют среди мест, где дуа принимается. Молитесь там, где свободно, и не толкайтесь.</p>
@@ -536,6 +537,51 @@ scene.add(gltf.scene);
     occluders.push(o);
   });
   scene.add(M);
+}
+
+// Хиджр Исмаила (Хатым) и Мизаб ар-Рахма — подробные модели из Blender (props.glb, «hatim» и «mizab»).
+// Хатым: белый мрамор — цоколь, тело, филёнки с серо-зелёной инкрустацией и розетками, поясок и скруглённый карниз (1,32 м).
+// Мизаб: позолоченный жёлоб 2,58 м, из них наружу ≈ 2,0 м (Saudipedia), борта с чеканкой, шипы от голубей, «борода» на конце.
+// Простые версии, запечённые в haram.glb, вырезаем: стену — мрамор в кольце 4,3–6,05 м от центра дуги (пол ниже 0,5 м не трогаем),
+// жёлоб — золото на высоте 12,5–13,0 м не дальше 2,3 м от середины стены Каабы.
+const HT_C = toV3(-6.665, 8.763), MZ_MID = [-4.495, 4.91], MZ_OUT = new THREE.Vector2(-0.532, 0.847), MZ_Z = 12.65, MZ_TIP = 2.0;
+function cutHaram(mats, hit) {   // hit(v) по мировой вершине: 0 — не трогать, 1 — можно вместе с другими, 2 — режем треугольник
+  const v = new THREE.Vector3(); let cutN = 0;
+  gltf.scene.traverse((o) => {
+    if (!o.isMesh || !mats.includes(o.material.name)) return;
+    const g = o.geometry, pos = g.attributes.position, idx = g.index, n = idx ? idx.count : pos.count, keep = [], memo = new Map();
+    const h = (i) => { let r = memo.get(i); if (r === undefined) { v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld); r = hit(v); memo.set(i, r); } return r; };
+    let c = 0;
+    for (let t = 0; t < n; t += 3) {
+      const a = idx ? idx.getX(t) : t, b = idx ? idx.getX(t + 1) : t + 1, d = idx ? idx.getX(t + 2) : t + 2, k = [h(a), h(b), h(d)];
+      if (k.every((x) => x) && k.some((x) => x === 2)) { c++; continue; }
+      keep.push(a, b, d);
+    }
+    if (c) { g.setIndex(keep); g.clearGroups(); cutN += c; }
+  });
+  return cutN;
+}
+{
+  const mzC = toV3(MZ_MID[0], MZ_MID[1]);
+  const cutH = cutHaram(["marble"], (v) => { const r = Math.hypot(v.x - HT_C.x, v.z - HT_C.z); return r > 4.3 && r < 6.05 && v.y < 1.45 ? (v.y > 0.5 ? 2 : 1) : 0; });
+  const cutM = cutHaram(["gold"], (v) => v.y > 12.5 && v.y < 13.0 && Math.hypot(v.x - mzC.x, v.z - mzC.z) < 2.3 ? 2 : 0);
+  if (location.search.includes("dbg")) { console.log("cut hatim", cutH, "mizab", cutM); window.__cut = [cutH, cutM]; }
+  const H = pNode0("hatim");
+  H.position.copy(HT_C);
+  const Mz = pNode0("mizab");
+  Mz.position.copy(toV3(MZ_MID[0], MZ_MID[1], MZ_Z));
+  Mz.rotation.y = Math.atan2(MZ_OUT.x, -MZ_OUT.y);   // локальная +z — наружу, к Хиджру
+  for (const N of [H, Mz]) {
+    N.traverse((o) => {
+      if (!o.isMesh) return;
+      const m = o.material;
+      o.receiveShadow = true; o.castShadow = true;
+      if (/mizab/.test(m.name)) { m.emissive.set(0x3a2a08); m.emissiveIntensity = 0.22; m.envMapIntensity = 1.5; }
+      else m.envMapIntensity = m.name === "hatim_cap" ? 1.2 : 0.9;
+      occluders.push(o);
+    });
+    scene.add(N);
+  }
 }
 
 // Детальная модель: здания Харама и города по OSM, высоты сверены с 2ГИС/Urbi, минареты и башня с часами.
@@ -1579,25 +1625,74 @@ function syncSai() {   // путь саи и зелёные огни — на ш
 { const p = glAt(0.7), r = kaabaDir(gl[0], gl[1]);
   const lamp = new THREE.Mesh(propGeo("lamp_panel"), propMat("lamp_panel"));
   lamp.add(new THREE.Mesh(propGeo("lamp_back"), propMat("lamp_back")), new THREE.Mesh(propGeo("lamp_arm"), propMat("lamp_arm"))); lamp.position.copy(p); lamp.rotation.y = r; scene.add(lamp); }
-// Мизаб: вода стекает из золотого жёлоба на крыше в сторону Хиджра (показываем, когда открыта метка 6)
-// струя начинается с кончика жёлоба (замер по haram.glb) и падает по параболе в Хиджр
-const mz = [-5.06, 6.09, 13.0], MZ_N = 140, mzPos = new Float32Array(MZ_N * 3), mzPh = Array.from({ length: MZ_N }, () => rnd());
-const mzDir = new THREE.Vector2(-0.532, 0.847), MZ_V = 1.9, MZ_T = Math.sqrt((mz[2] - 0.1) / 4.9);
-const mzGeo = new THREE.BufferGeometry(); mzGeo.setAttribute("position", new THREE.BufferAttribute(mzPos, 3));
+// Мизаб: в дождь вода бежит по золотому жёлобу и срывается с его конца струёй в Хиджр (показываем, когда открыта метка 6).
+// Струя — трубка по параболе (скорость схода ≈ 1,3 м/с, падение 12,6 м ≈ 1,6 с), к низу тоньше и рвётся на капли; по ней бегут
+// светлые пряди. Внизу — мокрое пятно с бликом, расходящиеся круги, пена и брызги. Фазы капель — прежние 140 чисел rnd(),
+// чтобы толпа не поменялась.
+const MZ_N = 140, mzPh = Array.from({ length: MZ_N }, () => rnd());
+const mzDir = MZ_OUT, MZ_V = 1.3, mz = [MZ_MID[0] + MZ_OUT.x * MZ_TIP, MZ_MID[1] + MZ_OUT.y * MZ_TIP, MZ_Z + 0.03];
+const MZ_T = Math.sqrt((mz[2] - 0.02) / 4.9), mzAt = (u, j = 0, k = 0) => toV3(mz[0] + mzDir.x * MZ_V * u + mzDir.y * j, mz[1] + mzDir.y * MZ_V * u - mzDir.x * j, Math.max(0.02, mz[2] - 4.9 * u * u + k));
+const mzLand = mzAt(MZ_T);
 const water = new THREE.Group();
-const drops = new THREE.Points(mzGeo, new THREE.PointsMaterial({ map: GLOW, size: 0.45, color: 0x9fd6ff, transparent: true, depthWrite: false }));
+const WATER_GLSL = {   // общий шейдер воды: бегущие пряди по длине (uv.x), френель по краю, разрыв струи внизу (uBreak)
+  uniforms: { uT: { value: 0 }, uSpeed: { value: 1.6 }, uBreak: { value: 1 } },
+  vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+    void main() { vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+  fragmentShader: `uniform float uT; uniform float uSpeed; uniform float uBreak; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+    float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float n2(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+      return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+    void main() {
+      vec2 p = vec2(vUv.y * 9.0, vUv.x * 26.0 - uT * uSpeed * 9.0);
+      float s = n2(p) * 0.65 + n2(p * 2.3 + 3.1) * 0.35;
+      float fr = pow(1.0 - abs(dot(normalize(vN), vV)), 2.0);
+      float a = mix(0.32, 0.8, s) + fr * 0.25;
+      float cut = smoothstep(0.55, 1.0, vUv.x) * uBreak;   // нижняя треть струи рвётся на куски
+      a *= smoothstep(cut * 0.75, cut * 0.75 + 0.12, n2(vec2(vUv.y * 4.0, vUv.x * 40.0 - uT * 14.0)));
+      a *= smoothstep(0.0, 0.03, vUv.x);
+      vec3 c = mix(vec3(0.55, 0.72, 0.82), vec3(0.97, 0.99, 1.0), clamp(s * 0.55 + fr * 0.7, 0.0, 1.0));
+      gl_FragColor = vec4(c, a);
+    }`,
+};
+const waterMat = (speed, brk) => { const m = new THREE.ShaderMaterial({ ...WATER_GLSL, uniforms: THREE.UniformsUtils.clone(WATER_GLSL.uniforms), transparent: true, depthWrite: false, side: THREE.DoubleSide });
+  m.uniforms.uSpeed.value = speed; m.uniforms.uBreak.value = brk; return m; };
+const streamCurve = new THREE.CatmullRomCurve3(Array.from({ length: 25 }, (_, i) => mzAt(MZ_T * i / 24)));
+const SG = 96, RS = 12, streamGeo = new THREE.TubeGeometry(streamCurve, SG, 1, RS, false);
+{ const p = streamGeo.attributes.position, c = new THREE.Vector3(), q = new THREE.Vector3();   // радиус: 9 см у жёлоба → 4,5 см у пола
+  for (let i = 0; i <= SG; i++) { streamCurve.getPointAt(i / SG, c); const r = 0.09 * (1 - 0.5 * Math.sqrt(i / SG));
+    for (let j = 0; j <= RS; j++) { const k = i * (RS + 1) + j; q.fromBufferAttribute(p, k).sub(c).multiplyScalar(r).add(c); p.setXYZ(k, q.x, q.y, q.z); } } }
+const stream = new THREE.Mesh(streamGeo, waterMat(1.6, 1)); stream.renderOrder = 4; stream.frustumCulled = false;
+// вода в самом жёлобе: тонкий слой бежит от крыши к концу
+const trough = new THREE.Mesh(new THREE.PlaneGeometry(0.24, MZ_TIP + 0.5, 1, 24).rotateX(-Math.PI / 2).rotateY(Math.PI).translate(0, 0.012, (MZ_TIP - 0.5) / 2), waterMat(0.5, 0));
+trough.position.copy(toV3(MZ_MID[0], MZ_MID[1], MZ_Z)); trough.rotation.y = Math.atan2(MZ_OUT.x, -MZ_OUT.y); trough.renderOrder = 4;
+// мокрое пятно: почти зеркальный тёмный мрамор с бликом
+const puddle = new THREE.Mesh(new THREE.CircleGeometry(1.5, 40).rotateX(-Math.PI / 2),
+  new THREE.MeshStandardMaterial({ color: 0x8e979b, roughness: 0.06, metalness: 0.25, transparent: true, opacity: 0.38, depthWrite: false, envMapIntensity: 2 }));
+puddle.position.copy(mzLand).setY(0.012); puddle.scale.set(1, 1, 0.8);
+const ripples = [0, 1, 2, 3].map(() => { const r = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.26, 40).rotateX(-Math.PI / 2),
+  new THREE.MeshBasicMaterial({ color: 0xeaf6ff, transparent: true, depthWrite: false })); r.position.copy(mzLand).setY(0.02); return r; });
+const foam = glowSprite(0xffffff, 0.9, 0.7); foam.position.copy(mzLand).setY(0.12);
+const mzPos = new Float32Array(MZ_N * 3), mzGeo = new THREE.BufferGeometry(); mzGeo.setAttribute("position", new THREE.BufferAttribute(mzPos, 3));
+const drops = new THREE.Points(mzGeo, new THREE.PointsMaterial({ map: GLOW, size: 0.14, color: 0xe6f4ff, transparent: true, depthWrite: false }));
 drops.frustumCulled = false;
-const splash = new THREE.Mesh(new THREE.RingGeometry(0.3, 0.55, 32).rotateX(-Math.PI / 2),
-  new THREE.MeshBasicMaterial({ color: 0xcfeeff, transparent: true, depthWrite: false }));
-splash.position.copy(toV3(mz[0] + mzDir.x * MZ_V * MZ_T, mz[1] + mzDir.y * MZ_V * MZ_T, 0.06));
-water.add(drops, splash); water.visible = false; scene.add(water);
+water.add(stream, trough, puddle, ...ripples, foam, drops); water.visible = false; scene.add(water);
 function updateWater(t) {
+  stream.material.uniforms.uT.value = t; trough.material.uniforms.uT.value = t;
   for (let i = 0; i < MZ_N; i++) {
-    const u = ((t * 0.8 + mzPh[i]) % 1) * MZ_T, j = (mzPh[i] - 0.5) * 0.12 * (1 + u), x = mz[0] + mzDir.x * MZ_V * u + mzDir.y * j, y = mz[1] + mzDir.y * MZ_V * u - mzDir.x * j;
-    mzPos.set([x, mz[2] - 4.9 * u * u, -y], i * 3);
+    const ph = mzPh[i], ph2 = (ph * 7.13) % 1;
+    let p;
+    if (i < 96) {   // капли, оторвавшиеся от нижней части струи: разлёт растёт к полу
+      const u = MZ_T * (0.45 + 0.55 * ((t * 0.7 + ph) % 1)), w = (u / MZ_T - 0.45) / 0.55;
+      p = mzAt(u, (ph - 0.5) * 0.5 * w * w, (ph2 - 0.5) * 0.4 * w * w);
+    } else {        // брызги от удара о пол: веер во все стороны, взлёт до 0,3–0,6 м
+      const f = (t * 1.4 + ph) % 1, a = ph * 81.7, sp = 0.8 + ph2 * 1.4, tau = f * 0.55, vz = 1.6 + ph2 * 1.6;
+      p = new THREE.Vector3(mzLand.x + Math.cos(a) * sp * tau, Math.max(0.02, vz * tau - 4.9 * tau * tau), mzLand.z + Math.sin(a) * sp * tau);
+    }
+    mzPos.set([p.x, p.y, p.z], i * 3);
   }
   mzGeo.attributes.position.needsUpdate = true;
-  const f = (t * 1.6) % 1; splash.scale.setScalar(1 + f * 2.5); splash.material.opacity = 0.8 * (1 - f);
+  ripples.forEach((r, k) => { const f = (t * 0.9 + k / ripples.length) % 1; r.scale.setScalar(1 + f * 5); r.material.opacity = 0.55 * (1 - f) * (1 - f); });
+  foam.material.opacity = 0.55 + 0.2 * Math.sin(t * 23) * Math.sin(t * 7.3);
 }
 
 // ---------- Толпа «как в жизни»: кто молится, кто в очереди, кто пьёт Замзам, кто идёт на саи ----------
@@ -3302,10 +3397,13 @@ renderer.setAnimationLoop((now) => {
     viewShift += (want - viewShift) * Math.min(1, dt * 6);
     camera.setViewOffset(innerWidth, innerHeight, 0, viewShift * innerHeight, innerWidth, innerHeight);
   }
+  const _P=window.__P, _t0=performance.now();   // ?dbg: window.__P={n:0,pre:0,crowd:0,mid:0,rend:0,post:0} — замер частей кадра, мс
   updateFx(paused ? 0 : dt * speed);   // раньше controls.update(): камера раскадровки и точка взгляда — из одного кадра
   controls.update();
   updateClock(dt);   // часы Мекки: намаз останавливает таваф и толпу (crowdT стоит), птицы и часы живут по simT
+  const _t1=performance.now();
   crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); updateHijrGate(crowdT); solveCrowd(); flushCrowd(); gridBuild();
+  const _t2=performance.now();
   updateDusk(dt); updateBirds(simT); updateClockChip();
   for (let i = 0; i < SPARKS; i++) {
     const v = Math.max(0, Math.sin(simT * 1.6 + sparkPh[i])) ** 3;
@@ -3319,14 +3417,17 @@ renderer.setAnimationLoop((now) => {
   updateLayers();
   if (saiG.visible) saiLblClamp();
   fitNear();
+  const _t3=performance.now();
   renderer.render(scene, camera);
+  const _t4=performance.now();
   if (you.visible) {   // паломник — поверх зданий, отдельной сценой
     renderer.autoClear = false; renderer.clearDepth(); renderer.render(heroScene, camera); renderer.autoClear = true;
   }
   updateSpots();
+  if (_P) { const _t5=performance.now(); _P.n++; _P.pre+=_t1-_t0; _P.crowd+=_t2-_t1; _P.mid+=_t3-_t2; _P.rend+=_t4-_t3; _P.post+=_t5-_t4; }
 });
 if (new URLSearchParams(location.search).has("dbg")) window.__d = {   // проверка: ?dbg — доступ к толпе и шаг симуляции
-  scene, SAI_CAM, ZS, CL, XP, walkers, xq, STONE, stoneA, stoneDir, mq, mqOut, WSEC, BGRID, camera, controls, you, get cine() { return cine; },
+  scene, renderer, SAI_CAM, ZS, CL, XP, walkers, xq, STONE, stoneA, stoneDir, mq, mqOut, WSEC, BGRID, camera, controls, you, get cine() { return cine; },
   get crowdT() { return crowdT; },
   run(n = 1, dt = 0.05) { for (let i = 0; i < n; i++) { updateClock(dt); crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); updateHijrGate(crowdT); solveCrowd(); flushCrowd(); gridBuild(); } },
   stats: crowdStats, get nA() { return nA; }, get solveMs() { return solveMs; }, get solIt() { return solIt; }, solve(on) { solveOn = on; crowdJump = true; },
