@@ -2855,7 +2855,8 @@ function prDraw(){
   if(pl.at&&src==='mkk') n.push('В Харамах общий намаз — по их азану (календарь Умм аль-Кура).');
   var tzn=prTzNote(pl); if(tzn) n.push(tzn);
   $('#prAsr').textContent=n.join(' ');
-  $('#qbOpen').textContent=J.km(pl.la,pl.lo)<1.5?'Кибла · компас':'Кибла '+Math.round(J.qibla(pl.la,pl.lo))+'° · компас';
+  var qp=qb&&qb.pos?qbPl():pl;
+  $('#qbOpen').textContent=J.km(qp.la,qp.lo)<1.5?'Кибла · компас':'Кибла '+Math.round(J.qibla(qp.la,qp.lo))+'° · компас';
   if($('#prSheet').classList.contains('on')) prSheet();
 }
 var prOff=0;
@@ -2904,7 +2905,18 @@ document.addEventListener('visibilitychange', function(){ if(!document.hidden) p
 /* ---------- кибла: циферблат + компас телефона + карта OpenStreetMap ----------
    Компас: iOS — webkitCompassHeading (разрешение по нажатию), Android — deviceorientationabsolute (360−alpha).
    Оба дают магнитный север → + склонение места → истинный север. Карта не зависит от компаса: север сверху. */
-var qb={on:false,h:null,got:false,ok:false,z:16,c:null,raf:0,to:0,ev:''};
+var qb={on:false,h:null,got:false,ok:false,z:16,c:null,raf:0,to:0,ev:'',pos:null,pl:null,busy:false};
+/* v2.20: кибла — по живой геопозиции телефона (свежей 30 мин); без неё — место по программе дня, с явной пометкой.
+   Раньше компас брал город программы по дате: в день перелёта (Алматы → Стамбул) кибла считалась не для того места. */
+function qbPl(){ var p=qb.pos;
+  if(!p||Date.now()-p.t>18e5) return prPlace();
+  var nr=prNear(p.la,p.lo);
+  return {k:'live',n:'Вы здесь',la:p.la,lo:p.lo,acc:p.acc,dec:nr.d<3000?nr.p.dec:null}; }
+function qbFix(after){ if(qb.busy) return; qb.busy=true; $('#qbWhere').textContent='Определяю, где вы…';
+  locate(function(ok){ qb.busy=false;
+    if(ok&&lostPos){ qb.pos={la:lostPos.lat,lo:lostPos.lng,acc:lostPos.acc,t:Date.now()};
+      if(get('prPlace','auto')==='gps'){ set('prGps',{la:lostPos.lat,lo:lostPos.lng,acc:lostPos.acc,tz:-new Date().getTimezoneOffset()/60,t:Date.now()}); prDraw(); } }
+    qb.c=null; qbAll(); prDraw(); if(after) after(ok); }); }
 var QBW=['север','северо-восток','восток','юго-восток','юг','юго-запад','запад','северо-запад'];
 function qbRose(q){ var s='<circle class="rim" r="118"/>';
   for(var a=0;a<360;a+=10){ var b=a%30===0, r=b?100:108; s+='<line class="tk'+(b?' b':'')+'" x1="0" y1="-118" x2="0" y2="'+(-r)+'" transform="rotate('+a+')"/>'; }
@@ -2913,7 +2925,7 @@ function qbRose(q){ var s='<circle class="rim" r="118"/>';
   $('#qbRose').innerHTML=s; }
 function qbHint(s){ $('#qbHint').textContent=s||''; }
 function qbDraw(){ qb.raf=0;
-  var J=JurtPrayer, pl=prPlace(), q=J.qibla(pl.la,pl.lo), d=J.km(pl.la,pl.lo), dial=$('#qbDial'), h=qb.on?qb.h:null;
+  var J=JurtPrayer, pl=qb.pl||qbPl(), q=J.qibla(pl.la,pl.lo), d=J.km(pl.la,pl.lo), dial=$('#qbDial'), h=qb.on?qb.h:null;
   $('#qbRose').setAttribute('transform',h==null?'':'rotate('+(-h).toFixed(1)+')');
   $('.me',dial).style.display=h==null?'none':'';
   if(d<1.5){ dial.classList.remove('ok'); $('#qbDeg').innerHTML='<b>🕋</b><span>рядом</span>';
@@ -2926,8 +2938,9 @@ function qbDraw(){ qb.raf=0;
   $('#qbDeg').innerHTML=ok?'<b>✓</b><span>кибла</span>':'<b>'+Math.round(Math.abs(df))+'°</b><span>'+(df>0?'вправо':'влево')+'</span>';
   $('#qbSay').textContent=ok?'Вы смотрите на киблу ✓':'Поверните '+(df>0?'вправо':'влево')+' на '+Math.round(Math.abs(df))+'°';
 }
-function qbAll(){ var J=JurtPrayer, pl=prPlace(), d=J.km(pl.la,pl.lo);
-  $('#qbWhere').textContent=pl.n+(pl.at?' · у отеля '+HOTELS[pl.at].name:'')+(pl.k==='gps'&&pl.acc?' · GPS ±'+Math.round(pl.acc)+' м':'')+(d>=1.5?' · до Каабы '+Math.round(d).toLocaleString('ru-RU')+' км':'');
+function qbAll(){ var J=JurtPrayer, pl=qb.pl=qbPl(), d=J.km(pl.la,pl.lo), km=d>=1.5?' · до Каабы '+Math.round(d).toLocaleString('ru-RU')+' км':'';
+  $('#qbWhere').textContent=pl.k==='live'?'По GPS: вы здесь'+(pl.acc?' · ±'+(pl.acc<1000?Math.round(pl.acc)+' м':Math.round(pl.acc/1000)+' км'):'')+km
+    :(pl.auto?'⚠ По программе дня: '+pl.n+' — если вы не там, нажмите «Моё место · GPS»':pl.n+(pl.at?' · у отеля '+HOTELS[pl.at].name:'')+(pl.k==='gps'&&pl.acc?' · GPS ±'+Math.round(pl.acc)+' м':''))+km;
   qbRose(J.qibla(pl.la,pl.lo)); qbDraw(); qbMap(); }
 function qbEv(e){
   var h=null;
@@ -2935,7 +2948,7 @@ function qbEv(e){
     if(e.webkitCompassAccuracy<0||e.webkitCompassAccuracy>20) qbHint('Компас неточный. Покачайте телефон восьмёркой и отойдите от металла и колонок.'); }
   else if(e.alpha!=null&&(e.absolute||qb.ev==='deviceorientationabsolute')) h=360-e.alpha;
   if(h==null) return;
-  var pl=prPlace(), so=(screen.orientation&&screen.orientation.angle)||window.orientation||0;
+  var pl=qb.pl||qbPl(), so=(screen.orientation&&screen.orientation.angle)||window.orientation||0;
   h=((h+(pl.dec||0)+so)%360+360)%360;
   if(!qb.got){ qb.got=true; qb.h=h; qbHint('Держите телефон ровно, экраном вверх, подальше от металла. Погрешность компаса — 5–10°: сверьте с картой ниже.'+(pl.dec==null?' Магнитное склонение здесь не учтено.':'')); }
   else qb.h=(qb.h+(((h-qb.h)%360+540)%360-180)*.25+360)%360;
@@ -2967,7 +2980,7 @@ function qbClip(p,q,x0,y0,x1,y1){ var t0=0,t1=1,dx=q[0]-p[0],dy=q[1]-p[1],P=[-dx
   return [[p[0]+t0*dx,p[1]+t0*dy],[p[0]+t1*dx,p[1]+t1*dy]]; }
 function qbMap(){
   var box=$('#qbMap'), mv=$('#qbMv'), W=box.clientWidth, H=box.clientHeight; if(!W||!H) return;
-  var J=JurtPrayer, pl=prPlace(), z=qb.z, c=qb.c||{la:pl.la,lo:pl.lo}, C=qbMerc(c.la,c.lo,z), x0=C.x-W/2, y0=C.y-H/2, n=Math.pow(2,z), h='';
+  var J=JurtPrayer, pl=qb.pl||qbPl(), z=qb.z, c=qb.c||{la:pl.la,lo:pl.lo}, C=qbMerc(c.la,c.lo,z), x0=C.x-W/2, y0=C.y-H/2, n=Math.pow(2,z), h='';
   for(var tx=Math.floor(x0/QT); tx<=Math.floor((x0+W)/QT); tx++) for(var ty=Math.floor(y0/QT); ty<=Math.floor((y0+H)/QT); ty++){
     if(ty<0||ty>=n) continue;
     h+='<img alt="" draggable="false" src="https://tile.openstreetmap.org/'+z+'/'+(((tx%n)+n)%n)+'/'+ty+'.png" style="left:'+(tx*QT-x0).toFixed(0)+'px;top:'+(ty*QT-y0).toFixed(0)+'px">'; }
@@ -2988,16 +3001,17 @@ $('#qbMv').addEventListener('load',function(e){ if(e.target.tagName==='IMG'){ e.
   box.addEventListener('pointermove',function(e){ if(!st||e.pointerId!==st.id) return; st.dx=e.clientX-st.x; st.dy=e.clientY-st.y; mv.style.transform='translate('+st.dx+'px,'+st.dy+'px)'; });
   function end(e){ if(!st||e.pointerId!==st.id) return; var s=st; st=null; box.style.cursor='';
     if(Math.abs(s.dx)+Math.abs(s.dy)<3){ mv.style.transform=''; return; }
-    var pl=prPlace(), c=qb.c||{la:pl.la,lo:pl.lo}, C=qbMerc(c.la,c.lo,qb.z); qb.c=qbUnmerc(C.x-s.dx,C.y-s.dy,qb.z); qbMap(); }
+    var pl=qb.pl||qbPl(), c=qb.c||{la:pl.la,lo:pl.lo}, C=qbMerc(c.la,c.lo,qb.z); qb.c=qbUnmerc(C.x-s.dx,C.y-s.dy,qb.z); qbMap(); }
   box.addEventListener('pointerup',end); box.addEventListener('pointercancel',end); })();
 $('#qbZin').onclick=function(){ qb.z=Math.min(18,qb.z+1); buzz(6); qbMap(); };
 $('#qbZout').onclick=function(){ qb.z=Math.max(3,qb.z-1); buzz(6); qbMap(); };
 $('#qbHome').onclick=function(){ qb.c=null; qb.z=16; buzz(6); qbMap(); };
 $('#qbOn').onclick=function(){ buzz(8); qbStart(); };
 $('#qbGps').onclick=function(){ var b=this; buzz(8); b.textContent='Определяю…';
-  prGps(function(ok){ b.textContent='Моё место · GPS'; if(!ok) qbHint($('#lostGeo').textContent); qb.c=null; qbAll(); }); };
+  prGps(function(ok){ b.textContent='Моё место · GPS'; if(ok&&lostPos) qb.pos={la:lostPos.lat,lo:lostPos.lng,acc:lostPos.acc,t:Date.now()}; else qbHint($('#lostGeo').textContent); qb.c=null; qbAll(); }); };
 function qbClose(){ $('#qbSheet').classList.remove('on'); qbStop(); }
-$('#qbOpen').onclick=function(){ buzz(8); qb.c=null; qb.z=16; $('#qbSheet').classList.add('on'); qbHint(''); qbAll(); requestAnimationFrame(qbMap); };
+$('#qbOpen').onclick=function(){ buzz(8); qb.c=null; qb.z=16; $('#qbSheet').classList.add('on'); qbHint(''); qbAll(); requestAnimationFrame(qbMap);
+  if(!qb.pos||Date.now()-qb.pos.t>3e5) qbFix(function(ok){ if(!ok) qbHint('Не удалось узнать, где вы ('+$('#lostGeo').textContent+'). Кибла показана по программе дня — сверьте город сверху.'); }); };
 $('#qbClose').onclick=qbClose;
 $('#qbSheet').addEventListener('click',function(e){ if(e.target===this) qbClose(); });
 addEventListener('resize',function(){ if($('#qbSheet').classList.contains('on')) qbMap(); });
