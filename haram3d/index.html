@@ -123,6 +123,10 @@
   #ctl button.on { background: var(--orange); color: #fff; border-color: #fff; }
   #ctl #pp { width: 48px; font-size: 16px; }
   #ctl #duaBtn { display: none; }
+  /* v3.14: подсказка, что изменил переключатель, — 3 с над панелью */
+  #tip { display: none; margin: 0 auto 4px; max-width: 420px; padding: 7px 12px; border-radius: 12px; font: 500 13.5px/1.35 "Exo 2", sans-serif;
+    color: var(--cream); background: rgba(0,41,44,.92); border: 1px solid rgba(233,160,106,.6); text-align: center; pointer-events: none; }
+  #tip.on { display: block; }
   #duaBox { display: none; position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto;
     z-index: 8; max-height: 62vh; overflow: auto; flex-direction: column; gap: 6px; padding: 14px 14px 12px; border-radius: 18px;
     background: rgba(0,41,44,.97); border: 1px solid var(--copper); color: var(--cream); box-shadow: 0 8px 30px rgba(0,0,0,.45); }
@@ -205,7 +209,7 @@
 <header><a class="back" href="../" aria-label="Вернуться в «Гид паломника»">← Гид</a><span class="brand">JURT</span><h1>Масджид аль-Харам</h1></header>
 <button id="go"></button>
 <div id="clock" title="Время Мекки (UTC+3), идёт ускоренно. Время намаза — календарь Умм аль-Кура на сегодня (±2 мин). Нажмите — перемотать к ближайшему намазу"></div>
-<div id="stepbar"><div id="chips"></div><div id="ctl"><button id="pp" aria-label="Пауза">❚❚</button><span class="seg"><button data-sp="0.5" aria-label="Медленно">0,5×</button><button data-sp="1">1×</button><button data-sp="2" aria-label="Быстро">2×</button></span><button id="stepMode" title="У каждой дуа — остановка, пока вы не нажмёте «Продолжить»">По шагам</button><button id="duaBtn">Дуа</button></div><div id="prog"><div class="lbl" id="plbl"></div><div class="trk"><div class="fill" id="pfill"></div></div></div><div id="counter"></div><div id="sub"></div></div>
+<div id="stepbar"><div id="chips"></div><div id="ctl"><button id="pp" aria-label="Пауза">❚❚</button><span class="seg"><button data-sp="0.5" aria-label="Медленно">0,5×</button><button data-sp="1">1×</button><button data-sp="2" aria-label="Быстро">2×</button></span><button id="stepMode" aria-pressed="true">Стоп у дуа</button><button id="duaBtn">Открыть дуа</button></div><div id="tip" role="status"></div><div id="prog"><div class="lbl" id="plbl"></div><div class="trk"><div class="fill" id="pfill"></div></div></div><div id="counter"></div><div id="sub"></div></div>
 <div id="duaBox" role="dialog" aria-live="polite"></div>
 <div id="runTag"></div>
 <div id="heroTag"></div>
@@ -265,10 +269,10 @@ import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 const SPOTS = [
   { key: "black_stone", tag: "Таваф · старт", title: "Чёрный камень",
     text: `<p>Аль-Хаджар аль-Асвад в серебряной оправе — восточный угол Каабы. От него начинается и им заканчивается каждый из 7 кругов.</p>
-<p><b>Истилям:</b> встаньте лицом к камню, поднимите обе руки ладонями к нему, как в такбире, скажите — и поцелуйте ладони. Не пробивайтесь к камню: жест издали засчитывается.</p>
+<p><b>Истилям:</b> не останавливаясь, повернитесь грудью к камню, укажите на него ладонями обеих рук на уровне плеч — будто кладёте их на камень, скажите — и поцелуйте ладони, идите дальше. Обе руки до ушей поднимают только в начале первого круга (такбир). Не пробивайтесь к камню: жест издали засчитывается.</p>
 <p class="dua">Бисмилляхи ва-Ллаху акбар</p>
 <p>Поцеловать сам камень — сунна, только если никого не толкать: у камня целуют по одному, в очереди вдоль стены. Женщинам в толчею среди мужчин не идти — достаточно жеста издали.</p>
-<p class="src">аль-Бухари, № 1613; аль-Байхаки от Ибн Умара.</p>`, dist: 15, dir: new THREE.Vector3(0.96, 0.42, 0.27) },
+<p class="src">аль-Бухари, № 1613; аль-Байхаки от Ибн Умара; жест издали у ханафитов — ад-Дурр аль-Мухтар (на сверку).</p>`, dist: 15, dir: new THREE.Vector3(0.96, 0.42, 0.27) },
   { key: "green_lamp", tag: "Ориентир", title: "Зелёная лампа", dz: 3.2,
     text: `<p>На стене мечети напротив Чёрного камня горит зелёная лампа — от камня до неё около 65 м. В толпе камня часто не видно — ориентируйтесь на лампу: поравнялись с ней — круг начался или закончился.</p>
 <p>Оранжевая линия на схеме условная: на полу матафа полосы сейчас нет.</p>`, dist: 40, dir: new THREE.Vector3(-0.936, 0.45, -0.35) },
@@ -494,6 +498,46 @@ gltf.scene.traverse((o) => {
 });
 scene.add(gltf.scene);
 
+// Макам Ибрахим — подробная модель из Blender (props.glb, объект «maqam»): мраморно-гранитное основание, восьмигранная латунная
+// клетка с арками и решёткой, зелёный фриз, крыша, барабан, купол с полумесяцем; внутри хрустальный колпак 1,30 м и камень в оправе
+// со следами стоп. Простой Макам, запечённый в haram.glb, вырезаем: треугольники, все вершины которых ближе 0,9 м к центру Макама
+// по горизонтали и ниже 3,2 м (пол матафа не трогаем).
+{
+  const mqP = toV3(meta.spots.maqam[0], meta.spots.maqam[1]), v = new THREE.Vector3();
+  gltf.scene.updateMatrixWorld(true);
+  gltf.scene.traverse((o) => {
+    if (!o.isMesh || !["gold", "granite", "marble", "glass", "silver"].includes(o.material.name)) return;
+    const g = o.geometry, pos = g.attributes.position, idx = g.index, n = idx ? idx.count : pos.count, keep = [];
+    const near = (i) => { v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld); return Math.hypot(v.x - mqP.x, v.z - mqP.z) < 0.9 && v.y < 3.2 ? (v.y < 0.01 ? 1 : 2) : 0; };
+    let cutN = 0;
+    for (let t = 0; t < n; t += 3) {
+      const a = idx ? idx.getX(t) : t, b = idx ? idx.getX(t + 1) : t + 1, c = idx ? idx.getX(t + 2) : t + 2;
+      const k = [near(a), near(b), near(c)];
+      if (k.every((x) => x) && k.some((x) => x === 2)) { cutN++; continue; }
+      keep.push(a, b, c);
+    }
+    if (cutN) { g.setIndex(keep); g.clearGroups(); }
+  });
+  const M = pNode0("maqam");
+  M.position.copy(mqP);
+  const kc = toV3((meta.kaaba.A[0] + meta.kaaba.B[0] + meta.kaaba.C[0] + meta.kaaba.D[0]) / 4, (meta.kaaba.A[1] + meta.kaaba.B[1] + meta.kaaba.C[1] + meta.kaaba.D[1]) / 4);
+  M.rotation.y = Math.atan2(kc.x - mqP.x, kc.z - mqP.z);   // грань с аркой смотрит на Каабу
+  M.traverse((o) => {
+    if (!o.isMesh) return;
+    const m = o.material;
+    o.receiveShadow = true;
+    if (m.name === "maqam_crystal") { m.transparent = true; m.opacity = 0.3; m.metalness = 0.1; m.depthWrite = false; m.roughness = 0.03; m.envMapIntensity = 2; m.side = THREE.DoubleSide; o.renderOrder = 2; return; }
+    if (m.name === "maqam_pane") { m.transparent = true; m.opacity = 0.1; m.depthWrite = false; m.envMapIntensity = 1.6; m.side = THREE.DoubleSide; o.renderOrder = 3; return; }
+    if (/gold|lattice|rim|dome|stand/.test(m.name)) { m.emissive.set(0x3a2a08); m.emissiveIntensity = 0.22; m.envMapIntensity = 1.4; }
+    if (m.name === "maqam_silver") m.envMapIntensity = 1.3;
+    if (m.name === "maqam_foot") m.envMapIntensity = 0.2;   // глубина следов: без бликов неба
+    if (m.name === "maqam_granite" || m.name === "maqam_marble") m.envMapIntensity = 1.1;
+    o.castShadow = true;
+    occluders.push(o);
+  });
+  scene.add(M);
+}
+
 // Детальная модель: здания Харама и города по OSM, высоты сверены с 2ГИС/Urbi, минареты и башня с часами.
 // Грузим следом за основной сценой, чтобы страница открывалась сразу; святыни, таваф и шаги остаются из haram.glb.
 // Галерея Мас'а в ней разборная: на саи и бритье снимаем верхние ярусы и купола — путь Сафа — Марва виден сверху (setCut).
@@ -507,8 +551,14 @@ function setCut(on) {
 new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb").then((city) => {
   const base = city.scene.getObjectByName("L_base");
   if (!base) return;
+  const mqC = toV3(meta.spots.maqam[0], meta.spots.maqam[1]), bs = new THREE.Vector3();
+  base.updateMatrixWorld(true);
   base.traverse((o) => {
     if (!o.isMesh) return;
+    // OSM рисует свой «Макам» оранжевой коробкой — у нас подробная модель из Blender, коробку прячем
+    o.geometry.computeBoundingSphere();
+    bs.copy(o.geometry.boundingSphere.center).applyMatrix4(o.matrixWorld);
+    if (o.geometry.boundingSphere.radius < 3 && Math.hypot(bs.x - mqC.x, bs.z - mqC.z) < 1.5) { o.visible = false; return; }
     o.receiveShadow = true;
     if (/Земля/.test(o.name + " " + (o.parent?.name || ""))) {   // земля на 6 см ниже пола мечети — отодвигаем по глубине, чтобы не мерцала сквозь мрамор
       o.material.polygonOffset = true; o.material.polygonOffsetFactor = 4; o.material.polygonOffsetUnits = 4;
@@ -547,12 +597,31 @@ function along(lane, s, out) {
   out.tx = b.x - a.x; out.ty = b.y - a.y;
   return out;
 }
+// v3.14: дорожки идущих — отступ от оболочки «Кааба + Хиджр» без Макама (у Blender-дорожек Макам внутри оболочки,
+// и между Каабой и Макамом оставалась пустота). Плюс дорожка вплотную к стене (0,65 м — за шазарваном).
+// Blender-дорожки остаются для героя, барьеров, рядов намаза и кромки.
+const wLanes = (() => {
+  const P = [meta.kaaba.A, meta.kaaba.B, meta.kaaba.C, meta.kaaba.D];
+  for (let i = 0; i < 64; i++) { const a = i / 64 * 2 * Math.PI; P.push([-6.665 + 5.7 * Math.cos(a), 8.763 + 5.7 * Math.sin(a)]); }
+  return [0.65, ...meta.lanes.map((l) => l.d)].map((d) => {
+    const p = [];
+    for (let i = 0; i < 240; i++) {   // опорная функция выпуклой оболочки: самая дальняя точка по направлению + d
+      const a = i / 240 * 2 * Math.PI, c = Math.cos(a), s = Math.sin(a);
+      let best = -1e9, bp = null;
+      for (const q of P) { const h = q[0] * c + q[1] * s; if (h > best) { best = h; bp = q; } }
+      p.push(new THREE.Vector2(bp[0] + c * d, bp[1] + s * d));
+    }
+    const cum = [0];
+    for (let i = 1; i <= p.length; i++) cum.push(cum[i - 1] + p[i % p.length].distanceTo(p[i - 1]));
+    return { d, p, cum, L: cum[cum.length - 1], wall: d < 1 };
+  });
+})();
 let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const walkers = [];
-for (const lane of lanes) {
+for (const lane of wLanes) {
   const spacing = 1.55 + 0.035 * lane.d, n = Math.floor(lane.L / spacing), fill = 0.97 - 0.006 * lane.d;
   for (let i = 0; i < n; i++) if (rnd() < fill)
-    walkers.push({ lane, s0: i * spacing + rnd() * 0.5, off: (rnd() - 0.5) * 0.9, v: 1.15 + rnd() * 0.35 });
+    walkers.push({ lane, s0: i * spacing + rnd() * 0.5, off: lane.wall ? rnd() * 0.25 : (rnd() - 0.5) * 0.9, v: 1.15 + rnd() * 0.35 });
 }
 // Ихрам — два полотна: изар (ниже пояса) и рида (через левое плечо, под правой рукой). Правое плечо открыто (идтиба).
 // Своя система координат фигурки: −z — вперёд по ходу, +x — правая сторона (Кааба слева).
@@ -703,7 +772,8 @@ walkers.forEach((w) => {
   }
 });
 // Линия Чёрного камня (камень → зелёная лампа). На ней (ханафиты; сверить у знатока): не останавливаясь, в том же темпе
-// повернуть лицо и грудь к камню, поднять ладони к камню («Бисмиллях, Аллаху акбар»), поцеловать ладони — и дальше, Кааба слева.
+// повернуть лицо и грудь к камню, указать на него ладонями обеих рук на уровне плеч, будто кладёшь их на камень
+// («Бисмиллях, Аллаху акбар»), поцеловать ладони — и дальше, Кааба слева. Источник: ад-Дурр аль-Мухтар (islamqa.org/hanafi/117847).
 // v3.11: раньше идущие сбавляли шаг на 70 % и разворачивались всем телом на 4 м — у линии вставала пробка
 const stoneA = new THREE.Vector2(...meta.start[0]), stoneDir = new THREE.Vector2(...meta.start[1]).sub(stoneA).normalize();
 const ss = THREE.MathUtils.smoothstep;
@@ -782,7 +852,16 @@ function placeWalkers(t) {
     if (dd >= 46) { w.vis = false; continue; }
     const s = w.q, p = along(w.lane, s, tmpV);
     const l = Math.hypot(p.tx, p.ty) || 1, nx = p.ty / l, ny = -p.tx / l, fX = p.tx / l, fY = p.ty / l;   // n — правая сторона идущего
-    let x = p.x + nx * (w.off + w.sh), y = p.y + ny * (w.off + w.sh);
+    let o = w.off + w.sh;
+    if (w.lane.wall) {   // у стены: внутрь не заходят (шазарван); у Чёрного камня и Мультазама — очередь, обходят её снаружи
+      const da = Math.hypot(p.x - KE.x, p.y - KE.y);
+      o = Math.max(0, o) + 1.3 * clamp((8.5 - da) / 4, 0, 1);
+    }
+    let x = p.x + nx * o, y = p.y + ny * o;
+    {   // Макам: огибают его ограду вплотную (ближе 1,6 м от центра не заходят), а не обходят за 10 м
+      const dx = x - mq.x, dy = y - mq.y, dm = Math.hypot(dx, dy);
+      if (dm < 3.2) { const k = (1.6 + dm * 0.5) / (dm || 1); x = mq.x + dx * k; y = mq.y + dy * k; }
+    }
     if (fx === "maqam") {   // толпа обходит молящегося у Макама на 3 м
       const dx = x - ringPos.x, dy = y - ringPos.y, d = Math.hypot(dx, dy);
       if (d < 3) { x = ringPos.x + dx * 3 / (d || 1); y = ringPos.y + dy * 3 / (d || 1); }
@@ -860,7 +939,8 @@ function placeWalkers(t) {
     f.hair = w.woman ? 1 : (w.hs || 0); f.beard = w.bc ? 1 : 0; f.cover = w.woman || dd > 0 ? 1 : 0; f.sleeve = w.woman ? 1 : 0;
     f.sc = 1; f.tilt = 0; f.drop = 0; f.kneel = 0; f.fsw = sw * 0.45;
     if (k > 0.01) {   // ладони к камню → к губам
-      const a = 0.5 * up + 0.6 * ks, b = 0.4 * up + 0.05 * ks, c = 2.05 * up + 2.4 * ks, m = 1 - k;   // ладони к камню у ушей → к губам
+      // v3.14: не к ушам «как в дуа», а вперёд к камню на уровне плеч, будто кладут на него ладони, — потом к губам
+      const a = 1.35 * up + 0.6 * ks, b = 0.14 * up + 0.05 * ks, c = 0.3 * up + 2.4 * ks, m = 1 - k;
       setA(R, a + m * sw, b + m * 0.08, c + m * 0.3);
       if (kid) setA(L, 0.05, 0.12, 0.1); else setA(L, a - m * sw, b + m * 0.08, c + m * 0.3);
     } else {
@@ -1136,7 +1216,7 @@ const ARMS = {
   jalsa:   { f: [[0.18, 0.85, -0.3], [-0.18, 0.85, -0.3]] },                 // ладони на бёдрах
   dua:     { l: [[0.12, 0.5, -0.32], [-0.12, 0.5, -0.32]] },                 // ладони перед лицом
   // истилям издали: обе ладони — к Чёрному камню, затем поцеловать их
-  istilam: { l: [[0.21, 0.6, -0.4], [-0.21, 0.6, -0.4]] },
+  istilam: { l: [[0.2, 0.46, -0.44], [-0.2, 0.46, -0.44]] },   // ладони к камню на уровне плеч, не к ушам
   kiss:    { l: [[0.035, 0.62, -0.15], [-0.035, 0.62, -0.15]] },
   // Замзам: стакан в правой руке — взять у кулера, к груди, к губам; умыть лицо; полить голову
   cupLow:  { l: [[0.14, 0.3, -0.34], [-0.32, -0.15, -0.02]] },
@@ -1258,6 +1338,7 @@ function buildStreets(d) {
   const byC = {};   // одна геометрия на цвет — несколько draw call на всю сеть
   const put = (c, arr) => (byC[c] = byC[c] || []).push(...arr);
   for (const r of d.roads) {
+    if (r.p.some(([x, y]) => inPoly(rimOut, x, y))) continue;   // v3.14: дорожки OSM внутри мечети (кольцо у матафа, лучи) не рисуем — висели над мраморным полом
     const w = r.w / 2, z = r.b ? 0.9 : r.k === "pedestrian" || r.k === "footway" || r.k === "steps" ? 0.55 : 0.4, pos = [];
     for (let i = 1; i < r.p.length; i++) {
       const [x0, y0] = r.p[i - 1], [x1, y1] = r.p[i], l = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / l * w, ny = (x1 - x0) / l * w;
@@ -2487,11 +2568,15 @@ function cue(id) {   // один раз за шаг: «По шагам» — с�
 }
 function syncCtl() {
   $("ctl").querySelectorAll("[data-sp]").forEach((b) => b.classList.toggle("on", +b.dataset.sp === speed));
-  $("stepMode").classList.toggle("on", stepMode);
+  $("stepMode").classList.toggle("on", stepMode); $("stepMode").setAttribute("aria-pressed", stepMode);
+  $("stepMode").textContent = stepMode ? "⏸ Стоп у дуа" : "→ Без остановок";
 }
+let tipT = 0;
+function tip(t) { $("tip").textContent = t; $("tip").classList.add("on"); clearTimeout(tipT); tipT = setTimeout(() => $("tip").classList.remove("on"), 3200); }
 $("pp").onclick = () => paused ? resume() : setPaused(true);
 $("ctl").querySelectorAll("[data-sp]").forEach((b) => b.onclick = () => { speed = +b.dataset.sp; syncCtl(); try { localStorage.setItem("h3dSpeed", speed); } catch (e) {} });
-$("stepMode").onclick = () => { stepMode = !stepMode; syncCtl(); try { localStorage.setItem("h3dStep", stepMode ? "1" : "0"); } catch (e) {} };
+$("stepMode").onclick = () => { stepMode = !stepMode; syncCtl();
+  tip(stepMode ? "Герой остановится у каждой дуа и подождёт, пока вы прочитаете и нажмёте «Продолжить»" : "Герой идёт без остановок, дуа появляется на 8 секунд. Перечитать — «Открыть дуа»"); try { localStorage.setItem("h3dStep", stepMode ? "1" : "0"); } catch (e) {} };
 $("duaBtn").onclick = () => { if (!lastDua) return; setPaused(true); showDua(lastDua); };
 $("duaBox").addEventListener("click", (e) => { if (e.target.closest(".cont")) resume(); });
 syncCtl();

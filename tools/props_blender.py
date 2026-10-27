@@ -293,6 +293,198 @@ STONE = mat("stone", 0xece3d0, .75)
 obj("gallery_column", cylinder(.32, .4, 6.5, 8).move(0, 3.25, 0), STONE, C_P, loc=place())
 obj("gallery_dome", sphere(2.3, 12, 6, 0, math.pi / 2).scale(1, .75, 1), STONE, C_P, loc=(0, 0, -16))
 
+# ---------- Макам Ибрахим (v3.14) — ключевая деталь, вблизи ----------
+# Размеры: хрустальный колпак 1,30 м, Ø 0,80 м внизу (Saudipedia); камень ≈ 40×40×20 см в оправе из золота и серебра, два следа
+# стоп 27×14 см (Madain Project); каркас — латунь под золото, восьмигранник ≈ 1,3 м поперёк, основание — белый мрамор Каррара
+# и зелёный гранит (Saudipedia: при короле Фахде); арочные панели с решёткой, карниз, крыша-пирамида, барабан, купол, полумесяц —
+# по фотографиям; общая высота ≈ 3,2 м. Начало координат — центр на полу матафа, грань с локальной +z смотрит на Каабу (сайт).
+C_MQ = coll("Макам")
+MQ = empty("maqam", C_MQ)
+Q8 = math.pi / 8
+
+
+def rotY(g, a):
+    c, s = math.cos(a), math.sin(a)
+    return g.tf(lambda x, y, z: (x * c + z * s, y, -x * s + z * c))
+
+
+def octo(R0, R1, y0, y1):   # восьмигранник (усечённая пирамида): R — радиус по углам, грань с центром на +z
+    return rotY(cyl(R1, R0, y0, y1, seg=8), Q8)
+
+
+def slab(poly, z0, z1):   # плоская фигура (x, y) толщиной z0…z1
+    n = len(poly); v = [(x, y, z0) for x, y in poly] + [(x, y, z1) for x, y in poly]
+    f = [list(range(n - 1, -1, -1)), list(range(n, 2 * n))] + [[i, (i + 1) % n, n + (i + 1) % n, n + i] for i in range(n)]
+    return G(v, f)
+
+
+def bar(p, q, w, d, z):   # брусок в плоскости панели от p до q
+    L = math.dist(p, q); a = math.atan2(q[1] - p[1], q[0] - p[0])
+    return box(L + w * 0.6, w, d).rotZ(a).move((p[0] + q[0]) / 2, (p[1] + q[1]) / 2, z)
+
+
+def bar3(r0, y0, r1, y1, th, w):   # ребро по меридиану: от (r0, y0) до (r1, y1) на угле th
+    L = math.hypot(r1 - r0, y1 - y0); al = math.atan2(r1 - r0, y1 - y0)
+    return rotY(box(w, L, w).rotX(al).move(0, (y0 + y1) / 2, (r0 + r1) / 2), th)
+
+
+def star(r1, r2, n=8):
+    return [((r1 if i % 2 == 0 else r2) * math.sin(math.pi * i / n), (r1 if i % 2 == 0 else r2) * math.cos(math.pi * i / n)) for i in range(2 * n)]
+
+
+def clip(p0, p1, poly):   # отрезок внутри выпуклого многоугольника (против часовой), Кирус — Бек
+    t0, t1 = 0.0, 1.0; dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    for i in range(len(poly)):
+        a, b = poly[i], poly[(i + 1) % len(poly)]
+        nx, ny = -(b[1] - a[1]), b[0] - a[0]
+        num = nx * (p0[0] - a[0]) + ny * (p0[1] - a[1]); den = nx * dx + ny * dy
+        if abs(den) < 1e-12:
+            if num < 0: return None
+        elif den > 0: t0 = max(t0, -num / den)
+        else: t1 = min(t1, -num / den)
+        if t0 > t1: return None
+    return (p0[0] + t0 * dx, p0[1] + t0 * dy), (p0[0] + t1 * dx, p0[1] + t1 * dy)
+
+
+def inside(p, poly):
+    return all((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]) >= 0 for a, b in zip(poly, poly[1:] + poly[:1]))
+
+
+def arch(aw, yb, ys, n=10, k=0.25):   # стрельчатая арка (против часовой): низ справа → вверх → вершина → низ слева
+    c = aw * k; R = aw + c; ph = math.acos(-c / R)
+    left = [(c + R * math.cos(math.pi - (math.pi - ph) * i / n), ys + R * math.sin(math.pi - (math.pi - ph) * i / n)) for i in range(n + 1)]
+    right = [(-x, y) for x, y in reversed(left)][1:]
+    return [(aw, yb)] + [p for p in reversed(left + right)] + [(-aw, yb)]
+
+
+GOLD = mat("maqam_gold", 0xd9b24c, .26, 1)          # латунь под золото
+GOLD2 = mat("maqam_lattice", 0xc29a3a, .34, 1)      # решётка — чуть темнее, чтобы читался рисунок
+MARB = mat("maqam_marble", 0xf3f1ec, .32)
+GRAN = mat("maqam_granite", 0x1d3b30, .22, .05)     # зелёный гранит
+GREEN = mat("maqam_green", 0x0f3a2c, .45, .1)       # тёмно-зелёная эмаль фриза
+SILV = mat("maqam_silver", 0xd2d4d8, .3, 1)         # серебряная оправа камня
+FOOT = mat("maqam_foot", 0x4a3826, .9)              # углубления следов — тёмные, читаются как впадины
+STONE = mat("maqam_rock", 0xc4ad84, .92)            # сам камень: желтовато-белый с бурым
+PANE = mat("maqam_pane", 0xdff1f4, .04, double=True)
+CRYS = mat("maqam_crystal", 0xe9f7f9, .03, double=True)
+
+RC, Y0, Y1 = .68, .70, 2.16                          # каркас: радиус по углам, низ, верх
+AP, HW = RC * math.cos(Q8), RC * math.sin(Q8)        # апофема 0,63 м и полуширина грани 0,26 м
+AW, YB, YS = .185, .86, 1.80                          # арка панели: полуширина, низ, пята
+ARCH = arch(AW, YB, YS)
+FW = HW - .045                                        # рамка панели до пилястр
+
+# основание: зелёный гранит, белый мрамор, гранитный пояс
+obj("maqam_granite", G().add(octo(.88, .86, 0, .1), octo(.8, .8, .55, .6)), GRAN, C_MQ, parent=MQ, smooth=20)
+obj("maqam_marble", G().add(octo(.76, .76, .1, .5), octo(.76, .8, .5, .55)), MARB, C_MQ, parent=MQ, smooth=20)
+
+g = G().add(octo(.74, .71, .6, Y0 + .02))            # латунный цоколь каркаса
+lat, pane, green = G(), G(), G()
+frame = [(-FW, YB - .02), (FW, YB - .02), (FW, Y1 - .02), (-FW, Y1 - .02)]
+plate = [(-FW, YB), (-FW, Y1 - .02), (FW, Y1 - .02), (FW, YB), (AW, YB)] + ARCH[1:-1] + [(-AW, YB)]
+inner = arch(AW - .015, YB + .015, YS)
+for k in range(8):
+    th = k * math.pi / 4; fg = G()
+    fg.add(slab(plate, AP - .012, AP + .004))                                           # лицевая плита с проёмом арки
+    for a, b in zip(ARCH[1:-1], ARCH[2:-1]): fg.add(bar(a, b, .026, .03, AP + .01))      # профиль арки
+    for s in (-1, 1): fg.add(bar((s * AW, YB), (s * AW, YS), .026, .03, AP + .01))
+    for a, b in zip(frame, frame[1:] + frame[:1]): fg.add(bar(a, b, .03, .03, AP + .012))   # рамка панели
+    fg.add(box(2 * FW, YB - Y0 - .02, .02).move(0, (Y0 + YB) / 2, AP))                   # нижняя филёнка
+    fg.add(box(.24, .06, .014).move(0, (Y0 + YB) / 2, AP + .015))                        # картуш на филёнке
+    for s in (-1, 1): fg.add(slab(star(.032, .014), AP + .004, AP + .016).move(s * .16, 2.06, 0))   # розетки в пазухах арки
+    fg.add(slab(star(.026, .011), AP + .004, AP + .016).move(0, 2.10, 0))
+    g.add(rotY(fg, th))
+    lg, sp = G(), .066                                                                   # решётка: ромбы + звёздочки
+    for i in range(-30, 31):
+        for dirn in (1, -1):
+            c = i * sp
+            p0 = (c - 3, 1.33 - 3 * dirn); p1 = (c + 3, 1.33 + 3 * dirn)
+            seg = clip(p0, p1, inner)
+            if seg and math.dist(*seg) > .01: lg.add(bar(seg[0], seg[1], .011, .012, AP - .018))
+    for i in range(-30, 31):
+        for j in range(-30, 31):
+            if (i + j) % 2: continue
+            x, y = (i + j) * sp / 2, 1.33 + (j - i) * sp / 2   # пересечения двух семейств линий
+            if inside((x, y), inner) and (i % 2 == 0): lg.add(slab(star(.017, .007), AP - .027, AP - .009).move(x, y, 0))
+    lg.add(bar((0, YB + .015), (0, YS + .2), .014, .016, AP - .02))                    # средняя стойка
+    lat.add(rotY(lg, th))
+    pane.add(rotY(slab(ARCH, AP - .034, AP - .03), th))                                  # стекло в арке
+    # пилястра на углу: ствол, две каннелюры, база, капитель
+    ph = th + Q8; pg = G()
+    pg.add(box(.07, Y1 - Y0, .07).move(0, (Y0 + Y1) / 2, 0), box(.09, .07, .09).move(0, Y0 + .055, 0), box(.095, .06, .095).move(0, Y1 - .05, 0),
+           box(.11, .025, .11).move(0, Y1 - .01, 0))
+    for s in (-1, 1): pg.add(box(.012, Y1 - Y0 - .2, .012).move(s * .018, (Y0 + Y1) / 2, .037))
+    g.add(rotY(pg.move(0, 0, RC - .01), ph))
+    # фриз: зелёная эмаль с золотыми картушами и розетками на углах
+    gg = G().add(box(.4, .055, .012).move(0, Y1 + .085, .672))
+    for s in (-1, 1): gg.add(slab(star(.022, .01), .666, .678).move(s * .235, Y1 + .085, 0))
+    g.add(rotY(gg, th))
+    # рёбра крыши и купола на углах
+    g.add(bar3(.79, Y1 + .215, .36, Y1 + .4, ph, .03))
+green.add(octo(.72, .72, Y1 + .03, Y1 + .14))
+g.add(octo(.72, .74, Y1, Y1 + .03), octo(.73, .78, Y1 + .14, Y1 + .2), octo(.78, .78, Y1 + .2, Y1 + .215),
+      octo(.78, .36, Y1 + .215, Y1 + .4),                                                 # карниз и крыша-пирамида
+      octo(.3, .3, Y1 + .4, Y1 + .52), octo(.31, .33, Y1 + .52, Y1 + .55))                # барабан
+for k in range(8):   # ниши барабана
+    green.add(rotY(slab(arch(.05, Y1 + .42, Y1 + .47, 5), .3 * math.cos(Q8) - .005, .3 * math.cos(Q8) + .006), k * math.pi / 4))
+obj("maqam_gold", g, GOLD, C_MQ, parent=MQ, smooth=20)
+obj("maqam_lattice", lat, GOLD2, C_MQ, parent=MQ, smooth=0)
+obj("maqam_green", green, GREEN, C_MQ, parent=MQ, smooth=20)
+obj("maqam_pane", pane, PANE, C_MQ, parent=MQ, smooth=0)
+
+# купол (чуть луковичный), рёбра, навершие, полумесяц
+YD = Y1 + .55
+dp = [(.3, YD), (.322, YD + .05), (.334, YD + .11), (.322, YD + .18), (.28, YD + .25), (.2, YD + .31), (.11, YD + .35), (.045, YD + .375), (0, YD + .385)]
+dome = G().add(lathe(dp, 32))
+for k in range(8):
+    for a, b in zip(dp[:-2], dp[1:-1]): dome.add(bar3(a[0] + .008, a[1], b[0] + .008, b[1], k * math.pi / 4 + Q8, .016))
+yt = YD + .385
+dome.add(cyl(.02, .03, yt - .01, yt + .03, seg=12), ball(.038, 0, yt + .065, 0, w=16, h=10), cyl(.012, .02, yt + .1, yt + .13, seg=10),
+         ball(.026, 0, yt + .15, 0, w=14, h=8), cyl(.008, .008, yt + .17, yt + .21, seg=8))
+R, r, h = .07, .06, .03
+yi = (R * R - r * r + h * h) / (2 * h); xi = math.sqrt(R * R - yi * yi)
+a0, a1 = math.atan2(yi, xi), math.atan2(yi, -xi) - math.tau
+b0, b1 = math.atan2(yi - h, -xi), math.atan2(yi - h, xi) + math.tau
+cres = [(R * math.cos(a0 + (a1 - a0) * i / 20), R * math.sin(a0 + (a1 - a0) * i / 20)) for i in range(21)] + \
+       [(r * math.cos(b0 + (b1 - b0) * i / 16), h + r * math.sin(b0 + (b1 - b0) * i / 16)) for i in range(1, 16)]
+dome.add(slab(cres, -.008, .008).move(0, yt + .27, 0))
+obj("maqam_dome", dome, GOLD, C_MQ, parent=MQ, smooth=40)
+
+# внутри: золотая подставка, камень в серебряной оправе с золотыми поясами, два следа стоп
+# верхний пояс — рамка, а не сплошная плита: сквозь неё видно сам камень (известняк ≈ 40×40×20 см, следы глубиной 9–10 см)
+inn = G().add(octo(.34, .36, Y0, Y0 + .05), box(.4, .025, .4).move(0, Y0 + .065, 0), box(.39, .02, .39).move(0, Y0 + .085, 0),
+              box(.39, .02, .03).move(0, Y0 + .27, .18), box(.39, .02, .03).move(0, Y0 + .27, -.18),
+              box(.03, .02, .33).move(.18, Y0 + .27, 0), box(.03, .02, .33).move(-.18, Y0 + .27, 0))
+obj("maqam_stand", inn, GOLD, C_MQ, parent=MQ, smooth=0)
+# серебряный футляр: низ под камнем + четыре стенки по бокам (сверху открыт — в нём лежит камень со следами)
+case = G().add(box(.37, .1, .37).move(0, Y0 + .125, 0),
+               box(.37, .09, .02).move(0, Y0 + .22, .175), box(.37, .09, .02).move(0, Y0 + .22, -.175),
+               box(.02, .09, .33).move(.175, Y0 + .22, 0), box(.02, .09, .33).move(-.175, Y0 + .22, 0))
+obj("maqam_case", case, SILV, C_MQ, parent=MQ, smooth=0)
+# камень толщиной 10 см, следы — настоящие впадины глубиной ≈ 8,5 см с наклонными стенками (булево вычитание в Blender)
+st = obj("maqam_stone", box(.33, .1, .33).move(0, Y0 + .229, 0), STONE, C_MQ, parent=MQ, smooth=0)
+bowl = [(0.0, -1.0), (.45, -.97), (.7, -.85), (.86, -.6), (.95, -.3), (1.0, 0.0), (1.0, .25), (0.0, .25)]
+for s in (-1, 1):
+    cut = obj("maqam_cut", lathe(bowl, 28).scale(.055, .085, .13).move(s * .072, Y0 + .279, 0), FOOT, C_MQ, parent=MQ, smooth=0)
+    m = st.modifiers.new("cut", "BOOLEAN"); m.object = cut; m.operation = "DIFFERENCE"; m.solver = "EXACT"
+    try: m.material_mode = "TRANSFER"
+    except (AttributeError, TypeError): pass
+    bpy.context.view_layer.update()
+    me = bpy.data.meshes.new_from_object(st.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+    st.modifiers.clear(); st.data = me
+    bpy.data.objects.remove(cut)
+# серебряная окантовка — кольцо по краю каждой впадины, чуть выше камня
+rim = G()
+for s in (-1, 1):
+    rim.add(lathe([(1.0, 0), (1.17, 0), (1.17, .004), (1.0, .004), (1.0, 0)], 28).scale(.055, 1, .13).move(s * .072, Y0 + .279, 0))
+obj("maqam_rim", rim, SILV, C_MQ, parent=MQ, smooth=0)
+# хрустальный колпак: внешняя стенка 0,40 м и толстое дно-кольцо, внутренняя стенка 0,33 м
+cr = [(.3, Y0 + .02), (.4, Y0 + .02), (.4, Y0 + .92)] + [(.4 * math.cos(t), Y0 + .92 + .4 * math.sin(t)) for t in (math.pi / 2 * i / 10 for i in range(1, 10))] + [(0, Y0 + 1.32)]
+ci = [(.3, Y0 + .02), (.33, Y0 + .12), (.33, Y0 + .92)] + [(.33 * math.cos(t), Y0 + .92 + .33 * math.sin(t)) for t in (math.pi / 2 * i / 10 for i in range(1, 10))] + [(0, Y0 + 1.25)]
+obj("maqam_crystal", G().add(lathe(cr, 40), lathe(ci, 40)), CRYS, C_MQ, parent=MQ, smooth=60, recalc=False)
+for o in C_MQ.objects:
+    if o.type == "MESH": print("MQV", o.name, len(o.data.vertices))
+
 os.makedirs(OUT, exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "props.blend"))
 kw = dict(filepath=os.path.join(OUT, "props.glb"), export_format="GLB", export_texcoords=False, export_vertex_color="NONE", export_normals=True,
