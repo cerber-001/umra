@@ -223,18 +223,25 @@ KNOW = '''<section class="view" id="v-know">
 </section>'''
 
 MAP = '''<section class="view" id="v-map">
- <div class="card v3where">
-  <b class="v3h">Где группа</b>
-  <p class="small">Карта показывает своих и точку сбора, пока открыта. Нужен интернет.</p>
-  <div class="v3consent" id="v3consent">
-   <p>Показывать моё положение группе?</p>
-   <div class="v3two">
-    <button type="button" data-consent="1">Показывать</button>
-    <button type="button" data-consent="0">Не показывать</button>
-   </div>
-   <p class="small" id="v3consentNote">Выбор хранится в телефоне. Без показа руководитель вас на карте не видит, «Я потерялся» работает.</p>
+ <div class="v3note" id="v3gNote" hidden></div>
+ <div class="card v3where" id="v3where">
+  <div class="v3map" id="v3map"><div class="v3mapMsg" id="v3mapMsg">Карта загружается…</div></div>
+  <div class="v3gStat" id="v3gStat"></div>
+  <div id="v3noGrp" hidden>
+   <p><b>Вы ещё не в группе.</b></p>
+   <p class="small">Руководитель пришлёт ссылку в WhatsApp — откройте её, и группа появится здесь сама. Вводить ничего не нужно.</p>
   </div>
-  <a class="v3btn v3main" id="v3whereBtn" href="../where/">Открыть карту группы</a>
+  <div id="v3nameBox" hidden>
+   <label class="small" for="v3name">Как вас подписать на карте?</label>
+   <input id="v3name" maxlength="24" autocomplete="given-name" placeholder="Имя">
+  </div>
+  <button type="button" class="v3btn v3main v3share" id="v3shareBtn">Показывать меня группе</button>
+  <button type="button" class="linkbtn v3shareNo" id="v3shareNo">Не показывать</button>
+  <div class="v3people" id="v3people"></div>
+  <div class="v3lead" id="v3lead" hidden>
+   <button type="button" class="v3btn ghost" id="v3invite">Пригласить в группу</button>
+   <a class="linkbtn" href="../where/" id="v3leadTools">Инструменты руководителя: перекличка, объявления, точки сбора</a>
+  </div>
  </div>
  <button type="button" class="v3btn v3sos" data-lost>Я потерялся</button>
  <div class="card" id="v3near">
@@ -385,6 +392,47 @@ header.app #v3mode{font-size:1.2rem}
 .v3kpane h2.sec{font-size:1.3rem}
 /* «Карта» */
 .v3consent p{margin:0 0 .5rem;font-weight:700}
+.v3where{display:flex;flex-direction:column;gap:.6rem}
+.v3map{position:relative;height:56vh;min-height:300px;max-height:520px;margin:-.2rem -.2rem 0;border-radius:1rem;overflow:hidden;background:#dfe7e3;z-index:0}
+:root[data-theme="dark"] .v3map{background:#1b2a2b}
+.v3mapMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:1rem;color:var(--muted);font-weight:700}
+.v3map .leaflet-control-attribution{font-size:10px}
+.v3gStat{font-weight:800;font-size:1.05rem;color:var(--teal-d);display:flex;align-items:center;gap:.5rem}
+.v3gStat i{width:.75rem;height:.75rem;border-radius:50%;background:var(--muted);flex:none}
+.v3gStat.on i{background:#1fa463;box-shadow:0 0 0 4px rgba(31,164,99,.18)}
+#v3nameBox{display:flex;flex-direction:column;gap:.3rem}
+#v3name{min-height:3.2rem;border-radius:1rem;border:2px solid var(--teal);padding:0 1rem;font-size:1.1rem;font-family:inherit;background:var(--card);color:inherit}
+.v3share{min-height:3.8rem;font-size:1.15rem}
+.v3shareNo{align-self:center;min-height:2.6rem}
+.v3people{display:flex;flex-direction:column}
+.v3people button{display:flex;align-items:center;gap:.7rem;min-height:3.2rem;padding:.4rem .2rem;border:0;border-bottom:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left;width:100%}
+.v3people button>i{width:2.3rem;height:2.3rem;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;color:#fff;background:var(--teal)}
+.v3people button>i.meet{background:var(--orange,#F07A1E)}.v3people button>i.hotel{background:#6b5b4b}.v3people button>i.old{background:#9aa5a3}.v3people button>i.sos{background:var(--red)}
+.v3people button span{flex:1;min-width:0}.v3people button span b{display:block}.v3people button span small{color:var(--muted)}
+.v3people button>em{font-style:normal;font-weight:800;color:var(--teal-d);white-space:nowrap}
+.v3lead{display:flex;flex-direction:column;gap:.4rem;padding-top:.3rem}
+.v3pin{display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);white-space:nowrap;pointer-events:auto}
+.v3pin i{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-style:normal;font:800 15px/1 "Exo 2",system-ui,sans-serif;color:#fff;background:#005A5C}
+.v3pin b{margin-top:2px;padding:1px 6px;border-radius:6px;background:rgba(255,255,255,.92);color:#00292C;font:700 12px/1.3 "Exo 2",system-ui,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.v3pin.me i{background:#1a73e8;width:22px;height:22px;box-shadow:0 0 0 8px rgba(26,115,232,.2),0 2px 6px rgba(0,0,0,.3)}
+.v3pin.meet i{background:#F07A1E;border-radius:50% 50% 50% 0;transform:rotate(-45deg)}.v3pin.meet i>s{transform:rotate(45deg);text-decoration:none}
+.v3pin.hotel i{background:#6b5b4b;border-radius:9px}
+.v3pin.old i{background:#9aa5a3}.v3pin.old b{opacity:.75}
+.v3pin.sos i{background:#d93025;animation:v3pulse 1.2s infinite}
+@keyframes v3pulse{0%{box-shadow:0 0 0 0 rgba(217,48,37,.6)}100%{box-shadow:0 0 0 18px rgba(217,48,37,0)}}
+@media (prefers-reduced-motion:reduce){.v3pin.sos i{animation:none}}
+.lost-grp{display:flex;flex-direction:column;align-items:flex-start;gap:.1rem;width:100%;min-height:3.6rem;margin:.2rem 0 .6rem;padding:.6rem 1rem;border-radius:1rem;border:0;background:#d93025;color:#fff;font:inherit;text-align:left}
+.lost-grp b{font-size:1.1rem}.lost-grp small{opacity:.92}.lost-grp.done{background:#1f7a4d}
+.v3map img.leaflet-tile{mix-blend-mode:normal!important}
+.v3pinWrap{background:none;border:0}
+.v3pin.me{transform:translate(-50%,-50%)}
+.v3note{background:#fff4e8;border:2px solid #F07A1E;border-radius:1rem;padding:.7rem .9rem}
+:root[data-theme="dark"] .v3note{background:#3a2a1a}
+.v3note b{display:block;font-size:.85rem;color:#b5560b}.v3note p{margin:.2rem 0 0;font-size:1.05rem}
+.v3ask{position:fixed;inset:0;z-index:90;background:rgba(0,20,22,.55);display:flex;align-items:flex-end;justify-content:center}
+.v3ask[hidden]{display:none}
+.v3askBox{background:var(--card,#fff);width:100%;max-width:520px;border-radius:1.4rem 1.4rem 0 0;padding:1.4rem 1rem calc(1.2rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:.7rem}
+.v3askBox h3{margin:0;font-size:1.4rem}.v3askBox p{margin:0;color:var(--muted)}
 .v3two{display:flex;gap:.5rem}
 .v3two>*{flex:1;min-height:3.2rem;border-radius:1rem;border:2px solid var(--teal);background:var(--card);color:var(--teal-d);font-weight:800;font-size:1rem;font-family:inherit;display:flex;align-items:center;justify-content:center;text-decoration:none}
 .v3two>.sel{background:var(--teal);color:#fff}
@@ -516,7 +564,7 @@ V3JS = r'''
     if(tab==='know'){ kseg(A.get('v3kseg','steps'), null); }
     if(tab==='home'){ stepBtn(); pw(); mine(); }
     if(tab==='me'){ progTxt(); remList(); setSel(); }
-    if(tab==='map'){ consent(); }
+    if(tab==='map'){ mapShow(); }
   };
 
   /* ---- «Сейчас»: одна главная кнопка — текущий шаг умры в дни Мекки ---- */
@@ -600,15 +648,251 @@ V3JS = r'''
   $('#v3srHome').onclick=function(){ A.buzz(6); window.v3.show('home'); };
   if(A.get('v3senior',0)) senior(true);
 
-  /* ---- «Карта»: согласие двумя кнопками, ничего не выбрано заранее ---- */
-  function consent(){
-    var c=A.get('v3consent',null);
-    $$('#v3consent [data-consent]').forEach(function(b){ b.classList.toggle('sel', c!==null && String(c)===b.getAttribute('data-consent')); });
-    $('#v3whereBtn').classList.toggle('ghost', c===null); $('#v3whereBtn').classList.toggle('v3main', c!==null);
-    $('#v3consentNote').textContent = c===null ? 'Сначала выберите. Выбор хранится в телефоне, менять можно в любой момент.' : (c==='1' ? 'Положение видно группе, пока карта открыта. Выбор хранится в телефоне.' : 'Группа ваше положение не видит. «Я потерялся» работает.');
+  /* ---- «Карта»: группа прямо здесь, как геоданные в WhatsApp — одна кнопка «Показывать меня группе».
+     Протокол тот же, что у ../where/ (Supabase: канал where:<группа>, присутствие + сигналы), поэтому руководитель там видит всех. ---- */
+  var W={ get:function(k,d){ try{ var v=localStorage.getItem('where.'+k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
+          set:function(k,v){ try{ localStorage.setItem('where.'+k, JSON.stringify(v)); }catch(e){} } };
+  var KAABA=[21.42251716,39.82619418], NABAWI=[24.46726,39.61113], CITYC={mak:KAABA, med:NABAWI};
+  function fromM(x,y,c){ return [c[0]+y/110540, c[1]+x/(111320*Math.cos(c[0]*Math.PI/180))]; }
+  var HOTEL={mak:{n:'Отель Address Jabal Omar', ll:fromM(-806,-40,KAABA)}, med:{n:'Отель Worth Peninsula', ll:[24.4735,39.6116]}};
+  var DEFN={'d-hotel':'Отель Address — лобби','d-79':'Ворота № 79 короля Фахда','d-1':'Ворота № 1 короля Абдулазиза','d-25':'Ворота № 25 у Марвы','d-clock':'Часовая башня — вход с площади',
+            'd-m1':'Ворота № 1 — Баб ас-Салям','d-m20':'Ворота № 20–22 короля Фахда','d-m5':'Ворота № 5 — Баб Куба','d-m41':'Ворота № 41 — аль-Баки','d-m34':'Ворота № 33–35 короля Абдулазиза'};
+  function ptName(p){ for(var k in DEFN) if(String(p.id).indexOf(k+'-')===0) return DEFN[k]; return p.name||'Точка сбора'; }
+  function normCode(s){ return String(s||'').toUpperCase().trim().replace(/\s+/g,'-').replace(/[^A-Z0-9-]/g,''); }
+  function rid(n){ var a='abcdefghijkmnpqrstuvwxyz23456789', s=''; var r=new Uint8Array(n); (window.crypto||{getRandomValues:function(x){ for(var i=0;i<x.length;i++) x[i]=Math.random()*256; return x; }}).getRandomValues(r); for(var i=0;i<n;i++) s+=a[r[i]%a.length]; return s; }
+  var Q=new URLSearchParams(location.search);
+  var grp=normCode(Q.get('g')||W.get('group',''));
+  if(!/^[A-Z0-9-]{4,40}$/.test(grp)) grp='';
+  var hashLk=(location.hash.match(/(?:^#|&)lk=([A-Za-z0-9]{12,64})/)||[])[1]||null;
+  var invited=!!(Q.get('g') && grp);
+  if(grp){ W.set('group',grp); if(hashLk) W.set('lk.'+grp, hashLk); if(Q.get('tel')) W.set('tel.'+grp, Q.get('tel').replace(/[^\d+ ()-]/g,'').slice(0,20)); }
+  if(Q.has('g')||Q.has('tel')||hashLk){ Q.delete('g'); Q.delete('tel'); history.replaceState(null,'',location.pathname+(Q.toString()?'?'+Q:'')); }
+  if(invited){ A.set('tab','map'); if(A.get('senior',0)) {} }
+  var me={ id:W.get('id',null)||rid(8), name:W.get('name',''), ll:null, acc:null, t:0, sos:0 };
+  W.set('id',me.id);
+  var people={}, gone=grp?(W.get('gone.'+grp,{})||{}):{}, points=[], notes=[], lead=false, bus=null, busP=null, city='mak';
+  var gpsNo=false, map=null, mk={}, mapAsked=false, firstFix=true, watchId=null, lastSent=0, lastLL=null;
+  function sharing(){ return A.get('v3consent',null)==='1' && !!grp && !tripOver(); }
+  function tripOver(){ var tr=(window.WHERE_CFG||{}).trips||{}, k=Object.keys(tr).filter(function(p){ return grp.indexOf(p)===0; })[0]; return !!k && Date.now()>new Date(tr[k]+'T23:59:59+03:00').getTime(); }
+  function loadJs(src){ return new Promise(function(ok,no){ var s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=function(){ no(new Error(src)); }; document.head.appendChild(s); }); }
+  function loadCss(href){ if(document.querySelector('link[href="'+href+'"]')) return; var l=document.createElement('link'); l.rel='stylesheet'; l.href=href; document.head.appendChild(l); }
+  function cityOf(ll){ if(!ll) return city; return km(ll[0],ll[1],NABAWI[0],NABAWI[1]) < km(ll[0],ll[1],KAABA[0],KAABA[1]) ? 'med' : 'mak'; }
+  function dM(a,b){ return km(a[0],a[1],b[0],b[1]); }
+  function fmtD(m){ return m<1000 ? Math.round(m/5)*5+' м' : (m/1000).toFixed(1).replace('.',',')+' км'; }
+  function ago(t){ var m=Math.round((Date.now()-t)/60000); return m<1?'сейчас':m<60?m+' мин назад':Math.round(m/60)+' ч назад'; }
+  function ini(n){ return String(n||'?').trim().split(/\s+/).map(function(w){ return w[0]; }).join('').slice(0,2).toUpperCase(); }
+  function meetPoint(){ var c=CITYC[city]; return points.filter(function(p){ return p.meet && dM(p.ll,c)<30000; })[0]||null; }
+
+  /* связь с группой */
+  function connect(){
+    if(!grp) return Promise.resolve(null);
+    if(busP) return busP;
+    busP=loadJs('../where/config.js').then(function(){ return window.supabase ? 0 : loadJs('../where/vendor/supabase.js'); }).then(function(){
+      var CFG=window.WHERE_CFG||{}; if(!CFG.url||!CFG.key||!window.supabase) throw new Error('cfg');
+      var db=window.supabase.createClient(CFG.url, CFG.key, {auth:{persistSession:false}});
+      var chk=function(r){ if(r.error) throw new Error(r.error.message); return r.data; };
+      var api={db:db, ch:null, st:'', last:null, tT:0, tH:null};
+      api.lk=function(){ return W.get('lk.'+grp,null); };
+      return db.rpc('where_join',{p_grp:grp, p_key:api.lk(), p_create:false}).then(chk).then(function(j){
+        if(j && !j.ok){ api.none=true; return api; }
+        lead=!!(j && j.lead); if(lead) W.set('lead.'+grp,1);
+        var c=db.channel('where:'+grp,{config:{presence:{key:me.id}, broadcast:{self:false}}}); api.ch=c;
+        c.on('presence',{event:'sync'},function(){ var st=c.presenceState(), nx={}; for(var id in st){ var p=st[id][st[id].length-1]; if(id!==me.id && p) nx[id]=p; } onPresence(nx); });
+        ['sos','sosOff','pts','note','roll','rollEnd','ack','forget'].forEach(function(ev){ c.on('broadcast',{event:ev},function(m){ onSignal(ev, m.payload||{}); }); });
+        c.subscribe(function(s){ api.st=s; status(); if(s==='SUBSCRIBED'){ flush(); loadPts(); loadNotes(); } });
+        return api;
+      });
+    }).then(function(api){ bus=api; status(); return api; }).catch(function(e){ busP=null; status('Нет связи с группой — проверьте интернет. Попробую снова сам.'); setTimeout(function(){ if(!bus) connect(); }, 20000); return null; });
+    return busP;
   }
-  $$('#v3consent [data-consent]').forEach(function(b){ b.onclick=function(){ A.buzz(6); var v=b.getAttribute('data-consent'); A.set('v3consent',v); try{ localStorage.setItem('where.share', v==='1'?'true':'false'); }catch(e){} consent(); }; });
-  $('#v3whereBtn').onclick=function(e){ if(A.get('v3consent',null)===null){ e.preventDefault(); A.toast('Сначала выберите: показывать или нет'); $('#v3consent').scrollIntoView({behavior:'smooth'}); } };
+  function flush(){ if(!bus||!bus.ch||bus.st!=='SUBSCRIBED'||!bus.last) return; bus.tT=Date.now(); bus.ch.track(bus.last).catch(function(){}); }
+  function track(p){ if(!bus) return; bus.last=p; clearTimeout(bus.tH); var w=3000-(Date.now()-bus.tT); if(w<=0) flush(); else bus.tH=setTimeout(flush,w); }
+  function signal(ev,p){ if(bus&&bus.ch) bus.ch.send({type:'broadcast', event:ev, payload:p||{}}).catch(function(){}); }
+  function untrack(){ if(bus){ bus.last=null; clearTimeout(bus.tH); try{ bus.ch && bus.ch.untrack(); }catch(e){} } }
+  function payload(){ var sh=sharing() && me.ll; var p={id:me.id, name:me.name||'Паломник', ll:sh?me.ll:null, acc:sh?Math.round(me.acc||0):null, floor:0, city:city, t:Date.now(), fx:sh?me.t:0, man:false, sh:sharing(), sos:me.sos, lead:lead, bat:null, chg:false};
+    if(lead){ var tel=W.get('tel.'+grp,''); if(tel) p.tel=tel; } if(myAck && Date.now()-myAck.t<30*60000) p.ack=myAck; return p; }
+  function publish(force){
+    if(!bus||!bus.ch) return;
+    if(!sharing() && !me.sos && !myAck){ untrack(); return; }
+    var moved = me.ll && (!lastLL || dM(lastLL, me.ll)>10);
+    if(!force && !moved && Date.now()-lastSent<20000) return;
+    lastSent=Date.now(); lastLL=me.ll; track(payload());
+  }
+  setInterval(function(){ publish(true); }, 60000);
+  addEventListener('pagehide', untrack);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) publish(true); });
+  function loadPts(){ if(!bus||!bus.db) return; bus.db.rpc('where_list',{p_grp:grp}).then(function(r){ if(r.error) return; var old=meetPoint(); points=(r.data||[]).map(function(x){ return {id:x.id, name:x.name, ll:[x.lat,x.lon], meet:x.meet_at}; }); var m=meetPoint(); if(m && (!old || old.id!==m.id || old.meet!==m.meet) && old!==undefined && lastMeet && lastMeet!==m.id+m.meet){ A.buzz([120,60,120]); A.toast('Новая точка сбора: '+ptName(m)+(m.meet?' · '+m.meet:''), function(){ go(); fly(m.ll); }); } lastMeet=m?m.id+m.meet:''; render(); }); }
+  var lastMeet='';
+  function loadNotes(){ if(!bus||!bus.db) return; bus.db.rpc('where_notes_list',{p_grp:grp}).then(function(r){ if(r.error) return; notes=(r.data||[]).map(function(x){ return {id:x.id, body:x.body, by:x.by_name, t:Date.parse(x.created_at)}; }).sort(function(a,b){ return b.t-a.t; }); render(); }); }
+  function onPresence(nx){
+    var now=Date.now();
+    for(var id in people) if(!nx[id] && people[id].ll){ gone[id]=Object.assign({}, people[id], {goneAt:now}); }
+    for(var id2 in nx) delete gone[id2];
+    for(var g in gone) if(now-gone[g].goneAt>3*3600000) delete gone[g];
+    people=nx; W.set('gone.'+grp, gone);
+    for(var i in nx){ var p=nx[i]; if(p.sos && now-p.sos<15*60000) onSos({id:i, name:p.name, ll:p.ll, t:p.sos}); if(p.lead && p.tel) W.set('tel.'+grp, p.tel); if(p.roll) onRoll(p.roll); }
+    render();
+  }
+  function onSignal(ev,p){
+    if(ev==='sos') onSos(p);
+    else if(ev==='sosOff'){ if(people[p.id]) people[p.id].sos=0; A.toast((p.name||'Паломник')+' нашёлся'); render(); }
+    else if(ev==='pts') loadPts();
+    else if(ev==='note'){ loadNotes(); A.buzz([80,60,80]); }
+    else if(ev==='roll') onRoll(p);
+    else if(ev==='rollEnd'){ if(curAsk && curAsk.rid===p.rid) askClose(); }
+    else if(ev==='forget'){ delete people[p.id]; delete gone[p.id]; render(); }
+  }
+  var sosSeen={};
+  function onSos(p){
+    if(!p||!p.id||p.id===me.id) return; var k=p.id+':'+p.t; if(sosSeen[k]) return; sosSeen[k]=1;
+    if(Date.now()-p.t>15*60000) return;
+    if(people[p.id]) people[p.id].sos=p.t;
+    A.buzz([300,120,300,120,300]);
+    A.toast('⚠ '+(p.name||'Паломник')+' зовёт группу'+(p.ll&&me.ll?' · '+fmtD(dM(me.ll,p.ll)):''), function(){ go(); if(p.ll) fly(p.ll); });
+    var b=$('#toastBtn'); if(b) b.textContent='Показать';
+    render();
+  }
+  /* перекличка руководителя: один вопрос, две большие кнопки */
+  var curAsk=null, myAck=null;
+  var ask=document.createElement('div'); ask.className='v3ask'; ask.hidden=true;
+  ask.innerHTML='<div class="v3askBox" role="dialog" aria-modal="true"><h3>Вы на месте?</h3><p id="v3askBy">Спрашивает руководитель</p><button type="button" class="v3btn v3main" id="v3askOk">Я на месте</button><button type="button" class="v3btn v3sos" id="v3askHelp">Нужна помощь</button></div>';
+  document.body.appendChild(ask);
+  function onRoll(r){
+    if(!r||!r.rid||r.from===me.id||Date.now()-r.t>30*60000) return;
+    if((W.get('ans.'+grp,[])||[]).indexOf(r.rid)>=0) return;
+    if(curAsk && curAsk.rid===r.rid) return;
+    curAsk=r; $('#v3askBy').textContent='Спрашивает '+(r.by||'руководитель'); ask.hidden=false; A.buzz([200,100,200]);
+  }
+  function askClose(){ curAsk=null; ask.hidden=true; }
+  function answer(ok){
+    if(!curAsk) return; var r=curAsk;
+    W.set('ans.'+grp, (W.get('ans.'+grp,[])||[]).concat([r.rid]).slice(-50));
+    myAck={rid:r.rid, ok:ok, t:Date.now()};
+    signal('ack',{rid:r.rid, id:me.id, name:me.name||'Паломник', ok:ok, ll:sharing()?me.ll:null, t:myAck.t});
+    publish(true); askClose();
+    if(ok) A.toast('Ответ отправлен руководителю'); else { callGroup(); A.openLost(); }
+  }
+  $('#v3askOk').onclick=function(){ A.buzz(10); answer(true); };
+  $('#v3askHelp').onclick=function(){ A.buzz(20); answer(false); };
+
+  /* «Позвать группу» внутри «Я потерялся» */
+  function callGroup(){
+    if(!grp) return;
+    me.sos=Date.now(); gps();
+    connect().then(function(){ publish(true); signal('sos',{id:me.id, name:me.name||'Паломник', ll:me.ll, floor:0, city:city, t:me.sos}); });
+    lostBtn();
+  }
+  function found(){ me.sos=0; publish(true); signal('sosOff',{id:me.id, name:me.name||'Паломник'}); lostBtn(); }
+  var lb=document.createElement('button'); lb.type='button'; lb.className='lost-grp'; lb.id='v3lostGrp';
+  (function(){ var box=$('#lost .lost-box'), tip=$('#lost .lost-tip'); if(box && tip) tip.parentNode.insertBefore(lb, tip.nextSibling); })();
+  function lostBtn(){
+    lb.hidden=!grp;
+    if(me.sos){ lb.classList.add('done'); lb.innerHTML='<b>Группа знает, где вы</b><small>Стойте на месте. Нажмите, когда нашлись</small>'; }
+    else { lb.classList.remove('done'); lb.innerHTML='<b>Позвать группу</b><small>Все наши увидят вас на карте и получат сигнал</small>'; }
+  }
+  lb.onclick=function(){ A.buzz(20); if(me.sos) found(); else callGroup(); };
+  lostBtn();
+  /* ссылка «Карта группы» в «Я потерялся» — теперь внутри гида, без перехода на старую страницу */
+  $$('#lost a[href="where/"], #lost a[href="../where/"]').forEach(function(a){ var sm=a.querySelector('small'); if(sm) sm.textContent='где все наши и точка сбора — здесь же, в гиде'; a.onclick=function(e){ e.preventDefault(); var x=$('#lostClose'); if(x) x.click(); go(); }; });
+  function go(){ window.v3.show('map', null); }
+
+  /* положение */
+  function gps(){
+    if(watchId!==null || !navigator.geolocation) return;
+    watchId=navigator.geolocation.watchPosition(function(p){
+      gpsNo=false; me.ll=[p.coords.latitude,p.coords.longitude]; me.acc=p.coords.accuracy; me.t=Date.now(); city=cityOf(me.ll);
+      if(map && firstFix){ firstFix=false; map.setView(me.ll, 16); }
+      render(); publish();
+    }, function(e){ if(e.code===1){ navigator.geolocation.clearWatch(watchId); watchId=null; gpsNo=true; render(); } }, {enableHighAccuracy:true, maximumAge:10000, timeout:30000});
+  }
+
+  /* карта */
+  function mapInit(){
+    if(map) return Promise.resolve();
+    loadCss('../where/vendor/leaflet.css');
+    return (window.L ? Promise.resolve() : loadJs('../where/vendor/leaflet.js')).then(function(){
+      var el=$('#v3map'); $('#v3mapMsg').remove && $('#v3mapMsg').remove();
+      map=L.map(el,{zoomControl:false, attributionControl:true}).setView(me.ll||CITYC[city], me.ll?16:16);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'© OpenStreetMap contributors (ODbL)'}).addTo(map);
+      map.attributionControl.setPrefix(false);
+      if(me.ll) firstFix=false;
+      render();
+    }).catch(function(){ var m=$('#v3mapMsg'); if(m) m.textContent='Карта не загрузилась — нужен интернет. Список ниже работает.'; });
+  }
+  function fly(ll){ if(map && ll) map.setView(ll, 18); var el=$('#v3map'); if(el) el.scrollIntoView({behavior:'smooth', block:'center'}); }
+  function pin(key, ll, cls, ch, label){
+    if(!map || !L) return; var html='<div class="v3pin '+cls+'"><i>'+ch+'</i>'+(label?'<b>'+esc(label)+'</b>':'')+'</div>';
+    var m=mk[key];
+    if(!m){ m=mk[key]=L.marker(ll,{icon:L.divIcon({className:'v3pinWrap', html:html, iconSize:null}), keyboard:false, zIndexOffset:cls.indexOf('sos')>=0?1000:cls==='me'?900:0}).addTo(map); m._h=html; }
+    else { m.setLatLng(ll); if(m._h!==html){ m.setIcon(L.divIcon({className:'v3pinWrap', html:html, iconSize:null})); m._h=html; } }
+    m._seen=1;
+  }
+  function status(txt){
+    var s=$('#v3gStat'); if(!s) return;
+    if(txt){ s.className='v3gStat'; s.innerHTML='<i></i>'+esc(txt); return; }
+    if(!grp){ s.className='v3gStat'; s.innerHTML=''; return; }
+    var n=Object.keys(people).length, on=sharing();
+    if(bus && bus.none){ s.className='v3gStat'; s.innerHTML='<i></i>Группа '+esc(grp)+' не найдена. Попросите у руководителя новую ссылку.'; return; }
+    if(tripOver()){ s.className='v3gStat'; s.innerHTML='<i></i>Поездка завершена — место больше не передаётся'; return; }
+    if(gpsNo && sharing()){ s.className='v3gStat'; s.innerHTML='<i></i>Телефон не даёт место. Настройки → Конфиденциальность → Геопозиция → разрешить для браузера. Группу вы видите.'; return; }
+    s.className='v3gStat'+(on?' on':'');
+    s.innerHTML='<i></i>'+(on?'Вас видит группа':'Группа вас не видит')+(bus&&bus.st==='SUBSCRIBED'?' · на связи '+(n+1):(bus?' · подключаюсь…':''));
+  }
+  function render(){
+    status();
+    var c=A.get('v3consent',null), btn=$('#v3shareBtn'), no=$('#v3shareNo');
+    $('#v3noGrp').hidden=!!grp; btn.hidden=!grp; no.hidden=!grp || c!==null;
+    if(sharing()){ btn.textContent='Перестать показывать'; btn.className='v3btn ghost v3share'; }
+    else { btn.textContent='Показывать меня группе'; btn.className='v3btn v3main v3share'; }
+    $('#v3lead').hidden=!(grp && (lead || W.get('lead.'+grp,0)));
+    lostBtn();
+    /* объявление руководителя за последние сутки */
+    var nb=$('#v3gNote'), n=notes[0];
+    if(n && Date.now()-n.t<24*3600000){ nb.hidden=false; nb.innerHTML='<b>Объявление'+(n.by?' · '+esc(n.by):'')+' · '+ago(n.t)+'</b><p>'+esc(n.body)+'</p>'; } else nb.hidden=true;
+    /* метки и список */
+    for(var k in mk) mk[k]._seen=0;
+    var rows=[], ref=me.ll;
+    var h=HOTEL[city], m=meetPoint();
+    if(m){ pin('meet', m.ll, 'meet', '<s>★</s>', 'Сбор'+(m.meet?' '+m.meet:'')); rows.push({k:'meet', ll:m.ll, cls:'meet', ch:'★', t:ptName(m), s:(m.meet?'Сбор в '+m.meet:'Точка сбора')+' · <a href="https://www.google.com/maps/dir/?api=1&destination='+m.ll[0]+','+m.ll[1]+'&travelmode=walking" target="_blank" rel="noopener">маршрут пешком</a>', d:ref?dM(ref,m.ll):null}); }
+    pin('hotel', h.ll, 'hotel', 'H', null); rows.push({k:'hotel', ll:h.ll, cls:'hotel', ch:'H', t:h.n, s:'Наш отель', d:ref?dM(ref,h.ll):null});
+    var ppl=[];
+    Object.keys(people).forEach(function(id){ var p=people[id]; var sos=p.sos && Date.now()-p.sos<15*60000; var old=p.ll && Date.now()-(p.fx||p.t)>5*60000;
+      if(p.ll) pin('p'+id, p.ll, sos?'sos':old?'old':'', esc(ini(p.name)), p.name);
+      ppl.push({k:'p'+id, ll:p.ll, cls:sos?'sos':(!p.ll||old)?'old':'', ch:esc(ini(p.name)), t:(p.name||'Паломник')+(p.lead?' · руководитель':''), s:sos?'<b style="color:var(--red)">Зовёт группу</b> · '+ago(p.sos):(p.ll?'место '+ago(p.fx||p.t):'не показывает место'), d:ref&&p.ll?dM(ref,p.ll):null}); });
+    Object.keys(gone).forEach(function(id){ var p=gone[id]; if(people[id]||!p.ll) return; pin('g'+id, p.ll, 'old', esc(ini(p.name)), p.name);
+      ppl.push({k:'g'+id, ll:p.ll, cls:'old', ch:esc(ini(p.name)), t:p.name||'Паломник', s:'вышел из гида · последнее место '+ago(p.fx||p.t||p.goneAt), d:ref?dM(ref,p.ll):null}); });
+    ppl.sort(function(a,b){ return (a.cls==='sos'?-1:0)-(b.cls==='sos'?-1:0) || (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d); });
+    if(me.ll) pin('me', me.ll, 'me', '', null);
+    for(var k2 in mk) if(!mk[k2]._seen){ map && map.removeLayer(mk[k2]); delete mk[k2]; }
+    var all=rows.concat(ppl);
+    var box=$('#v3people');
+    box.innerHTML = all.map(function(r,i){ return '<button type="button" data-i="'+i+'"><i class="'+r.cls+'">'+r.ch+'</i><span><b>'+esc(r.t)+'</b><small>'+r.s+'</small></span>'+(r.d!=null?'<em>'+fmtD(r.d)+'</em>':'')+'</button>'; }).join('')
+      + (grp && !ppl.length ? '<p class="small">Пока никого из группы на карте. Когда остальные нажмут «Показывать меня группе», они появятся здесь.</p>' : '');
+    $$('button[data-i]', box).forEach(function(b){ b.onclick=function(e){ if(e.target.closest('a')) return; var r=all[+b.getAttribute('data-i')]; A.buzz(6); if(r.ll) fly(r.ll); }; });
+  }
+  /* одна кнопка */
+  $('#v3shareBtn').onclick=function(){
+    A.buzz(8);
+    if(sharing()){ A.set('v3consent','0'); W.set('share',false); untrack(); signal('forget',{id:me.id}); render(); A.toast('Группа больше не видит ваше место', function(){ $('#v3shareBtn').click(); }); return; }
+    var nm=$('#v3name'); if(!me.name){ var v=(nm.value||'').trim(); if(!v){ $('#v3nameBox').hidden=false; nm.focus(); A.toast('Напишите имя — так вас узнают на карте'); return; } me.name=v.slice(0,24); W.set('name',me.name); }
+    $('#v3nameBox').hidden=true;
+    A.set('v3consent','1'); W.set('share',true); gps(); connect().then(function(){ publish(true); render(); }); render();
+    A.toast('Готово: группа видит вас, пока гид открыт');
+  };
+  $('#v3name').onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); $('#v3shareBtn').click(); } };
+  $('#v3shareNo').onclick=function(){ A.buzz(6); A.set('v3consent','0'); W.set('share',false); render(); A.toast('Хорошо. Вы видите группу, группа вас — нет'); };
+  $('#v3invite').onclick=function(){
+    A.buzz(6); var tel=W.get('tel.'+grp,''), url=location.origin+location.pathname+'?g='+encodeURIComponent(grp)+(tel?'&tel='+encodeURIComponent(tel):'');
+    var text='Гид JURT: откройте ссылку — вы в группе '+grp+', карта и «Я потерялся» внутри.';
+    if(navigator.share) navigator.share({title:'Гид JURT', text:text, url:url}).catch(function(){});
+    else window.open('https://wa.me/?text='+encodeURIComponent(text+' '+url),'_blank','noopener');
+  };
+  $('#v3leadTools').setAttribute('href', '../where/?g='+encodeURIComponent(grp||''));
+  function mapShow(){ gps(); connect(); mapInit().then(function(){ if(map) setTimeout(function(){ map.invalidateSize(); },60); }); render(); }
+  /* место уходит группе, пока гид открыт на любой вкладке */
+  if(grp && A.get('v3consent',null)==='1'){ gps(); connect().then(function(){ publish(true); }); }
+  else if(grp) connect();
+  setInterval(function(){ if(document.hidden) return; var v=$('#v-map'); if(v && v.classList.contains('on')) render(); }, 30000);
 
   /* ---- «Рядом со мной»: ближайшие точки из OSM (без ворот — их координат пока нет) ---- */
   var KIND={wc:'Туалет',wc_m:'Туалет (муж.)',wc_f:'Туалет (жен.)',pharm:'Аптека',med:'Медпункт',water:'Вода',salon:'Парикмахер (бритьё)'};
