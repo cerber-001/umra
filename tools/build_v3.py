@@ -261,8 +261,23 @@ MAP = '''<section class="view" id="v-map">
 
 ME = '''<section class="view" id="v-me">
  ''' + myCard + '''
+ <div class="card" id="v3prog">
+  <b class="v3h">Мой путь</b>
+  <div id="v3progTxt"></div>
+ </div>
+ <div class="card" id="v3remind">
+  <b class="v3h">Мои напоминания</b>
+  <p class="small">Лекарство, еда, звонок домой. Хранится только в телефоне. Звук — на Android; на iPhone только пока гид открыт.</p>
+  <div id="v3remList"></div>
+  <form class="v3remForm" id="v3remForm">
+   <input type="time" id="v3remTime" required aria-label="Время">
+   <input type="text" id="v3remText" maxlength="40" placeholder="Что напомнить" required>
+   <button type="submit" class="btn">Добавить</button>
+  </form>
+ </div>
+ ''' + contacts_card + '''
  <div class="card" id="v3set">
-  <b class="v3h">Как показывать</b>
+  <b class="v3h">Настройки</b>
   <div class="v3row"><span>Шрифт</span><div class="v3two3">
    <button type="button" data-fs="0">Обычный</button><button type="button" data-fs="1">Крупный</button><button type="button" data-fs="2">Очень</button></div></div>
   <div class="v3row"><span>Свет</span><div class="v3two3">
@@ -277,28 +292,13 @@ ME = '''<section class="view" id="v-me">
   <p class="small">Самый простой вид: крупно, только «Сейчас» и «Я потерялся». Родственник включает один раз, дальше старший открывает сам.</p>
   <div class="v3hidden" hidden>''' + settings_card + '''</div>
  </div>
- <div class="card" id="v3remind">
-  <b class="v3h">Мои напоминания</b>
-  <p class="small">Лекарство, еда, звонок домой. Хранится только в телефоне. Звук — на Android; на iPhone только пока гид открыт.</p>
-  <div id="v3remList"></div>
-  <form class="v3remForm" id="v3remForm">
-   <input type="time" id="v3remTime" required aria-label="Время">
-   <input type="text" id="v3remText" maxlength="40" placeholder="Что напомнить" required>
-   <button type="submit" class="btn">Добавить</button>
-  </form>
- </div>
- <div class="card" id="v3prog">
-  <b class="v3h">Мой путь</b>
-  <div id="v3progTxt"></div>
- </div>
- ''' + contacts_card + '''
- ''' + about_card + '''
  <div class="card" id="v3upd">
   <b class="v3h">Обновление</b>
   <p class="small">Новая версия встаёт сама при следующем открытии. Если что-то выглядит странно — нажмите.</p>
   <button type="button" class="btn ghost" id="v3reload">Обновить гид</button>
   ''' + swStatus + '''
  </div>
+  <div class="v3hidden" hidden>''' + about_card + '''</div>
  ''' + foot + '''
 </section>'''
 
@@ -454,8 +454,18 @@ header.app #v3mode{font-size:1.2rem}
 #v3remList button{background:none;border:0;color:var(--red);font-weight:700;font-family:inherit;min-height:2.4rem}
 .v3hidden{display:none!important}
 /* завершённое голосование — свёрнуто */
-#pollBox.v3done:not(.v3open){max-height:4.2rem;overflow:hidden;position:relative;cursor:pointer;opacity:.9}
-#pollBox.v3done:not(.v3open)::after{content:'Итоги голосования — нажмите';position:absolute;left:0;right:0;bottom:0;padding:.5rem 1rem;background:var(--card);color:var(--muted);font-size:.95rem;font-weight:700}
+/* «Я»: ручной ввод свёрнут — данные приходят по личной ссылке */
+#v-me #manual:not(.v3open){display:none}
+#v-me #codeBox.v3have #codeForm{display:none}
+.v3meSum{font-size:1.1rem;font-weight:700;color:var(--ink);margin:.2rem 0 .4rem}
+.v3meSum small{display:block;font-weight:600;color:var(--muted);font-size:.95rem}
+/* «Сейчас» как iPhone: одна карточка и одна кнопка; дубли и прошедшее убраны */
+#v-home #pollBox.v3done,#v-home #regBox,#v-home #tripCard,#v-home #annBox.v3old{display:none!important}
+#v-home #packCard{padding:.85rem 1rem;min-height:3.4rem}
+#v-home #packCard h3,#v-home #packCard>.small{display:none}
+#v-home #packCard .trow{align-items:center}
+#v-home #packCard .kicker{font-size:1rem;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:700}
+#v-home #packCard .kicker::after{content:'  ›';color:var(--muted)}
 /* нижние вкладки — 4 */
 nav.tabs{grid-template-columns:repeat(4,1fr)}
 nav.tabs .pill{width:calc((100% - .6rem)/4)}
@@ -563,7 +573,7 @@ V3JS = r'''
     hdr(tab); setTimeout(words, 50);
     if(tab==='know'){ kseg(A.get('v3kseg','steps'), null); }
     if(tab==='home'){ stepBtn(); pw(); mine(); }
-    if(tab==='me'){ progTxt(); remList(); setSel(); }
+    if(tab==='me'){ progTxt(); remList(); setSel(); meTidy(); }
     if(tab==='map'){ mapShow(); }
   };
 
@@ -959,6 +969,35 @@ V3JS = r'''
     if(done && !box.v3bound){ box.v3bound=true; box.addEventListener('click', function(e){ if(box.classList.contains('v3done') && !box.classList.contains('v3open')){ box.classList.add('v3open'); e.preventDefault(); e.stopPropagation(); } }, true); }
   }
   pollDone(); setTimeout(pollDone, 3000);
+  /* объявление старше суток на «Сейчас» не показываем; чек-лист — одной строкой */
+  function homeTidy(){
+    var ab=$('#annBox'), sm=ab&&ab.querySelector('small'), old=false;
+    var m=sm&&/(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?\s+(\d{1,2}):(\d{2})/.exec(sm.textContent||'');
+    if(m){ var t=new Date(+(m[3]||new Date().getFullYear()), +m[2]-1, +m[1], +m[4], +m[5]).getTime(); old=Date.now()-t>864e5; }
+    if(ab) ab.classList.toggle('v3old', old);
+    var k=$('#packCard .kicker'); if(k && k.textContent!=='Чек-лист сборов') k.textContent='Чек-лист сборов';
+  }
+  homeTidy(); setTimeout(homeTidy, 1500); setTimeout(homeTidy, 5000);
+  /* «Мои данные»: есть данные — одна строка; ручной ввод — по кнопке */
+  function meTidy(){
+    var card=$('#myCard'); if(!card) return;
+    var man=$('#manual'), cb=$('#codeBox'), auto=$('#myAuto');
+    if(!$('#v3meSum')){ var d=document.createElement('div'); d.id='v3meSum'; d.className='v3meSum'; card.insertBefore(d, card.children[1]||null);
+      var t=document.createElement('button'); t.type='button'; t.className='v3link'; t.id='v3manTgl'; man.parentNode.insertBefore(t, man.nextSibling);
+      t.onclick=function(){ man.classList.toggle('v3open'); meTidy(); }; }
+    var v=function(k){ var i=card.querySelector('[data-k="'+k+'"]'); return i?i.value.trim():''; };
+    var nm=v('f-name'), med=v('f-room-med'), mak=v('f-room-mak');
+    var linked=!!($('#codeReset')&&!$('#codeReset').hidden);
+    if(cb) cb.classList.toggle('v3have', linked);
+    if(auto&&!auto.hidden) auto.hidden=true;
+    var sum=$('#v3meSum');
+    sum.innerHTML=nm?esc(nm)+'<small>'+[med?'Медина · номер '+esc(med):'', mak?'Мекка · номер '+esc(mak):''].filter(Boolean).join(' · ')+(med||mak?'':'номера комнат появятся по ссылке от Чингиса')+'</small>':'';
+    if(sum.hidden!==!nm) sum.hidden=!nm;
+    $('#v3manTgl').textContent=man.classList.contains('v3open')?'Готово':(nm?'Изменить вручную':'Нет ссылки — ввести вручную');
+  }
+  meTidy(); setTimeout(meTidy, 1500);
+  (function(){ var c=$('#myCard'); if(c){ c.addEventListener('input', function(){ setTimeout(meTidy,0); }); new MutationObserver(function(){ clearTimeout(meTidy.t); meTidy.t=setTimeout(meTidy,50); }).observe(c,{attributes:true,subtree:true,attributeFilter:['hidden']}); } })();
+  (function(){ var ab=$('#annBox'); if(ab) new MutationObserver(homeTidy).observe(ab,{childList:true,subtree:true}); })();
 })();
 </script>
 '''
