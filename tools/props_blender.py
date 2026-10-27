@@ -633,9 +633,246 @@ obj("mizab_orn", orn, MORN, C_HJ, parent=MZ, smooth=0)
 for o in C_HJ.objects:
     if o.type == "MESH": print("HJV", o.name, len(o.data.vertices))
 
+# ---------- Йеменский угол и шазарван (v3.17) ----------
+# По фото Wikimedia (2025): у Йеменского угла кисва подвёрнута аркой — видна кладка из крупных блоков серого гранита
+# («соль с перцем», вкрапления — шейдер сайта), где касаются руками — камень тёмный и блестящий, ребро угла скруглено;
+# край кисвы скатан в толстый бархатный валик, рядом бежево-золотой кант, внизу кисточки.
+# Шазарван — мраморный скошенный цоколь ≈ 0,25 м высотой и ≈ 0,35 м выступом по трём сторонам Каабы
+# (у стены Хиджра его нет, под дверью разрыв 1,9–3,81 м от угла Чёрного камня). Углы Каабы — haram_meta.json.
+import random
+KA = {"E": (6.26, -2.06), "N": (-0.21, 7.62), "S": (-2.14, -7.78), "W": (-8.78, 2.2)}
+SH_GAP = (1.9, 3.81)
+
+
+def unit(a, b):
+    dx, dy = b[0] - a[0], b[1] - a[1]; l = math.hypot(dx, dy); return (dx / l, dy / l), l
+
+
+def wnorm(d):   # нормаль наружу для стены, обходимой против часовой (как K_WALLS сайта)
+    return (d[1], -d[0])
+
+
+def srgb(c, k=1.0):
+    return tuple(min(1.0, max(0.0, (c >> s & 255) / 255 * k)) for s in (16, 8, 0))
+
+
+def mixc(a, b, t):
+    return tuple(x + (y - x) * t for x, y in zip(a, b))
+
+
+def vcol(o, cols):   # цвет вершин (sRGB) → атрибут Col, экспорт COLOR_0
+    me = o.data; ca = me.color_attributes.new("Col", "BYTE_COLOR", "POINT")
+    for i, c in enumerate(cols):
+        if hasattr(ca.data[i], "color_srgb"): ca.data[i].color_srgb = (*c, 1.0)
+        else: ca.data[i].color = (*[x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in c], 1.0)
+    try: me.color_attributes.active_color = ca
+    except AttributeError: pass
+    return o
+
+
+def smooth01(a, b, x):
+    t = min(1.0, max(0.0, (x - a) / (b - a))); return t * t * (3 - 2 * t)
+
+
+C_YM = coll("Йеменский_угол")
+YM = empty("yemeni", C_YM)      # начало — угол KS на полу; сайт ставит в toV3(KS)
+e1, _ = unit(KA["S"], KA["E"]); n1 = wnorm(e1)                        # грань к Чёрному камню
+dW, _ = unit(KA["W"], KA["S"]); n2 = wnorm(dW); e2 = (-dW[0], -dW[1])  # грань к Шами
+RC = 0.06                                                              # скругление ребра
+det = n1[0] * n2[1] - n1[1] * n2[0]
+Cc = ((-RC * n2[1] + RC * n1[1]) / det, (-RC * n1[0] + RC * n2[0]) / det)   # центр скругления: Cc·n1 = Cc·n2 = −RC
+PHI = math.acos(max(-1, min(1, n1[0] * n2[0] + n1[1] * n2[1]))); AH = RC * PHI / 2
+T1 = (Cc[0] + RC * n1[0], Cc[1] + RC * n1[1]); T2 = (Cc[0] + RC * n2[0], Cc[1] + RC * n2[1])
+
+
+def yframe(u):   # u < 0 — грань к Шами, u > 0 — к Чёрному камню, 0 — середина скругления; → точка стены (meta от KS) и нормаль
+    if u >= AH: return (T1[0] + (u - AH) * e1[0], T1[1] + (u - AH) * e1[1]), n1
+    if u <= -AH: return (T2[0] + (-u - AH) * e2[0], T2[1] + (-u - AH) * e2[1]), n2
+    t = (u + AH) / (2 * AH); s0, s1 = math.sin((1 - t) * PHI), math.sin(t * PHI); sp = math.sin(PHI)
+    n = ((s0 * n2[0] + s1 * n1[0]) / sp, (s0 * n2[1] + s1 * n1[1]) / sp)
+    return (Cc[0] + RC * n[0], Cc[1] + RC * n[1]), n
+
+
+def ypt(u, h, off):   # → three (локально от KS)
+    p, n = yframe(u); return (p[0] + n[0] * off, h, -(p[1] + n[1] * off))
+
+
+H0, HS, HT, W0, W1 = 0.25, 1.5, 2.3, 0.86, 0.78   # низ кладки (верх шазарвана), начало арки, вершина, полуширина внизу / у арки
+
+
+def ywid(h):   # полуширина открытого камня (по u) на высоте h
+    if h <= HS: return W0 - (W0 - W1) * (h - H0) / (HS - H0)
+    return W1 * math.sqrt(max(0.0, 1 - ((h - HS) / (HT - HS)) ** 2))
+
+
+rnd = random.Random(1717)
+COURSES = [H0]
+for hh in (0.34, 0.41, 0.31, 0.44, 0.37, 0.33, 0.36): COURSES.append(COURSES[-1] + hh)
+VJ = []   # вертикальные швы по рядам: угловой блок охватывает ребро (перевязка), дальше блоки 0,45–0,7 м
+for k in range(len(COURSES) - 1):
+    js, a = [], 0.22 + 0.2 * (k % 2) + rnd.uniform(-0.05, 0.05)
+    while a < 1.2: js.append(a); a += rnd.uniform(0.45, 0.7)
+    js2, a = [], 0.3 + 0.18 * ((k + 1) % 2) + rnd.uniform(-0.05, 0.05)
+    while a < 1.2: js2.append(-a); a += rnd.uniform(0.45, 0.7)
+    VJ.append(sorted(js + js2))
+JW = 0.007
+rows = set(round(H0 + i * 0.035, 4) for i in range(int((HT + 0.08 - H0) / 0.035) + 1))
+for c in COURSES: rows |= {round(c - JW, 4), round(c, 4), round(c + JW, 4)}
+rows = sorted(r for r in rows if H0 <= r <= HT + 0.08)
+cols = set(round(-1.0 + i * 0.03, 4) for i in range(67)) | set(round(-AH - 0.02 + i * 0.01, 4) for i in range(int((2 * AH + 0.04) / 0.01) + 1))
+for js in VJ:
+    for j in js: cols |= {round(j - JW, 4), round(j, 4), round(j + JW, 4)}
+cols = sorted(c for c in cols if -1.0 <= c <= 1.0)
+POL_DARK = srgb(0x45433f)   # отполированный руками гранит: темнее и холоднее, без «грязной» коричневы
+
+
+def ycourse(h):
+    for k in range(len(COURSES) - 1):
+        if h < COURSES[k + 1] - 1e-6: return k
+    return len(COURSES) - 2
+
+
+TONE = {}
+
+
+def ytone(k, j):
+    if (k, j) not in TONE:
+        r = random.Random(k * 97 + j * 13 + 5); f = r.uniform(0.86, 1.1); w = r.uniform(-0.03, 0.03)
+        TONE[(k, j)] = (r.uniform(0, 0.004), tuple(min(1, x * f) for x in mixc(srgb(0x8c847b), srgb(0x97887a if w > 0 else 0x7f8288), abs(w) * 12)))
+    return TONE[(k, j)]
+
+
+def ypolish(u, h):   # где касаются: у ребра, на высоте руки — как и шейдер сайта (length(pos.xz), pos.y)
+    return (1 - smooth01(0.22, 0.5, abs(u))) * smooth01(0.8, 1.05, h) * (1 - smooth01(1.8, 2.05, h))
+
+
+gv, gc, vid = [], [], {}
+for i, h in enumerate(rows):
+    k = ycourse(h); js = VJ[k]
+    for j, u in enumerate(cols):
+        dh = min(abs(h - COURSES[k]), abs(COURSES[k + 1] - h)) if 0 < k or h > H0 + 1e-6 else 1
+        if abs(h - H0) < 1e-6: dh = 1   # низ на шазарване, не шов
+        du = min([abs(u - x) for x in js] or [1])
+        dj = min(dh, du); bi = sum(1 for x in js if x < u)
+        bul, tone = ytone(k, bi)
+        if dj < JW - 1e-6 or dj < 1e-6:
+            off, c = 0.012, srgb(0x5f5850)
+        else:
+            off = 0.021 + 0.006 * smooth01(JW, 0.07, dj) + bul; c = tone
+        p = ypolish(u, h); c = mixc(c, POL_DARK, 0.6 * p); off += 0.002 * p
+        q, nq = yframe(u)   # у скругления острое ребро самой Каабы выглядывало бы в швах — держим кладку снаружи с запасом 6 мм
+        dq = max((q[0] + off * nq[0]) * a[0] + (q[1] + off * nq[1]) * a[1] for a in (n1, n2))
+        if dq < 0.006: off += (0.006 - dq) / max(0.3, max(nq[0] * a[0] + nq[1] * a[1] for a in (n1, n2)))
+        vid[(i, j)] = len(gv); gv.append(ypt(u, h, off)); gc.append(c)
+gf = []
+for i in range(len(rows) - 1):
+    hc = (rows[i] + rows[i + 1]) / 2
+    for j in range(len(cols) - 1):
+        uc = (cols[j] + cols[j + 1]) / 2
+        if abs(uc) > ywid(hc) + 0.025 or hc > HT + 0.05: continue
+        gf.append([vid[(i, j)], vid[(i, j + 1)], vid[(i + 1, j + 1)], vid[(i + 1, j)]])
+used = sorted({a for f in gf for a in f}); remap = {a: n for n, a in enumerate(used)}
+gr = obj("yemeni_granite", G([gv[a] for a in used], [[remap[a] for a in f] for f in gf]), mat("yemeni_granite", 0xffffff, .55), C_YM, parent=YM, smooth=40, recalc=False)
+vcol(gr, [gc[a] for a in used])
+
+# край кисвы: контур арки (u, h), равномерно по длине
+edge = []
+for t in range(0, 41): h = 0.27 + (HS - 0.27) * t / 40; edge.append((-(ywid(h) + 0.012), h))
+for t in range(1, 60): th = math.pi * (1 - t / 60); edge.append(((W1 + 0.012) * math.cos(th), HS + (HT - HS + 0.012) * math.sin(th)))
+for t in range(40, -1, -1): h = 0.27 + (HS - 0.27) * t / 40; edge.append((ywid(h) + 0.012, h))
+L = [0.0]
+for a, b in zip(edge, edge[1:]): L.append(L[-1] + math.dist(a, b))
+N_E = 170; ed = []
+for q in range(N_E + 1):
+    s = L[-1] * q / N_E; i = max(0, min(len(L) - 2, next((m for m in range(len(L) - 1) if L[m + 1] >= s), len(L) - 2)))
+    t = (s - L[i]) / max(1e-9, L[i + 1] - L[i]); ed.append(((1 - t) * edge[i][0] + t * edge[i + 1][0], (1 - t) * edge[i][1] + t * edge[i + 1][1], s))
+
+
+def yfold(uo, ho, u, h, sgn):   # 2D-нормаль контура в плоскости стены, наружу от проёма (на кисву)
+    du, dh = u - uo, h - ho; l = math.hypot(du, dh) or 1; return (sgn * dh / l, -sgn * du / l)
+
+
+hem, RS = G(), 12
+for q, (u, h, s) in enumerate(ed):
+    a = ed[max(0, q - 1)]; b = ed[min(N_E, q + 1)]
+    P = ypt(u, h, 0.036); Pa = ypt(a[0], a[1], 0.036); Pb = ypt(b[0], b[1], 0.036)
+    T = [Pb[m] - Pa[m] for m in range(3)]; lt = math.sqrt(sum(x * x for x in T)) or 1; T = [x / lt for x in T]
+    _, nw = yframe(u); Nn = (nw[0], 0.0, -nw[1])
+    Bn = (T[1] * Nn[2] - T[2] * Nn[1], T[2] * Nn[0] - T[0] * Nn[2], T[0] * Nn[1] - T[1] * Nn[0])
+    end = min(s, L[-1] - s); sw = 1 + 0.35 * (1 - smooth01(0.0, 0.12, end))   # к концам валик толще — узел подвязки
+    for r in range(RS):
+        th = TAU * r / RS; rr = 0.041 * sw * (1 + 0.14 * math.cos(3 * th + s * 48) + 0.04 * math.sin(s * 9))
+        hem.v.append(tuple(P[m] + rr * (math.cos(th) * Nn[m] + math.sin(th) * Bn[m]) for m in range(3)))
+for q in range(N_E):
+    for r in range(RS):
+        a0, a1 = q * RS + r, q * RS + (r + 1) % RS; hem.f.append([a0, a1, a1 + RS, a0 + RS])
+for q, rev_ in ((0, True), (N_E, False)):
+    ring = [q * RS + r for r in range(RS)]; hem.f.append(ring[::-1] if rev_ else ring)
+obj("yemeni_hem", hem, mat("yemeni_hem", 0x0c0e0f, .86), C_YM, parent=YM, smooth=60)
+
+band, SK = G(), 2   # кант на кисве рядом с валиком
+for q, (u, h, s) in enumerate(ed):
+    a = ed[max(0, q - 1)]; b = ed[min(N_E, q + 1)]; fu, fh = yfold(a[0], a[1], b[0], b[1], 1 if True else -1)
+    if fu * u < 0: fu, fh = -fu, -fh   # наружу от проёма (в сторону |u| больше / выше)
+    for d in (0.05, 0.078): band.v.append(ypt(u + fu * d, h + fh * d, 0.005))
+for q in range(N_E):
+    a = q * SK; band.f.append([a, a + 1, a + SK + 1, a + SK])
+obj("yemeni_band", band, mat("yemeni_band", 0xc8ad78, .45, .35), C_YM, parent=YM, smooth=60, recalc=False)
+
+orn = G()   # кисточки внизу у узлов и серебряные гвоздики-крепления по канту
+for sgn in (-1, 1):
+    u0 = sgn * (ywid(0.3) + 0.03); p = ypt(u0, 0.0, 0.085)
+    orn.add(cylinder(.008, .008, .16, 6).move(p[0], 0.40, p[2]))
+    orn.add(rev([(0.0, -.12), (.022, -.1), (.03, -.04), (.018, 0.0), (.012, .02), (0.0, .025)], 10).move(p[0], 0.30, p[2]))
+    orn.add(ball(.022, p[0], 0.33, p[2], 1, .8, 1, 8, 6))
+TASSEL = obj("yemeni_tassel", orn, mat("yemeni_tassel", 0x15130f, .7), C_YM, parent=YM, smooth=50)
+studs = G()
+for q in range(4, N_E - 3, 11):
+    u, h, s = ed[q]; a = ed[q - 1]; b = ed[q + 1]; fu, fh = yfold(a[0], a[1], b[0], b[1], 1)
+    if fu * u < 0: fu, fh = -fu, -fh
+    p = ypt(u + fu * 0.064, h + fh * 0.064, 0.008); studs.add(ball(.0085, *p, 1, 1, 1, 8, 5))
+obj("yemeni_stud", studs, mat("yemeni_stud", 0xdfe3e6, .22, 1), C_YM, parent=YM, smooth=60)
+
+# Шазарван: сечение (выступ от стены, высота) — задняя часть в стене, верх у стены, скат к носу, скруглённый нос, отвесный край
+SHP = [(-0.02, 0.0), (0.355, 0.0), (0.355, 0.05), (0.352, 0.072), (0.343, 0.09), (0.328, 0.104), (0.31, 0.112),
+       (0.03, 0.255), (0.012, 0.262), (-0.02, 0.262)]
+C_SZ = coll("Шазарван")
+SZ = empty("shazarwan", C_SZ)   # мировые координаты (сайт ставит в 0)
+gE, lEN = unit(KA["E"], KA["N"])
+PATHS = [[KA["W"], KA["S"], KA["E"], (KA["E"][0] + gE[0] * SH_GAP[0], KA["E"][1] + gE[1] * SH_GAP[0])],
+         [(KA["E"][0] + gE[0] * SH_GAP[1], KA["E"][1] + gE[1] * SH_GAP[1]), KA["N"]]]
+sz, szc, r2 = G(), [], random.Random(250)
+for P in PATHS:
+    segs = [unit(P[i], P[i + 1]) for i in range(len(P) - 1)]
+    for i, (d, l) in enumerate(segs):
+        n = wnorm(d)
+        def miter(j):   # вектор смещения на 1 м выступа в вершине пути j
+            if 0 < j < len(P) - 1:
+                na, nb = wnorm(segs[j - 1][0]), wnorm(segs[j][0]); k = 1 + na[0] * nb[0] + na[1] * nb[1]
+                return ((na[0] + nb[0]) / k, (na[1] + nb[1]) / k)
+            return n
+        ma, mb = miter(i), miter(i + 1); ns = max(1, round(l / 1.05))
+        for k in range(ns):
+            t0, t1 = k / ns * l + (0.0015 if k else 0), (k + 1) / ns * l - (0.0015 if k < ns - 1 else 0)
+            m0 = ma if k == 0 else n; m1 = mb if k == ns - 1 else n
+            base = len(sz.v); f = r2.uniform(0.96, 1.02); tone = tuple(min(1, x * f) for x in mixc(srgb(0xeeebe4), srgb(0xe2ded6), r2.random()))   # один множитель на все каналы — без розовых и зелёных плит
+            for t, m in ((t0, m0), (t1, m1)):
+                bx, by = P[i][0] + d[0] * t, P[i][1] + d[1] * t
+                for o, h in SHP:
+                    sz.v.append((bx + m[0] * o, h, -(by + m[1] * o))); szc.append(tone)
+            NP = len(SHP)
+            sz.f.append([base + a for a in range(NP)][::-1]); sz.f.append([base + NP + a for a in range(NP)])
+            for a in range(NP):
+                b = (a + 1) % NP; sz.f.append([base + a, base + b, base + NP + b, base + NP + a])
+szo = obj("shazarwan_marble", sz, mat("shazarwan_marble", 0xffffff, .28), C_SZ, parent=SZ, smooth=30)
+vcol(szo, szc)
+for c in (C_YM, C_SZ):
+    for o in c.objects:
+        if o.type == "MESH": print("YMV", o.name, len(o.data.vertices), len(o.data.polygons))
+
 os.makedirs(OUT, exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "props.blend"))
-kw = dict(filepath=os.path.join(OUT, "props.glb"), export_format="GLB", export_texcoords=False, export_vertex_color="NONE", export_normals=True,
+kw = dict(filepath=os.path.join(OUT, "props.glb"), export_format="GLB", export_texcoords=False, export_vertex_color="ACTIVE", export_normals=True,
           export_yup=True, export_apply=False, export_cameras=False, export_lights=False,
           export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
           export_draco_position_quantization=14, export_draco_normal_quantization=10)

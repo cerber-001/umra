@@ -1,5 +1,5 @@
 /* Гид паломника JURT — офлайн-кэш. Версия меняется автоматически при каждой сборке. */
-var CACHE = 'jurt-umra-bcba20e44c';
+var CACHE = 'jurt-umra-9b10fbc211';
 var ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'amiri-400.woff2',
   'exo2-regular.woff2', 'exo2-semibold.woff2', 'exo2-bold.woff2', 'logo-white.svg', 'umra.ics',
   'icon-mark.png', 'favicon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png',

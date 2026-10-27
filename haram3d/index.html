@@ -292,7 +292,7 @@ const SPOTS = [
 <p>Молиться в Хиджре — всё равно что внутри Каабы: Хиджр — часть Дома. В книгах о хадже, в том числе ханафитских, место под Мизабом называют среди мест, где дуа принимается. Молитесь там, где свободно, и не толкайтесь.</p>
 <p class="src">Абу Дауд, № 2028; ат-Тирмизи, № 876.</p>`, dist: 30 },
   { key: "yemeni", tag: "Таваф", title: "Йеменский угол",
-    text: `<p>Рукн аль-Ямани — южный угол Каабы, последний перед Чёрным камнем. Кисва здесь подрезана — виден камень стены.</p>
+    text: `<p>Рукн аль-Ямани — южный угол Каабы, последний перед Чёрным камнем. Кисва здесь подвёрнута аркой — видна кладка из серого гранита, а у самого ребра камень тёмный и гладкий от прикосновений.</p>
 <p>Если свободно — коснитесь угла правой рукой (или обеими), не целуя. Если тесно — проходите: издали жест не делают.</p>
 <p>От него до Чёрного камня читают:</p><p class="dua">Раббана атина фи-д-дунья хасанатан ва фи-ль-ахырати хасанатан ва кына ‘азаба-н-нар</p>
 <p class="src">Коран 2:201; Абу Дауд, № 1892.</p>`, dist: 30 },
@@ -3034,6 +3034,48 @@ function wallPanel(a, b, t0, t1, z0, z1, off, mat) {   // плоскость с 
   m.position.copy(toV3(p.x + nx * off, p.y + ny * off, (z0 + z1) / 2)); m.lookAt(m.position.clone().add(toV3(nx, ny, 0)));
   return m;
 }
+// Жаккард кисвы: по чёрному шёлку тем же чёрным, но иной фактурой вытканы зигзаги с надписями (видно только в косом свете —
+// нити узора блестят сильнее фона). Холст 2 × 2 м бесшовно повторяется; на стену кладётся по мировым координатам (UV у модели нет).
+// Набор фраз — по описаниям кисвы (на сверку): шахада, «Аллах джалля джалялюх», «Субханаллахи ва бихамдихи…», «Йа Ханнан йа Маннан».
+{
+  const N = 1024, c = document.createElement("canvas"); c.width = c.height = N; const x = c.getContext("2d");
+  x.fillStyle = "#000"; x.fillRect(0, 0, N, N); x.fillStyle = x.strokeStyle = "#fff";
+  x.textAlign = "center"; x.textBaseline = "middle"; x.direction = "rtl";
+  const PH = ["لا إله إلا الله محمد رسول الله", "الله جل جلاله", "سبحان الله وبحمده سبحان الله العظيم", "يا حنان يا منان"];
+  const R = 4, H = N / R, Z = 4, A = H * 0.55, s = N / Z;   // 4 полосы по 0,5 м, в каждой зигзаг из 4 звеньев (≈ 30°), надпись — вдоль звена
+  for (let r = 0; r < R; r++) {
+    const y0 = r * H + 18, yk = (k) => y0 + (k % 2 ? A : 0);
+    x.lineWidth = 6;
+    for (const dy of [0, 14]) { x.beginPath(); for (let k = 0; k <= Z; k++) x.lineTo(k * s, yk(k) + dy); x.stroke(); }   // двойная ломаная
+    for (let k = 0; k < Z; k++) {
+      const t = PH[(k + r * 3) % PH.length], ang = Math.atan2(yk(k + 1) - yk(k), s), len = Math.hypot(s, A);
+      let px = 64; x.font = `bold ${px}px ${K_FONT}`;
+      while (x.measureText(t).width > len * 0.82 && px > 18) { px -= 2; x.font = `bold ${px}px ${K_FONT}`; }
+      x.save(); x.translate((k + 0.5) * s, (yk(k) + yk(k + 1)) / 2 + 14); x.rotate(ang); x.fillText(t, 0, 50); x.restore();
+      x.beginPath(); x.arc(k * s, yk(k) + (k % 2 ? 44 : -26), 8, 0, Math.PI * 2); x.fill();   // точка у излома
+    }
+  }
+  const jac = new THREE.CanvasTexture(c); jac.colorSpace = THREE.NoColorSpace; jac.wrapS = jac.wrapT = THREE.RepeatWrapping; jac.anisotropy = 8;
+  gltf.scene.traverse((o) => {
+    if (!o.isMesh || o.material.name !== "kiswa") return;
+    const m = o.material;
+    m.onBeforeCompile = (sh) => {
+      sh.uniforms.kJac = { value: jac };
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vKp; varying vec3 vKn;")
+        .replace("#include <begin_vertex>", "#include <begin_vertex>\nvKp = (modelMatrix * vec4(position, 1.0)).xyz; vKn = normalize(mat3(modelMatrix) * normal);");
+      sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D kJac; varying vec3 vKp; varying vec3 vKn;")
+        .replace("#include <color_fragment>", `#include <color_fragment>
+  vec3 kn = normalize(vKn); float kside = 1.0 - smoothstep(0.5, 0.8, abs(kn.y));   // узор только на стенах, не на крыше
+  vec2 kp = vec2(dot(vKp.xz, normalize(vec2(kn.z, -kn.x) + 1e-5)), vKp.y);   // вдоль стены слева направо для смотрящего (иначе надписи зеркальны) и вверх, в метрах
+  float kj = texture2D(kJac, kp / 2.0).r * kside;
+  vec2 kw = kp * 700.0;   // переплетение нитей ≈ 1,4 мм
+  float kwf = 1.0 - smoothstep(0.25, 0.9, length(fwidth(kw)));
+  float kwv = (sin(kw.x * 6.2832) * sin(kw.y * 6.2832)) * 0.5 + 0.5;
+  diffuseColor.rgb *= (1.0 + 0.8 * kj) * mix(1.0, mix(0.9, 1.1, kwv), kwf * kside);`)
+        .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.5, kj);");
+    };
+  });
+}
 const kaabaDecor = new THREE.Group();
 {
   // Хизам: кайма и крупная надпись на каждой стене
@@ -3091,9 +3133,64 @@ const kaabaDecor = new THREE.Group();
   for (const t of [sitaraMat.map, sitaraMat.metalnessMap]) t.flipY = false;   // UV из glTF: v = 0 — верх холста
   const sitaraMesh = gltf.scene.getObjectByName("sitara");
   if (sitaraMesh) { sitaraMesh.material = sitaraMat; sitaraMesh.castShadow = true; }
-  // Медные кольца кисвы — на скате шазарвана (выступ KM.shad.w, высота KM.shad.h); у стены Хиджра шазарвана нет, под дверью — разрыв
-  const copper = new THREE.MeshStandardMaterial({ color: 0xb87333, metalness: 1, roughness: 0.4 }), rings = [];
-  const RO = 0.12, RZ = KM.shad.h * (1 - (RO + 0.02) / (KM.shad.w + 0.02)) + 0.07;   // центр кольца над скатом
+  // Шазарван и Йеменский угол — подробные модели из Blender (props.glb, «shazarwan» и «yemeni»). Шазарван: мраморные плиты ≈ 1 м,
+  // скат от стены (0,26 м) к скруглённому носу (0,35 м от стены); у стены Хиджра его нет, под дверью разрыв. Йеменский угол: кисва
+  // подвёрнута аркой до ≈ 2,3 м — кладка из блоков серого гранита, у ребра на высоте руки камень тёмный и гладкий от касаний,
+  // край кисвы скатан в валик с кантом и кисточками. Простой цоколь из haram.glb вырезаем: мрамор в полосе 0,6 м снаружи стен ниже 0,35 м.
+  {
+    const cutS = cutHaram(["marble"], (v) => {
+      if (v.y > 0.35) return 0;
+      for (const [a, b] of K_WALLS) {
+        const l = a.distanceTo(b), ex = (b.x - a.x) / l, ey = (b.y - a.y) / l, px = v.x - a.x, py = -v.z - a.y;
+        const t = px * ex + py * ey, d = px * ey - py * ex;
+        if (t > -0.45 && t < l + 0.45 && d > -0.1 && d < 0.6) return v.y > 0.01 ? 2 : 1;
+      }
+      return 0;
+    });
+    if (location.search.includes("dbg")) console.log("cut shazarwan", cutS);
+    const Y = pNode0("yemeni"), S = pNode0("shazarwan");
+    Y.position.copy(toV3(KS.x, KS.y));
+    for (const N of [Y, S]) {
+      N.traverse((o) => {
+        if (!o.isMesh) return;
+        const m = o.material;
+        o.receiveShadow = true; o.castShadow = m.name !== "yemeni_stud";
+        if (m.name === "yemeni_hem") { m.envMapIntensity = 0.35; m.roughness = 0.86; }
+        if (m.name === "yemeni_band") { m.emissive.set(0x2a1f08); m.emissiveIntensity = 0.2; m.envMapIntensity = 1.3; }
+        if (m.name === "shazarwan_marble") {   // белый мрамор с серыми прожилками (по мировым координатам, гаснут вдали — без ряби)
+          m.envMapIntensity = 1.05;
+          m.onBeforeCompile = (sh) => {
+            sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vMp;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvMp = position;");
+            sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vMp;\nfloat mh(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }\nfloat mn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(mix(mh(i), mh(i + vec3(1,0,0)), f.x), mix(mh(i + vec3(0,1,0)), mh(i + vec3(1,1,0)), f.x), f.y), mix(mix(mh(i + vec3(0,0,1)), mh(i + vec3(1,0,1)), f.x), mix(mh(i + vec3(0,1,1)), mh(i + vec3(1,1,1)), f.x), f.y), f.z); }")
+              .replace("#include <color_fragment>", `#include <color_fragment>
+  vec3 mq = vMp * 2.3; float mt = mn(mq) * 0.55 + mn(mq * 2.7) * 0.3 + mn(mq * 7.0) * 0.15;
+  float mv = 1.0 - smoothstep(0.0, 0.035 + fwidth(mt) * 1.5, abs(sin((vMp.x * 0.8 - vMp.z * 1.3 + mt * 3.2) * 3.1416)));
+  diffuseColor.rgb *= 1.0 - 0.2 * mv * (0.5 + 0.5 * mn(mq * 0.5 + 9.0));
+  diffuseColor.rgb *= 0.97 + 0.05 * mn(vMp * 31.0);`);
+          };
+        }
+        if (m.name === "yemeni_granite") {   // гранит «соль с перцем»: тёмные и светлые зёрна ≈ 4 мм (гаснут вдали, чтобы не рябило); у ребра — полировка от рук
+          m.envMapIntensity = 1.1;
+          m.onBeforeCompile = (sh) => {
+            sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vYp;").replace("#include <begin_vertex>", "#include <begin_vertex>\nvYp = position;");
+            sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vYp;\nfloat yh(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }\nfloat yn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(mix(yh(i), yh(i + vec3(1,0,0)), f.x), mix(yh(i + vec3(0,1,0)), yh(i + vec3(1,1,0)), f.x), f.y), mix(mix(yh(i + vec3(0,0,1)), yh(i + vec3(1,0,1)), f.x), mix(yh(i + vec3(0,1,1)), yh(i + vec3(1,1,1)), f.x), f.y), f.z); }")
+              .replace("#include <color_fragment>", `#include <color_fragment>
+  vec3 yq = vYp * 330.0; float yf = 1.0 - smoothstep(0.3, 1.0, length(fwidth(yq)));
+  float yd = smoothstep(0.66, 0.8, yn(yq)), yl = smoothstep(0.7, 0.84, yn(yq * 0.71 + 17.0)) * (1.0 - yd);
+  float ym = yn(vYp * 11.0) * 0.6 + yn(vYp * 37.0) * 0.4;   // мягкие пятна по камню — не «пиксели»
+  diffuseColor.rgb *= mix(0.9, 1.08, ym) * mix(1.0, mix(1.0, 0.5, yd) * mix(1.0, 1.25, yl), yf);
+  float ypol = (1.0 - smoothstep(0.22, 0.5, length(vYp.xz))) * smoothstep(0.8, 1.05, vYp.y) * (1.0 - smoothstep(1.8, 2.05, vYp.y));`)
+              .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.15, ypol);");
+          };
+        }
+        occluders.push(o);
+      });
+      scene.add(N);
+    }
+  }
+  // Кольца кисвы (золочёная латунь) — на скате шазарвана; у стены Хиджра шазарвана нет, под дверью — разрыв
+  const copper = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 1, roughness: 0.3, envMapIntensity: 1.3 }), rings = [];
+  const RO = 0.12, RZ = 0.255 - 0.51 * (RO - 0.03) + 0.07;   // центр кольца над скатом новой модели шазарвана
   K_WALLS.forEach(([a, b], i) => { if (i === 1) return;
     const l = a.distanceTo(b), n = Math.round(l / 1.1), nx = (b.y - a.y) / l, ny = -(b.x - a.x) / l;
     for (let k = 0; k < n; k++) { const m = (k + 0.5) / n * l; if (i === 0 && m > KM.shad.gap[0] - 0.15 && m < KM.shad.gap[1] + 0.15) continue;
@@ -3123,10 +3220,10 @@ scene.add(kaabaDecor);
   const t = label("таваф — только снаружи", "#1f8a4c", "#fff"); t.position.copy(toV3(-11.5, 13.5, 4)); g.add(t);
   spotFx.hijr = g;
 }
-{ // 6. Йеменский угол — кисва внизу подвёрнута, виден камень стены; подсвечен участок, которого касаются
-  const g = new THREE.Group(), stone = new THREE.MeshStandardMaterial({ color: 0x9a8b76, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2 });
-  const sw = KS.clone().add(new THREE.Vector2(-0.554, 0.832).multiplyScalar(1.1)), se = KS.clone().add(new THREE.Vector2(0.827, 0.563).multiplyScalar(1.1));
-  for (const [a, b] of [[KS, se], [sw, KS]]) g.add(wallQuad(a, b, KM.shad.h - 0.05, 2.3, 0.06, stone), wallQuad(a, b, 0.6, 2.0, 0.1, hiMat(0xffd76b, 0.28)));
+{ // 6. Йеменский угол — камень под подвёрнутой кисвой (модель «yemeni»); подсвечен участок, которого касаются
+  const g = new THREE.Group();
+  const sw = KS.clone().add(new THREE.Vector2(-0.554, 0.832).multiplyScalar(0.9)), se = KS.clone().add(new THREE.Vector2(0.827, 0.563).multiplyScalar(0.9));
+  for (const [a, b] of [[KS, se], [sw, KS]]) g.add(wallQuad(a, b, 0.8, 2.0, 0.1, hiMat(0xffd76b, 0.22)));
   const t = label("касаются правой рукой — не целуют", "#005A5C", "#F4EDE1"); t.position.copy(toV3(-3.6, -10.6, 3.6)); g.add(t);
   spotFx.yemeni = g;
 }
