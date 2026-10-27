@@ -1682,20 +1682,78 @@ for (let row = 0; row < 3; row++) for (let j = -4; j <= 4; j++) {
   const x = mq.x + mqOut.x * u + mqSide.x * v, y = mq.y + mqOut.y * u + mqSide.y * v, edge = Math.abs(j) >= 3;
   xPerson(edge ? praying(x, y) : lateRow(x, y), { sp: 0.9 + rnd() * 0.25, woman: false, row: !edge });
 }
-// 2. Внутри Хиджра молятся (это часть Каабы); 3. очередь в Хиджр: вход у северного угла, выход у западного
+// 2–3. Хиджр Исмаила (v3.15) — как на деле: заходят ПАРТИЯМИ через северный проём, где стоит полиция с переносной
+//   оградой; внутри — 2 ракаата и дуа, выходят через западный проём. Время братьев и сестёр раздельное: две партии братьев,
+//   потом две партии сестёр (в жизни окна дольше — здесь сжато до минуты на партию, чтобы было видно). Следующая партия ждёт
+//   снаружи у ограды; кто подходит не в своё окно — полицейский разворачивает. Порядок rnd() прежний (11 + 16 человек),
+//   недостающие — со своим генератором rndH.
 const HC = new THREE.Vector2(-6.665, 8.763), HN = new THREE.Vector2(-0.605, 0.796);
-for (let n = 0, tries = 0; n < 11 && tries < 400; tries++) {
-  const a = rnd() * Math.PI * 2, r = 1 + rnd() * 3.4, x = HC.x + r * Math.cos(a), y = HC.y + r * Math.sin(a);
-  if (x * HN.x + y * HN.y < 7.4 || Math.hypot(x + 6.2, y - 11) < 1.2) continue;   // не у стены Каабы и не на проходе очереди
-  if (XP.some((p) => p.hx !== undefined && Math.hypot(p.hx - x, p.hy - y) < 1.1)) continue;
-  const q = Math.min(1, 4.1 / r), px = HC.x + (x - HC.x) * q, py = HC.y + (y - HC.y) * q;   // не ближе 0,3 м к стене Хатима (r стены — 4,4 м)
-  xPerson(praying(px, py), { sp: 0.8 + rnd() * 0.3, hx: x, hy: y, woman: false }); n++;
+let seedH = 11; const rndH = () => ((seedH = (seedH * 16807) % 2147483647) / 2147483647);
+const HJ_S = 55, HJ_N = 16, HJ_C = 4 * HJ_S, HJ_SEX = [false, false, true, true];   // окно партии, человек в партии, пол партий (true — сёстры)
+const HG_N = new THREE.Vector2(-0.98, 8.82), HG_NO = new THREE.Vector2(0.842, 0.54), HG_NA = new THREE.Vector2(-0.54, 0.842);   // северный проём: середина, наружу, вдоль
+const HG_W = new THREE.Vector2(-9.455, 3.625), HG_WO = new THREE.Vector2(-0.904, -0.428);   // западный проём (выход)
+const HWN = new THREE.Vector2(-0.535, 0.845), HWT = new THREE.Vector2(0.845, 0.535), HWM = new THREE.Vector2(-4.495, 4.91);   // стена Каабы у Хиджра: нормаль, вдоль, середина
+const HSP = [];   // места молитвы внутри: ряды от стены Каабы, не ближе 0,5 м к стене Хатима; сперва — ближе к стене и к Мизабу
+for (let d = 1.0; d < 8.5; d += 1.5) for (let w = -4.4; w <= 4.4; w += 1.1) {
+  const x = HWM.x + HWN.x * d + HWT.x * w, y = HWM.y + HWN.y * d + HWT.y * w;
+  if (Math.hypot(x - HC.x, y - HC.y) < 3.9) HSP.push({ x, y, k: d * 0.55 + Math.abs(w) * 0.45 + ((d * 7 + w * 3) % 1) * 0.3 });
 }
-const hijrQ = polyline([[3.5, 15.5], [0.4, 11.4], [-1.17, 8.95], [-3.6, 10.6], [-6.2, 11.6], [-8.6, 9.0], [-9.73, 3.4], [-12, 0.4], [-16, -1.5]]);
-for (let k = 0; k < 16; k++) xPerson((t, p) => {
-  const s = (t * 0.45 + k * hijrQ.L / 16) % hijrQ.L; onPath(hijrQ, s); walkSw(t, p, 0.4);
-  xq.hide = s > hijrQ.L - 0.5;
-});
+HSP.sort((a, b) => a.k - b.k); HSP.length = HJ_N;
+const v2 = (p, a, ka, b = null, kb = 0) => [p.x + a.x * ka + (b ? b.x * kb : 0), p.y + a.y * ka + (b ? b.y * kb : 0)];
+const hjSlot = (t) => { const i = Math.floor(t / HJ_S); return { s: ((i % 4) + 4) % 4, tau: t - i * HJ_S }; };
+const hjGate = (tau) => CL.phase ? 0 : tau < 1.5 ? tau / 1.5 : tau < 13 ? 1 : tau < 15 ? (15 - tau) / 2 : 0;   // ограда: 0 — закрыта, 1 — открыта
+function hijrMember(m) {   // m = { b — партия 0…3, k — номер в ней }; пути считаются при первом кадре
+  let pIn = null, pOut = null, pWait = null, ta = 0, w0 = null;
+  return (t, p) => {
+    if (!pIn) {
+      const sp = HSP[m.k], row = m.k >> 2, col = m.k & 3;
+      w0 = v2(HG_N, HG_NO, 1.5 + row * 0.75, HG_NA, (col - 1.5) * 0.7 - 0.3);
+      pWait = polyline([v2(HG_N, HG_NO, 7.5, HG_NA, 2 + col * 0.4), w0]);
+      pIn = polyline([w0, v2(HG_N, HG_NO, 0.6), v2(HG_N, HG_NO, -0.9), [sp.x, sp.y]]);
+      pOut = polyline([[sp.x, sp.y], v2(HG_W, HG_WO, -0.9), v2(HG_W, HG_WO, 1.0), v2(HG_W, HG_WO, 4.5, HWT, -2.5)]);
+      ta = 1.5 + m.k * 0.35 + pIn.L / 1.0;
+    }
+    const u = (((t - m.b * HJ_S) % HJ_C) + HJ_C) % HJ_C, sp = HSP[m.k];
+    if (CL.phase) {   // общий намаз: ворота закрыты, внутри остаётся та партия, чьё окно сейчас, — молится с джамаатом
+      if (u >= HJ_S) { xq.hide = true; return; }
+      return praying(sp.x, sp.y)(t, p);
+    }
+    if (u >= HJ_C - HJ_S + 20) {   // окно перед нашим: подходим и ждём у ограды
+      const k = Math.min(1, (u - (HJ_C - HJ_S + 20)) / 7);
+      onPath(pWait, k * pWait.L);
+      if (k < 1) walkSw(t, p, 1); else { xq.r = faceTo(-HG_NO.x, -HG_NO.y) + Math.sin(t * 0.4 + p.ph * 6) * 0.3; if (p.ph < 0.3) xq.both = Math.sin(t * 0.2 + p.ph * 9) > 0.4; }
+      return;
+    }
+    if (u >= HJ_S) { xq.hide = true; return; }
+    if (u < ta) { const s = Math.max(0, (u - 1.5 - m.k * 0.35)) * 1.0; onPath(pIn, s); if (s > 0) walkSw(t, p, 1); else xq.r = faceTo(-HG_NO.x, -HG_NO.y); return; }
+    const tp = u - ta, te = PRAYER_T + 3;
+    if (tp < PRAYER_T) { xq.x = sp.x; xq.y = sp.y; xq.r = faceTo(-HWN.x, -HWN.y); xq.pose = prayPose(tp); xq.pray = xq.pose === 0; return; }
+    if (tp < te) { xq.x = sp.x; xq.y = sp.y; xq.r = faceTo(-HWN.x, -HWN.y); xq.both = true; return; }   // дуа стоя, лицом к Каабе
+    const s = (tp - te) * 1.1; if (s > pOut.L) { xq.hide = true; return; }
+    onPath(pOut, s); walkSw(t, p, 1.1);
+  };
+}
+const HJM = [[], [], [], []];   // партии: кто в какой
+const hjAdd = (p, m) => { const b = p.woman ? (HJM[2].length < HJ_N ? 2 : 3) : (HJM[0].length < HJ_N ? 0 : 1); m.b = b; m.k = HJM[b].length; HJM[b].push(p); };
+for (let n = 0, tries = 0; n < 11 && tries < 400; tries++) {   // прежние 11 мест — теперь братья первой партии (rnd() — как раньше)
+  const a = rnd() * Math.PI * 2, r = 1 + rnd() * 3.4, x = HC.x + r * Math.cos(a), y = HC.y + r * Math.sin(a);
+  if (x * HN.x + y * HN.y < 7.4 || Math.hypot(x + 6.2, y - 11) < 1.2) continue;
+  if (XP.some((p) => p.hx !== undefined && Math.hypot(p.hx - x, p.hy - y) < 1.1)) continue;
+  const m = {}; hjAdd(xPerson(hijrMember(m), { sp: 0.8 + rnd() * 0.3, hx: x, hy: y, woman: false }), m); n++;
+}
+for (let k = 0; k < 16; k++) { const m = {}; hjAdd(xPerson(hijrMember(m)), m); }   // прежняя «очередь насквозь» — теперь в партиях
+for (let b = 0; b < 4; b++) while (HJM[b].length < HJ_N) { const m = {}; hjAdd(xPerson(hijrMember(m), { R: rndH, woman: HJ_SEX[b], sp: 0.85 + rndH() * 0.3 }), m); }
+// нарушители: сестра подходит в окно братьев (партия 0), брат — в окно сестёр (партия 2); полицейский поднимает табличку, разворачиваются
+for (const [sex, slot] of [[true, 0], [false, 2]]) {
+  const far = v2(HG_N, HG_NO, 7, HG_NA, 3.2), near = v2(HG_N, HG_NO, 1.4, HG_NA, 1.9), pl = polyline([far, near]);
+  xPerson((t, p) => {
+    const { s, tau } = hjSlot(t);
+    if (CL.phase || s !== slot || tau < 18 || tau > 35) { xq.hide = true; return; }
+    if (tau < 24) { onPath(pl, (tau - 18) / 6 * pl.L); walkSw(t, p, 1); return; }
+    if (tau < 29) { xq.x = near[0]; xq.y = near[1]; xq.r = faceTo(-HG_NO.x, -HG_NO.y) + (tau > 26 ? 0.9 : 0); xq.arm = tau < 26 ? 0.35 : 0; return; }   // спрашивает — потом поворачивается к полицейскому
+    onPath(pl, (1 - (tau - 29) / 6) * pl.L); xq.r += Math.PI; walkSw(t, p, 1);
+  }, { R: rndH, woman: sex });
+}
 // 4. Очередь к Чёрному камню вдоль юго-восточной стены: передний целует (наклон ~2 с), уходит, очередь сдвигается
 const SE_D = new THREE.Vector2(-0.827, -0.563), SE_O = new THREE.Vector2(0.563, -0.827), ST_O = new THREE.Vector2(0.982, -0.191);
 const QN = 9, QT = 3;
@@ -2012,21 +2070,22 @@ for (const b of BARSEG) { const i0 = Math.floor(b.x / 2), j0 = Math.floor(b.y / 
 // --- полиция Харама: оливковая форма, тёмная кепка; таблички-реплики над головой — что они обычно говорят паломникам
 function police(f, o = {}) {
   const p = xPerson(f, { street: true, woman: false, ...o });
-  p.c.setHex(0x5e6b4e).offsetHSL(0, 0, (rnd() - 0.5) * 0.06); p.hs = 1; p.hc = new THREE.Color(0x2b3326); if (p.bc) p.bc = new THREE.Color(0x2a1d14);
-  p.police = true; p.uni = true; p.prays = rnd() < 0.6; return p;   // рубашка и брюки, не изар
+  const R = o.R || rnd;
+  p.c.setHex(0x5e6b4e).offsetHSL(0, 0, (R() - 0.5) * 0.06); p.hs = 1; p.hc = new THREE.Color(0x2b3326); if (p.bc) p.bc = new THREE.Color(0x2a1d14);
+  p.police = true; p.uni = true; p.prays = R() < 0.6; return p;   // рубашка и брюки, не изар
 }
 function signed(p, texts, period = 14, off = rnd() * 14) {
   p.signs = texts.map((t) => { const s = label(t, "#3b4a2e", "#fff", 0.022); s.visible = false; scene.add(s); return s; });
   p.sper = period; p.soff = off; return p;
 }
 const signV = new THREE.Vector3();
-function showSign(p, t, ok = true) {   // после установки xq: табличка видна ~3 с за период, в это время рука поднята; во время намаза — нет
-  if (!p.signs) return;
-  const c = (t + p.soff) % p.sper, k = Math.floor((t + p.soff) / p.sper) % p.signs.length;
+function showSign(p, t, ok = true, ki = -1, hold = false) {   // после установки xq: табличка видна ~3 с за период, в это время рука поднята; во время намаза — нет
+  if (!p.signs) return;   // ki — какую табличку (иначе по кругу), hold — держать поднятой, пока условие верно
+  const c = (t + p.soff) % p.sper, k = ki >= 0 ? ki : Math.floor((t + p.soff) / p.sper) % p.signs.length;
   const near = camera.position.distanceToSquared(signV.set(xq.x, xq.h, -xq.y)) < 70 * 70;   // издали табличка не нужна — закрывала бы весь Харам
-  const on = ok && near && c < 3 && CL.phase !== 3 && !xq.hide;
+  const on = ok && near && (hold || c < 3) && CL.phase !== 3 && !xq.hide;
   p.signs.forEach((s, i) => { s.visible = on && i === k; });
-  if (on) { p.signs[k].position.set(xq.x, xq.h + 2.45, -xq.y); signClear(p.signs[k]); xq.arm = 0.75 * Math.sin(Math.PI * c / 3); }
+  if (on) { p.signs[k].position.set(xq.x, xq.h + 2.45, -xq.y); signClear(p.signs[k]); xq.arm = hold ? 0.75 : 0.75 * Math.sin(Math.PI * c / 3); }
 }
 const sgP = new THREE.Vector3(), sgQ = new THREE.Vector3(), sgUp = new THREE.Vector3();
 function signClear(s) {   // табличка не закрывает метки мест (у Камня — «1»): если легла на метку, поднимаем её по экрану над меткой
@@ -2071,9 +2130,28 @@ const scan = (base, t, off = 0) => base + Math.sin(t * 0.6 + off) * 0.35;   // �
   const x = stoneA.x + ST_O.x * 0.75 - SE_O.x * 0.9, y = stoneA.y + ST_O.y * 0.75 - SE_O.y * 0.9, r = faceTo(ST_O.x, ST_O.y);   // (KE объявлен ниже — берём stoneA)
   signed(police((t, p) => { xq.x = x; xq.y = y; xq.r = scan(r, t); showSign(p, t); }), ["Без фото у Камня", "Проходите, не стойте"], 14, 2);
 }
-{ // у входа в Хиджр — рядом с очередью
-  const x = HC.x + HN.x * 2.2, y = HC.y + HN.y * 2.2;
-  signed(police((t, p) => { xq.x = x; xq.y = y; xq.r = scan(faceTo(1, 0), t, 1); showSign(p, t); }), ["Проходите, не стойте", "Ялла, хаджи!"], 16, 7);
+{ // у ворот Хиджра (северный проём): впускает партию, держит очередь, разворачивает не в своё время
+  const [x, y] = v2(HG_N, HG_NO, 0.5, HG_NA, 2.0), r0 = faceTo(HG_NO.x - HG_NA.x * 0.5, HG_NO.y - HG_NA.y * 0.5);
+  signed(police((t, p) => {
+    xq.x = x; xq.y = y; const { s, tau } = hjSlot(t), sis = HJ_SEX[s];
+    if (!CL.phase && (s === 0 || s === 2) && tau > 24 && tau < 29.5) { xq.r = faceTo(HG_NA.x * 0.3 + HG_NO.x, HG_NA.y * 0.3 + HG_NO.y) - 0.5; showSign(p, t, true, s === 0 ? 3 : 4, true); return; }
+    if (!CL.phase && tau < 13) { xq.r = faceTo(-HG_NA.x + HG_NO.x * 0.3, -HG_NA.y + HG_NO.y * 0.3); showSign(p, t, true, 5, tau > 1 && tau < 9); return; }   // машет: заходите
+    xq.r = scan(r0, t, 1); showSign(p, t, true, CL.phase ? 2 : ((t / 8) | 0) % 2 ? 2 : sis ? 1 : 0);
+  }, { R: rndH }), ["Сейчас — братья", "Сейчас — сёстры", "Ждите — внутри молятся", "Сёстры — позже", "Братья — позже", "Заходите!"], 8, 0);
+  const [xw, yw] = v2(HG_W, HG_WO, 1.2, new THREE.Vector2(-0.42, 0.907), 1.9), rw = faceTo(-HG_WO.x, -HG_WO.y);   // у западного проёма — выход
+  signed(police((t, p) => { xq.x = xw; xq.y = yw; xq.r = scan(rw, t, 2); showSign(p, t); }, { R: rndH }), ["Выход здесь", "Проходите, не стойте"], 15, 5);
+}
+// переносная ограда в северном проёме: две секции на петлях у краёв проёма; открываются, когда входит партия
+const hjGateM = new THREE.InstancedMesh(propGeo("barrier"), propMat("barrier"), 2);
+hjGateM.castShadow = true; scene.add(hjGateM);
+function updateHijrGate(t) {
+  const g = hjGate(hjSlot(t).tau), th = g * Math.PI * 0.5;
+  for (const sg of [-1, 1]) {   // петля — у края проёма (±1,36 м), секция 1,4 м поворачивается наружу
+    const hx = HG_N.x + HG_NA.x * sg * 1.36, hy = HG_N.y + HG_NA.y * sg * 1.36;
+    const dx = -sg * HG_NA.x * Math.cos(th) + HG_NO.x * Math.sin(th), dy = -sg * HG_NA.y * Math.cos(th) + HG_NO.y * Math.sin(th);
+    hjGateM.setMatrixAt(sg < 0 ? 0 : 1, mtx.makeRotationY(Math.atan2(dy, dx)).setPosition(hx + dx * 0.68, 0, -(hy + dy * 0.68)));
+  }
+  hjGateM.instanceMatrix.needsUpdate = true;
 }
 for (const side of [-1, 1]) {   // у рядов за Макамом: торопят тех, кто засиделся после двух ракаатов
   const x = mq.x + mqOut.x * 9.5 + mqSide.x * side * 5.2, y = mq.y + mqOut.y * 9.5 + mqSide.y * side * 5.2, r = faceTo(-mqOut.x, -mqOut.y);
@@ -3227,7 +3305,7 @@ renderer.setAnimationLoop((now) => {
   updateFx(paused ? 0 : dt * speed);   // раньше controls.update(): камера раскадровки и точка взгляда — из одного кадра
   controls.update();
   updateClock(dt);   // часы Мекки: намаз останавливает таваф и толпу (crowdT стоит), птицы и часы живут по simT
-  crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); solveCrowd(); flushCrowd(); gridBuild();
+  crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); updateHijrGate(crowdT); solveCrowd(); flushCrowd(); gridBuild();
   updateDusk(dt); updateBirds(simT); updateClockChip();
   for (let i = 0; i < SPARKS; i++) {
     const v = Math.max(0, Math.sin(simT * 1.6 + sparkPh[i])) ** 3;
@@ -3250,7 +3328,7 @@ renderer.setAnimationLoop((now) => {
 if (new URLSearchParams(location.search).has("dbg")) window.__d = {   // проверка: ?dbg — доступ к толпе и шаг симуляции
   scene, SAI_CAM, ZS, CL, XP, walkers, xq, STONE, stoneA, stoneDir, mq, mqOut, WSEC, BGRID, camera, controls, you, get cine() { return cine; },
   get crowdT() { return crowdT; },
-  run(n = 1, dt = 0.05) { for (let i = 0; i < n; i++) { updateClock(dt); crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); solveCrowd(); flushCrowd(); gridBuild(); } },
+  run(n = 1, dt = 0.05) { for (let i = 0; i < n; i++) { updateClock(dt); crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); updateHijrGate(crowdT); solveCrowd(); flushCrowd(); gridBuild(); } },
   stats: crowdStats, get nA() { return nA; }, get solveMs() { return solveMs; }, get solIt() { return solIt; }, solve(on) { solveOn = on; crowdJump = true; },
   get fxT() { return fxT; },
   fx(n = 1, dt = 0.05) { fly = null; flyQ = []; for (let i = 0; i < n && !paused; i++) { updateFx(dt); controls.update(); } },
