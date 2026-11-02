@@ -463,13 +463,46 @@ const glowSprite = (color, size, opacity = 1) => {
 };
 
 const DRACO = new DRACOLoader().setDecoderPath("./vendor/draco/");
-const [gltf, meta, walk, props] = await Promise.all([
+const [gltf, meta, walk, props, STREETS, terrBuf] = await Promise.all([
   new GLTFLoader().loadAsync("haram.glb"),
   fetch("haram_meta.json").then((r) => r.json()),
   fetch("walk_route.json").then((r) => r.json()),
   new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb?v=c6c2b207"),   // ?v= — первые 8 знаков md5 файла: после пересборки менять, иначе HTTP-кэш отдаст старых людей к новой странице
+  fetch("streets.json?v=a7fe18f4").then((r) => r.json()).catch((e) => (console.warn("streets:", e), null)),
+  fetch("terrain.bin?v=e1ec580e").then((r) => r.ok ? r.arrayBuffer() : null).catch(() => null),
 ]);
 $("load").remove();
+// v3.21 Рельеф. terrain.bin — высота земли города (та же, что у haram_city.glb): сетка n×n через S м в квадрате ±R м от Каабы,
+// Int16 в сантиметрах, строки по y снизу вверх; треугольники как в glb (mk_streets_v2.py). Пол мечети — 0.
+const TER = terrBuf && (() => { const dv = new DataView(terrBuf), n = dv.getUint16(0, true);
+  return { n, R: dv.getFloat32(4, true), S: dv.getFloat32(8, true), h: new Int16Array(terrBuf, 12, n * n) }; })();
+function groundAt(x, y) {
+  if (!TER) return 0;
+  const { n, R, S, h } = TER, fx = THREE.MathUtils.clamp((x + R) / S, 0, n - 1.000001), fy = THREE.MathUtils.clamp((y + R) / S, 0, n - 1.000001);
+  const j = Math.floor(fx), i = Math.floor(fy), u = fx - j, v = fy - i;
+  const a = h[i * n + j], b = h[i * n + j + 1], c = h[(i + 1) * n + j + 1], d = h[(i + 1) * n + j];
+  return (u > v ? a + (b - a) * u + (c - b) * v : a + (c - d) * u + (d - a) * v) / 100;
+}
+// Поверхность улиц: у каждой точки streets.json своя высота (мосты, рампы, склоны). surfAt — высота ближайшей улицы под точкой;
+// где улицы друг над другом (мост над дорогой), берём ту, что ближе к прежней высоте пути (prevZ), — путь не прыгает с моста вниз
+const SURF = new Map(), SURF_C = 20;
+if (STREETS) for (const r of STREETS.roads) for (let i = 1; i < r.p.length; i++) {
+  const a = r.p[i - 1], b = r.p[i], s = [a[0], a[1], a[2], b[0], b[1], b[2], Math.max(6, r.w / 2 + 2)];
+  for (let gx = Math.floor((Math.min(a[0], b[0]) - s[6]) / SURF_C); gx <= Math.floor((Math.max(a[0], b[0]) + s[6]) / SURF_C); gx++)
+    for (let gy = Math.floor((Math.min(a[1], b[1]) - s[6]) / SURF_C); gy <= Math.floor((Math.max(a[1], b[1]) + s[6]) / SURF_C); gy++) {
+      const k = gx * 4096 + gy; if (!SURF.has(k)) SURF.set(k, []); SURF.get(k).push(s);
+    }
+}
+function surfAt(x, y, prevZ) {
+  let best = null, bd = 1e9;
+  for (const s of SURF.get(Math.floor(x / SURF_C) * 4096 + Math.floor(y / SURF_C)) || []) {
+    const dx = s[3] - s[0], dy = s[4] - s[1], l2 = dx * dx + dy * dy || 1, k = THREE.MathUtils.clamp(((x - s[0]) * dx + (y - s[1]) * dy) / l2, 0, 1);
+    if (Math.hypot(s[0] + dx * k - x, s[1] + dy * k - y) > s[6]) continue;
+    const z = s[2] + (s[5] - s[2]) * k, d = Math.abs(z - (prevZ ?? groundAt(x, y)));
+    if (d < bd) { bd = d; best = z; }
+  }
+  return best;   // null — улицы под точкой нет
+}
 // Все предметы и люди сцены сделаны в Blender (props.blend → props.glb): толпа, герой, перила и фонари саи, стулья, коляски,
 // барьеры, инструменты уборщиков, кулеры Замзама, кольца кисвы, колонны и купола галереи, птицы, флажок гида.
 // Сайт берёт из файла форму (и материал, где он обычный); правка — в Blender и экспорт тем же скриптом (24_AI/Конвейер 3D Харама).
@@ -658,7 +691,7 @@ function masaaGlass(base) {
   low.name = "Масъа_стекло_нижний_ярус"; upG.name = "Масъа_стекло_верхние_ярусы";
   return { low, up: upG };
 }
-new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb").then((city) => {
+new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb?v=a31e3c00").then((city) => {
   const base = city.scene.getObjectByName("L_base");
   if (!base) return;
   const mqC = toV3(meta.spots.maqam[0], meta.spots.maqam[1]), bs = new THREE.Vector3();
@@ -1568,23 +1601,39 @@ saiPath.visible = false; saiPath.renderOrder = 10; scene.add(saiPath);
 // Путь из отеля Address Jabal Omar — пешеходная сеть OSM (walk_route.py → walk_route.json): улицы до ворот короля Фахда (№ 79),
 // дальше внутри мечети к Чёрному камню. Верхний вариант — по пандусу на мост аш-Шубайка и в Харам на 1-м этаже.
 // Улицы — тёмные полосы с подписями, переход через ул. Ибрахим аль-Халиль отмечен. Линии видны сквозь здания.
-const INSIDE = [[-140, -80], [-60, -38], [-22, -20], [-2, -12], [8, -6.5], [7.2, -3.4]];
-function polyPath(pts, zAt) {   // ломаная с накопленной длиной: точка по метрам от начала
-  const v = pts.map(([x, y]) => toV3(x, y, zAt(x))), cum = [0];
-  for (let i = 1; i < v.length; i++) cum.push(cum[i - 1] + v[i].distanceTo(v[i - 1]));
+const INSIDE = [[-140, -80, 0], [-60, -38, 0], [-22, -20, 0], [-2, -12, 0], [8, -6.5, 0], [7.2, -3.4, 0]];   // по полу мечети
+// v3.21: путь лежит на настоящей поверхности — улица, мост, склон (surfAt), шаг ≤ 5 м. Точка [x, y, z] — высота задана;
+// без z — по улицам, а где улиц нет (внутри корпуса на мосту) путь держит прежнюю высоту, на земле — земля + 0,3.
+// Длина пути считается по горизонтали — время шагов и «метры до ворот» прежние
+const pathZ = (x, y, pz) => surfAt(x, y, pz) ?? (pz > 3 && groundAt(x, y) < 1 ? pz : groundAt(x, y) + 0.3);
+function polyPath(pts, zAt = pathZ) {   // ломаная с накопленной длиной: точка по метрам от начала
+  const v = [];
+  let pz;
+  for (let i = 0; i < pts.length; i++) {
+    const [x1, y1, z1] = pts[i];
+    if (i) {
+      const [x0, y0, z0] = pts[i - 1], k = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 5), za = v[v.length - 1].y;
+      for (let s = 1; s < k; s++) { const x = x0 + (x1 - x0) * s / k, y = y0 + (y1 - y0) * s / k;
+        v.push(toV3(x, y, pz = z0 != null || z1 != null ? za + ((z1 ?? zAt(x1, y1, pz)) - za) * s / k : zAt(x, y, pz))); }
+    }
+    v.push(toV3(x1, y1, pz = z1 ?? zAt(x1, y1, pz)));
+  }
+  const cum = [0];
+  for (let i = 1; i < v.length; i++) cum.push(cum[i - 1] + Math.hypot(v[i].x - v[i - 1].x, v[i].z - v[i - 1].z));
   const cp = new THREE.CurvePath();
   for (let i = 1; i < v.length; i++) cp.add(new THREE.LineCurve3(v[i - 1], v[i]));
   return { v, cum, L: cum[cum.length - 1], curve: cp,
     at(s, out) { s = THREE.MathUtils.clamp(s, 0, this.L); let i = 1; while (i < cum.length - 1 && cum[i] < s) i++;
       return out.lerpVectors(v[i - 1], v[i], (s - cum[i - 1]) / (cum[i] - cum[i - 1] || 1)); } };
 }
-const mainPath = polyPath([...walk.routes.gate79.pts, ...INSIDE], () => 2);
+const mainPath = polyPath([...walk.routes.gate79.pts, ...INSIDE]);
 const WALK_OUT = walk.routes.gate79.len;   // метры по улицам до ворот № 79
-const rampPath = polyPath(walk.routes.ramp.pts, (x) => x < -342 ? 2 : x < -294 ? 2 + 7 * (x + 342) / 48 : 9);
+const rampPath = polyPath(walk.routes.ramp.pts);   // по пандусу и мосту аш-Шубайка (высоты моста из streets.json)
 const route = new THREE.Group();
 const pathMat = (color, opacity) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, depthTest: false });
-route.add(new THREE.Mesh(new THREE.TubeGeometry(mainPath.curve, 600, 2.2, 8), pathMat(0xf07a1e, 0.9)));
-route.add(new THREE.Mesh(new THREE.TubeGeometry(rampPath.curve, 600, 1.2, 6), pathMat(0xffc79a, 0.75)));
+const tubeOn = (pp, n, r, mat, lift) => { const m = new THREE.Mesh(new THREE.TubeGeometry(pp.curve, n, r, 8), mat); m.position.y = lift; return m; };   // трубка над поверхностью на lift м
+route.add(tubeOn(mainPath, 900, 2.2, pathMat(0xf07a1e, 0.9), 2));
+route.add(tubeOn(rampPath, 900, 1.2, pathMat(0xffc79a, 0.75), 1.2));
 // Подписи — плашки сапфир/крем (CanvasTexture), не масштабируются с расстоянием
 const saiLbls = [];   // подписи саи: на узком экране прижимаются к краю, а не обрезаются (saiLblClamp)
 function label(text, bg = "#005A5C", fg = "#F4EDE1", h = 0.024) {
@@ -1605,51 +1654,68 @@ const streetsG = new THREE.Group(); scene.add(streetsG);
 function buildStreets(d) {
   const byC = {};   // одна геометрия на цвет — несколько draw call на всю сеть
   const put = (c, arr) => (byC[c] = byC[c] || []).push(...arr);
+  const side = [], rail = [], dark = [], box = [];   // бетон: стенки насыпей и торцы настилов; парапеты; проёмы тоннелей; опоры и рамы порталов
+  const quad = (arr, a, b, c, e) => { for (const v of [a, b, c, a, c, e]) arr.push(v.x, v.y, v.z); };
+  const BOX = new THREE.Matrix4(), Q = new THREE.Quaternion(), UP = new THREE.Vector3(0, 1, 0);
+  const addBox = (x, y, z0, z1, wx, wz, th) => box.push(BOX.clone().compose(toV3(x, y, (z0 + z1) / 2), Q.setFromAxisAngle(UP, th).clone(), new THREE.Vector3(wx, Math.max(0.1, z1 - z0), wz)));
   for (const r of d.roads) {
     if (r.p.some(([x, y]) => inPoly(rimOut, x, y))) continue;   // v3.14: дорожки OSM внутри мечети (кольцо у матафа, лучи) не рисуем — висели над мраморным полом
-    const w = r.w / 2, z = r.b ? 0.9 : r.k === "pedestrian" || r.k === "footway" || r.k === "steps" ? 0.55 : 0.4, pos = [];
+    const w = r.w / 2, pos = [], e = r.p.map(([x, y, z]) => z - groundAt(x, y));   // e — высота над землёй в каждой точке
+    // v3.21: наземная улица (e < 1 м) ложится по склону и поперёк — край не тонет и не висит; насыпь и мост — ровный настил
+    const zc = (x, y, z, ee) => !r.b && ee < 1 ? groundAt(x, y) + ee : z;
+    let pierS = 12;
     for (let i = 1; i < r.p.length; i++) {
-      const [x0, y0] = r.p[i - 1], [x1, y1] = r.p[i], l = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / l * w, ny = (x1 - x0) / l * w;
-      const q = [[x0 + nx, y0 + ny], [x0 - nx, y0 - ny], [x1 - nx, y1 - ny], [x1 + nx, y1 + ny]].map(([x, y]) => toV3(x, y, z));
-      for (const k of [0, 1, 2, 0, 2, 3]) pos.push(q[k].x, q[k].y, q[k].z);
+      const [x0, y0, z0] = r.p[i - 1], [x1, y1, z1] = r.p[i], l = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / l, uy = (y1 - y0) / l, nx = -uy * w, ny = ux * w;
+      const A = toV3(x0 + nx, y0 + ny, zc(x0 + nx, y0 + ny, z0, e[i - 1])), B = toV3(x0 - nx, y0 - ny, zc(x0 - nx, y0 - ny, z0, e[i - 1]));
+      const C = toV3(x1 - nx, y1 - ny, zc(x1 - nx, y1 - ny, z1, e[i])), D = toV3(x1 + nx, y1 + ny, zc(x1 + nx, y1 + ny, z1, e[i]));
+      quad(pos, A, B, C, D);
+      const hi = Math.min(e[i - 1], e[i]);
+      for (const [P0, P1, sx, sy] of [[A, D, nx, ny], [B, C, -nx, -ny]]) {
+        const g0 = groundAt(x0 + sx, y0 + sy) - 0.06, g1 = groundAt(x1 + sx, y1 + sy) - 0.06;
+        if (r.b && Math.max(e[i - 1], e[i]) > 0.6) quad(side, P0, P1, P1.clone().setY(Math.max(g1, P1.y - 0.8)), P0.clone().setY(Math.max(g0, P0.y - 0.8)));   // торец настила 0,8 м
+        else if (!r.b && hi > 0.8) quad(side, P0, P1, P1.clone().setY(g1), P0.clone().setY(g0));   // насыпь — подпорная стенка до земли
+        if (r.b && hi > 1.5) quad(rail, P0, P1, P1.clone().setY(P1.y + 1.1), P0.clone().setY(P0.y + 1.1));   // парапет 1,1 м
+      }
+      if (r.b) for (; pierS < l; pierS += 25) {   // опоры моста через ~25 м, где настил выше 2,5 м
+        const k = pierS / l, x = x0 + (x1 - x0) * k, y = y0 + (y1 - y0) * k, z = z0 + (z1 - z0) * k, g = groundAt(x, y);
+        if (z - g > 2.5) addBox(x, y, g - 0.3, z - 0.8, Math.min(r.w * 0.6, 7), 1.6, Math.atan2(ux, -uy));
+      }
+      if (r.b) pierS -= l;
     }
     put(ROAD_C[r.k] || 0x4a5558, pos);
   }
-  for (const a of d.areas) {   // пешеходные площади — заливка камнем
+  for (const a of d.areas) {   // пешеходные площади — заливка камнем (высота в каждой вершине)
     const pts = a.map(([x, y]) => new THREE.Vector2(x, y)); if (pts.length < 3) continue;
     const tri = THREE.ShapeUtils.triangulateShape(pts, []), pos = [];
-    for (const t of tri) for (const k of t) { const v = toV3(pts[k].x, pts[k].y, 0.3); pos.push(v.x, v.y, v.z); }
+    for (const t of tri) for (const k of t) { const v = toV3(pts[k].x, pts[k].y, a[k][2] ?? 0.3); pos.push(v.x, v.y, v.z); }
     put(ROAD_C.pedestrian, pos);
+  }
+  for (const pt of d.portals || []) {   // портал тоннеля: две стойки, перемычка, тёмный проём; лицом от тоннеля
+    const hw = pt.w / 2 + 1, nx = -pt.dy, ny = pt.dx, th = Math.atan2(pt.dx, -pt.dy), z = pt.z - 0.06;
+    for (const sg of [1, -1]) addBox(pt.x + nx * hw * sg, pt.y + ny * hw * sg, z - 0.3, z + 6.5, 1, 1.5, th);
+    addBox(pt.x, pt.y, z + 5.3, z + 6.5, 2 * hw + 1, 1.5, th);
+    const ix = pt.x + pt.dx * 0.5, iy = pt.y + pt.dy * 0.5, wi = hw - 0.5;
+    quad(dark, toV3(ix + nx * wi, iy + ny * wi, z), toV3(ix - nx * wi, iy - ny * wi, z), toV3(ix - nx * wi, iy - ny * wi, z + 5.3), toV3(ix + nx * wi, iy + ny * wi, z + 5.3));
   }
   for (const [c, pos] of Object.entries(byC)) {
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
     const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: +c, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
     m.renderOrder = 2; streetsG.add(m);
   }
-}
-fetch("streets.json").then((r) => r.json()).then((d) => { buildStreets(d); streetCrowd(d); }).catch((e) => console.warn("streets:", e));
-// Пандус к мосту аш-Шубайка — объёмная полоса с бортиками, всегда на карте (высота 2 → 9 м, как у пешего маршрута)
-{
-  const pts = walk.routes.ramp.pts.filter(([x]) => x >= -360 && x <= -270), hz = (x) => x < -342 ? 2 : x < -294 ? 2 + 7 * (x + 342) / 48 : 9;
-  const top = [], side = [], W = 3.5;
-  for (let i = 1; i < pts.length; i++) {
-    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], l = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / l * W, ny = (x1 - x0) / l * W;
-    const z0 = hz(x0), z1 = hz(x1);
-    const q = [toV3(x0 + nx, y0 + ny, z0), toV3(x0 - nx, y0 - ny, z0), toV3(x1 - nx, y1 - ny, z1), toV3(x1 + nx, y1 + ny, z1)];
-    for (const k of [0, 1, 2, 0, 2, 3]) top.push(q[k].x, q[k].y, q[k].z);
-    for (const sg of [1, -1]) {   // боковые стенки до земли и бортик 1,1 м
-      const a0 = toV3(x0 + sg * nx, y0 + sg * ny, 0), a1 = toV3(x1 + sg * nx, y1 + sg * ny, 0);
-      const b0 = toV3(x0 + sg * nx, y0 + sg * ny, z0 + 1.1), b1 = toV3(x1 + sg * nx, y1 + sg * ny, z1 + 1.1);
-      for (const v of [a0, a1, b1, a0, b1, b0]) side.push(v.x, v.y, v.z);
-    }
+  const mk = (pos, mat) => { if (!pos.length) return; const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); streetsG.add(new THREE.Mesh(g, mat)); };
+  const CONC = new THREE.MeshStandardMaterial({ color: 0xd9cfbc, roughness: 0.9, side: THREE.DoubleSide });
+  mk(side, CONC); mk(rail, new THREE.MeshStandardMaterial({ color: 0xece4d3, roughness: 0.85, side: THREE.DoubleSide }));
+  mk(dark, new THREE.MeshBasicMaterial({ color: 0x0e1416, side: THREE.DoubleSide }));
+  if (box.length) {
+    const im = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), CONC, box.length);
+    box.forEach((m, i) => im.setMatrixAt(i, m)); im.castShadow = im.receiveShadow = true; streetsG.add(im);
   }
-  const mk = (pos, c) => { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
-    return new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: c, roughness: 0.9, side: THREE.DoubleSide })); };
-  scene.add(mk(top, 0xcfc4ae), mk(side, 0xe8dfcc));
 }
-{ const l = label("мост аш-Шубайка · 1-й этаж", "#F4EDE1", "#00292C"); l.position.copy(rampPath.v[rampPath.v.length - 1]).setY(14); route.add(l); }
+// Сеть улиц и уличная толпа — после всего кода модуля, как раньше после fetch: порядок rnd() и раскладка толпы прежние
+setTimeout(() => { if (STREETS) { buildStreets(STREETS); streetCrowd(STREETS); } }, 0);
+{ const l = label("мост аш-Шубайка · 1-й этаж", "#F4EDE1", "#00292C"); l.position.copy(rampPath.v[rampPath.v.length - 1]); l.position.y += 5; route.add(l); }
 { const l = label("ворота № 79", "#F07A1E", "#fff"); l.position.copy(toV3(-223, -142, 10)); route.add(l); }
-{ const l = label("отель Address"); l.position.copy(mainPath.v[0]).setY(14); route.add(l); }
+{ const l = label("отель Address"); l.position.copy(mainPath.v[0]); l.position.y += 14; route.add(l); }
 const runner = glowSprite(0xffd2a0, 22); runner.material.depthTest = false; route.add(runner);
 const gate79 = glowSprite(0xf07a1e, 26); gate79.material.depthTest = false; gate79.position.copy(toV3(-223, -142, 4)); route.add(gate79);
 route.children.forEach((o) => { if (!o.renderOrder) o.renderOrder = 12; });
@@ -1681,20 +1747,20 @@ const HALQ_OPT = [
     [132.1, 207.8], [148.9, 71.5], [212.6, 80.2], [191.1, 41.0], [170.8, -54.1], [155.8, -92.2], [56.4, -169.8], [14.3, -185.1],
     [4.7, -196.5], [10.9, -218.5], [29.3, -248.5], [-23.0, -253.1], [-32.7, -317.0], [-13.9, -311.0]] },
 ];
-const HALQ_P = polyPath(HALQ_OPT.find(o => o.main).p, () => 2);
+const HALQ_P = polyPath(HALQ_OPT.find(o => o.main).p);   // v3.21: по высотам улиц и рельефа, не на 2 м
 const HALQ = [HALQ_P.v[0], HALQ_P.v[HALQ_P.v.length - 1]], HALQ_T = 24;   // HALQ_T — с на весь путь: спокойный шаг, камера успевает показать все варианты
 const halqG = new THREE.Group(); halqG.visible = false; scene.add(halqG);
 const halqMid = new THREE.Vector3();
 for (const o of HALQ_OPT) {
-  const pp = o.main ? HALQ_P : polyPath(o.p, () => 2), end = pp.v[pp.v.length - 1];
+  const pp = o.main ? HALQ_P : polyPath(o.p), end = pp.v[pp.v.length - 1];
   const tube = new THREE.Mesh(new THREE.TubeGeometry(pp.curve, 400, o.main ? 0.9 : 0.6, 6), new THREE.MeshBasicMaterial({
     color: o.main ? 0xf07a1e : 0xf4ede1, transparent: true, opacity: o.main ? 0.9 : 0.6, depthWrite: false, depthTest: false }));
-  tube.renderOrder = 5; halqG.add(tube);
+  tube.position.y = 1.5; tube.renderOrder = 5; halqG.add(tube);
   const tag = o.main ? label(o.t, "#F07A1E", "#FFFFFF") : label(o.t, "#005A5C", "#F4EDE1", 0.02);
-  tag.position.copy(end).setY(o.main ? 18 : 14); halqG.add(tag);
+  tag.position.copy(end); tag.position.y += o.main ? 18 : 14; halqG.add(tag);
   halqMid.add(end);
 }
-halqMid.add(HALQ[0]).multiplyScalar(1 / (HALQ_OPT.length + 1)).setY(0);   // центр обзора: ворота и три места стрижки
+halqMid.add(HALQ[0]).multiplyScalar(1 / (HALQ_OPT.length + 1));   // центр обзора: ворота и три места стрижки
 // Шкала «Умра: X %» — доля пройденных обрядов, веса этапов по времени и усилию (не мера награды)
 const PROG = { ihram: [0, 5], enter: [5, 15], tawaf: [15, 55], maqam: [55, 62], zamzam: [62, 67], sai: [67, 95], halq: [95, 100], finish: [100, 100] };
 [5, 15, 55, 62, 67, 95].forEach((v) => { const t = document.createElement("div"); t.className = "tick"; t.style.left = v + "%"; $("pfill").parentNode.append(t); });
@@ -1951,16 +2017,17 @@ const praying = (x, y) => (t, p) => {
   xq.pose = ph === 2 ? 0 : prayPose(t * p.sp + p.ph * PRAYER_T); xq.pray = xq.pose === 0;
 };
 // Путь по точкам: позиция и направление на расстоянии s (с зацикливанием)
-function polyline(pts) {
+function polyline(pts) {   // v3.21: если у точек есть высота (улицы streets.json) — Z, по ней идёт xq.h
   const P = pts.map(([x, y]) => new THREE.Vector2(x, y)), cum = [0];
   for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + P[i].distanceTo(P[i - 1]));
-  return { P, cum, L: cum[cum.length - 1] };
+  return { P, cum, L: cum[cum.length - 1], Z: pts[0].length > 2 ? pts.map((q) => q[2]) : null };
 }
 function onPath(pl, s) {
   s = Math.min(Math.max(s, 0), pl.L); let i = 1;
   while (i < pl.cum.length - 1 && pl.cum[i] < s) i++;
   const a = pl.P[i - 1], b = pl.P[i], k = (s - pl.cum[i - 1]) / (pl.cum[i] - pl.cum[i - 1] || 1);
   xq.x = a.x + (b.x - a.x) * k; xq.y = a.y + (b.y - a.y) * k; xq.r = faceTo(b.x - a.x, b.y - a.y);
+  if (pl.Z) xq.h = pl.Z[i - 1] + (pl.Z[i] - pl.Z[i - 1]) * k;
 }
 // 1. За Макамом молятся 2 ракаата после тавафа — каждый сам по себе, не строем, и только по краям: между Каабой и Макамом
 //    и посередине за ним идёт таваф и проходят люди. Место «вы» (ringPos) — свободно. Порядок rnd() прежний: средние места
@@ -2208,12 +2275,12 @@ function streetCrowd(d) {
     if (!(r.k === "pedestrian" || r.k === "footway" || r.k === "steps") || n >= 300) continue;
     if (!r.p.some(([x, y]) => Math.hypot(x, y) < 420) || r.p.some(([x, y]) => inPoly(rimOut, x, y))) continue;
     const pl = polyline(r.p); if (pl.L < 12) continue;
-    const z = r.b ? 0.9 : 0.55, cnt = Math.min(6, Math.max(1, Math.round(pl.L / 45)));
+    const cnt = Math.min(6, Math.max(1, Math.round(pl.L / 45)));
     for (let k = 0; k < cnt && n < 300; k++, n++) {
       const v = 0.8 + rnd() * 0.4;
       xPerson((t, p) => {   // туда и обратно по своей дорожке
         let s = (t * v + p.ph * 2 * pl.L) % (2 * pl.L); const back = s > pl.L; if (back) s = 2 * pl.L - s;
-        onPath(pl, s); if (back) xq.r += Math.PI; walkSw(t, p, v); xq.h = z; xq.x += (p.ph - 0.5) * Math.min(3, r.w); xq.y += ((k * 7) % 3 - 1) * 0.5;
+        onPath(pl, s); if (back) xq.r += Math.PI; walkSw(t, p, v); xq.x += (p.ph - 0.5) * Math.min(3, r.w); xq.y += ((k * 7) % 3 - 1) * 0.5;
       }, { street: true });
     }
   }
@@ -2593,7 +2660,7 @@ for (const side of [-1, 1]) {   // саи: вдоль кромки, туда и 
 }
 { // площадь у ворот 79: двое подметают по квадрату
   const pl = polyline([[-242, -157], [-228, -157], [-228, -143], [-242, -143], [-242, -157]]);
-  for (let k = 0; k < 2; k++) cleaner((tm) => { onPath(pl, (tm * 0.5 + k * pl.L / 2) % pl.L); xq.h = 0.55; }, 2);
+  for (let k = 0; k < 2; k++) cleaner((tm) => { onPath(pl, (tm * 0.5 + k * pl.L / 2) % pl.L); xq.h = surfAt(xq.x, xq.y) ?? groundAt(xq.x, xq.y) + 0.55; }, 2);
 }
 for (const c of CLN) if (c.off !== undefined) {   // садака: паломник подходит справа, оба стоят 3,5 с (рука к руке), уходит
   const off = c.off;
@@ -2945,8 +3012,8 @@ function setFx(name) {
   hp.hair = name === "finish" ? 0 : 0.95;   // после бритья голова гладкая
   setArms(name === "finish" ? "dua" : "relaxed");
   cup.visible = zDrops.visible = false; cup.rotation.set(0, 0, 0);
-  if (name === "ihram") you.position.copy(mainPath.v[0]).setY(0);
-  if (name === "finish") you.position.copy(HALQ[1]);   // площадка у библиотеки — на уровне улицы пути халка (2 м), не 0: иначе паломник под мостовой
+  if (name === "ihram") you.position.copy(mainPath.v[0]);   // v3.21: у отеля на высоте улицы
+  if (name === "finish") you.position.copy(HALQ[1]);   // площадка у библиотеки — на высоте пути халка (рельеф), не 0: иначе паломник под мостовой
   runner.visible = name !== "enter";   // на шаге 2 по маршруту идёт сам паломник
   route.visible = routeOn || name === "enter";
   ring.visible = name === "maqam"; zamzam.visible = name === "zamzam";
@@ -3054,10 +3121,10 @@ const hqA = new THREE.Vector3(), hqB = new THREE.Vector3(), hqT = new THREE.Vect
 function halqCam() {   // крупно у ворот → плавный широкий облёт с юго-востока (видны все три варианта) → спокойно к месту стрижки
   const nar = innerWidth < innerHeight ? 1.35 : 1, sm = THREE.MathUtils.smoothstep;
   const k1 = sm(fxT, 2.5, 8.5), k2 = sm(fxT, HALQ_T + 0.5, HALQ_T + 5), a = 0.6 + 0.02 * fxT;
-  hqT.copy(you.position).setY(0); hqC.set(-14, 16, 17).multiplyScalar(nar).add(hqT);                       // крупно
+  hqT.copy(you.position); hqC.set(-14, 16, 17).multiplyScalar(nar).add(hqT);                       // крупно
   hqA.copy(halqMid).lerp(hqT, 0.3); hqB.set(Math.cos(a) * 380 * nar, 330 * nar, Math.sin(a) * 380 * nar).add(hqA);   // обзор
   hqT.lerp(hqA, k1); hqC.lerp(hqB, k1);
-  hqA.copy(HALQ[1]).setY(0); hqB.set(42 * nar, 45 * nar, 42 * nar).add(hqA);                                 // финал у площадки
+  hqA.copy(HALQ[1]); hqB.set(42 * nar, 45 * nar, 42 * nar).add(hqA);                                 // финал у площадки
   hqT.lerp(hqA, k2); hqC.lerp(hqB, k2);
   cineTo(hqC, hqT, 2);
 }
@@ -3085,14 +3152,14 @@ function updateFx(dt) {
   let pct = 0;
   if (route.visible) {
     const s = fx === "enter" ? Math.min(fxT * WALK_SPEED, mainPath.L) : (performance.now() / 14000 % 1) * mainPath.L;
-    mainPath.at(s, runV); runner.position.copy(runV).setY(4);
+    mainPath.at(s, runV); runner.position.copy(runV); runner.position.y += 4;
     gate79.material.opacity = 0.55 + 0.45 * Math.sin(performance.now() / 260);
     runTag(s, mainPath.L);
     if (fx === "enter") {
       pct = setProg(s / mainPath.L);
       if (fxT > 0.3) cue("enter");
       if (s > WALK_OUT + 0.6 * (mainPath.L - WALK_OUT)) cue("kaaba");
-      you.position.copy(runV).setY(0);
+      you.position.copy(runV);
       if (s < mainPath.L - 1) { mainPath.at(s + 3, followV); you.rotation.y = faceTo(followV.x - runV.x, runV.z - followV.z); }
       setCounter(s < WALK_OUT ? `Пешком по улицам · ~${Math.round(WALK_OUT / 10) * 10} м до ворот № 79` : s < mainPath.L ? "Внутри мечети — к Чёрному камню" : "Вы у Чёрного камня ✓");
     }
