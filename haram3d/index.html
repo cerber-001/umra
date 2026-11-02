@@ -466,7 +466,7 @@ const [gltf, meta, walk, props] = await Promise.all([
   new GLTFLoader().loadAsync("haram.glb"),
   fetch("haram_meta.json").then((r) => r.json()),
   fetch("walk_route.json").then((r) => r.json()),
-  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb"),
+  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb?v=c6c2b207"),   // ?v= — первые 8 знаков md5 файла: после пересборки менять, иначе HTTP-кэш отдаст старых людей к новой странице
 ]);
 $("load").remove();
 // Все предметы и люди сцены сделаны в Blender (props.blend → props.glb): толпа, герой, перила и фонари саи, стулья, коляски,
@@ -678,32 +678,121 @@ const cyl = (r0, r1, y0, y1, x = 0, seg = 9) => new THREE.CylinderGeometry(r0, r
 //   материалы: 0 ткань, 1 кожа, 2 волосы/хиджаб, 3 борода, 5 предплечье (рукав или кожа), 6 правое плечо (открыто в идтибе),
 //   7 торс — рида наискось от левого плеча под правую руку, 8 белок глаза, 9 радужка, 10 губы, 11 обувь, 12 брюки полиции.
 // Суставы и мерки (JX, JY — плечо, EX, EY, EZ — локоть, TY — откуда корпус наклоняется, HY — бедро, WZ — пояс) — из свойств корня в props.glb.
-// На человека — 36 чисел: место и поворот, 4 цвета и рост (дети ~0,7), причёска/борода/накидка/рукава, наклон/опускание/
-// колени/шаг и по 4 угла на каждую руку (вперёд, в сторону, локоть, поворот предплечья внутрь).
+// На человека — 40 чисел: место и поворот, 4 цвета и рост (дети ~0,7), причёска/борода/накидка/рукава, наклон/опускание/
+// колени/шаг, по 4 угла на каждую руку (вперёд, в сторону, локоть, поворот предплечья внутрь) и кисти (пронация, сгиб запястья).
+// v3.19 скелет: 12 звеньев — 0 таз, 1 живот, 2 грудь (с руками), 3 шея+голова, 4–7 правые бедро/голень/стопа/пальцы, 8–11 левые;
+// у вершины aSk = (звено, вес: остальное — за родителем); 12/13 — юбка изара/абаи у бедра и у голени (смесь правой и левой ноги).
+// Каждое звено поворачивается в плоскости «вперёд-вверх» вокруг своего сустава на АБСОЛЮТНЫЙ угол (0 — стоя; минус — вперёд, у бедра плюс — колено вперёд).
+// Позы — живые углы суставов (поклон, земной поклон, сидение между поклонами, присед, кресло), а не сплющивание.
+const FK_PAR = [-1, 0, 1, 2, 0, 4, 5, 6, 0, 8, 9, 10], FK_PIV = ["HP", "S4", "S2", "N", "HP", "K", "A", "B", "HP", "K", "A", "B"];
+const FK_KEYS = ["HP", "K", "A", "B", "S4", "S2", "N", "TT", "HL", "IN", "KF", "FH", "NT"];
+const fkLegs = (th, sh, ft, to) => [th, sh, ft, to, th, sh, ft, to];
+const FK_RUKU = [-1.25, -1.45, -1.5, -1.45, 0.1, 0.1, 0, 0, 0.1, 0.1, 0, 0];   // руку: спина ровная, голова на одной линии
+// суджуд (подобран по геометрии, _work_figs/legsolve.py): лоб и нос на полу, колени на полу, пальцы ног подогнуты и смотрят к кибле;
+// все суставы в пределах человека (бедро ≤ 126°, колено ≤ 125°, поясница и шея почти прямые)
+const FK_SUJ = [[-2.003, -2.079, -2.136, -2.051, ...fkLegs(0.198, -1.696, -1.293, 0.145)],
+  [-1.645, -1.882, -2.106, -2.066, ...fkLegs(0.556, -1.629, -1.227, 0.094)]];
+const FK_JALSA = [-0.05, -0.02, 0, 0, 1.1, -1.57, -1.35, 0, 1.1, -1.57, -2.4, -2.4];   // сидение (ифтираш): правая стопа стоит на пальцах, на левой сидят
+const FK_CROUCH = [-0.5, -0.5, -0.45, -0.4, ...fkLegs(1, -1.6, -0.5, -0.5)];   // середина пути вниз и вверх: колени к полу, корпус вперёд
+const FK_J = [null, null];   // суставы мужчины и женщины (y, z) — из свойств корня в props.glb
+function fkAngles(woman, tilt, chair, kneel, fsw, T) {
+  const aR = clamp(-tilt / 1.35, 0, 1), aS = clamp(-tilt / 1.95, 0, 1), S = FK_SUJ[woman ? 1 : 0], up = Math.max(tilt, 0);
+  const s = fsw * (1 - kneel) * (1 - chair);
+  for (let i = 0; i < 12; i++) {
+    const st = FK_RUKU[i] * aR, kn = FK_JALSA[i] + (S[i] - FK_JALSA[i]) * aS, cr = FK_CROUCH[i];
+    let t = kneel < 0.5 ? st + (cr - st) * 2 * kneel : cr + (kn - cr) * (2 * kneel - 1);
+    if (i < 4) t += up;
+    else {
+      t += ((i & 3) === 0 ? 1.57 - t : -t) * chair;   // кресло: бедро вперёд, голень и стопа отвесно
+      const th = i < 8 ? 2.4 * s : -2.4 * s, j = i & 3;   // шаг: бедро вперёд-назад, колено мягко сгибается, стопа отталкивается
+      t += j === 0 ? th : j === 1 ? (th > 0 ? 0.25 * th : th) : j === 2 && th < 0 ? 0.8 * th : 0;
+    }
+    T[i] = t;
+  }
+  return T;
+}
+// Касание пола — та же кинематика на процессоре: ниже всех из (пальцы, пятки, подъём стопы, колени, лоб, нос) — ровно на полу;
+// когда опускаются на колени, пальцы ног остаются на месте, корпус уходит вперёд. Ответ кэшируется (позы повторяются).
+const FK_G = new Map(), FK_T = new Array(12), FK_O = Array.from({ length: 12 }, () => [0, 0]), FK_OUT = [0, 0];
+const FK_PTS = [["TT", 7], ["TT", 11], ["HL", 6], ["HL", 10], ["IN", 6], ["IN", 10], ["KF", 5], ["KF", 9], ["FH", 3], ["NT", 3]];
+function figGround(woman, tilt, chair, kneel, fsw) {
+  const qt = Math.round(tilt * 100), qc = Math.round(chair * 100), qk = Math.round(kneel * 100), qs = Math.round(fsw * 100);
+  const key = ((((woman ? 1 : 0) * 512 + qt + 256) * 128 + qc) * 128 + qk) * 128 + qs + 64;
+  let g = FK_G.get(key);
+  if (g) return g;
+  const J = FK_J[woman ? 1 : 0], T = fkAngles(woman, qt / 100, qc / 100, qk / 100, qs / 100, FK_T), O = FK_O;
+  const rot = (a, y, z, o) => { const c = Math.cos(a), s = Math.sin(a); o[0] = c * y - s * z; o[1] = s * y + c * z; return o; };
+  O[0][0] = J.HP[0]; O[0][1] = J.HP[1];
+  for (let c = 1; c < 12; c++) {
+    const p = FK_PAR[c], a = J[FK_PIV[c]], b = J[FK_PIV[p]];
+    rot(T[p], a[0] - b[0], a[1] - b[1], FK_OUT); O[c][0] = O[p][0] + FK_OUT[0]; O[c][1] = O[p][1] + FK_OUT[1];
+  }
+  let lo = Math.min(O[7][0], O[11][0]);
+  for (const [k, c] of FK_PTS) { const a = J[k], b = J[FK_PIV[c]]; rot(T[c], a[0] - b[0], a[1] - b[1], FK_OUT); lo = Math.min(lo, O[c][0] + FK_OUT[0]); }
+  g = [-lo, (J.B[1] - O[7][1]) * clamp((qk / 100 + Math.max(-qt / 100 - 0.6, 0)) * 3, 0, 1)];
+  if (FK_G.size > 40000) FK_G.clear();
+  FK_G.set(key, g);
+  return g;
+}
 function figGeo(woman, tier) {
-  const root = pNode0("fig_" + (woman ? "w" : "m") + "_" + tier), G = [];
+  const root = pNode0("fig_" + (woman ? "w" : "m") + "_" + tier), G = [], U = root.userData;
   root.updateWorldMatrix(true, true);
   const inv = root.matrixWorld.clone().invert(), M = new THREE.Matrix4();
   root.traverse((o) => {
     if (!o.isMesh) return;
     let mt = +o.material.name.match(/fig_m(\d+)/)[1];
-    if (mt === 8 && tier !== "near") mt = 9;   // издали глаз — тёмное пятно
-    const g = o.geometry.clone().applyMatrix4(M.multiplyMatrices(inv, o.matrixWorld)), uv = g.attributes.uv, n = uv.count, a = new Float32Array(n * 2);
-    for (let i = 0; i < n; i++) { a[i * 2] = Math.round(uv.getY(i)) * 16 + mt; a[i * 2 + 1] = uv.getX(i); }
+    if (mt === 8 && tier !== "near" && tier !== "hi") mt = 9;   // издали глаз — тёмное пятно
+    const g = o.geometry.clone().applyMatrix4(M.multiplyMatrices(inv, o.matrixWorld)), uv = g.attributes.uv, u1 = g.attributes.uv1, n = uv.count;
+    const a = new Float32Array(n * 2), sk = new Float32Array(n * 2);
+    for (let i = 0; i < n; i++) {
+      a[i * 2] = Math.round(uv.getY(i)) * 16 + mt; a[i * 2 + 1] = uv.getX(i);
+      sk[i * 2] = u1 ? Math.round(u1.getY(i)) : 0; sk[i * 2 + 1] = u1 ? u1.getX(i) : 1;
+    }
     for (const k of Object.keys(g.attributes)) if (k !== "position" && k !== "normal") g.deleteAttribute(k);
     g.setAttribute("aPart", new THREE.Float32BufferAttribute(a, 2));
+    g.setAttribute("aSk", new THREE.Float32BufferAttribute(sk, 2));
     G.push(g);
   });
-  const D = {}; for (const k of ["JX", "JY", "EX", "EY", "EZ", "TY", "HY", "WZ"]) D[k] = (+root.userData[k]).toFixed(4);
+  const D = {}; for (const k of ["JX", "JY", "EX", "EY", "EZ", "WX", "WY", "TY", "HY", "WZ"]) D[k] = (+U[k]).toFixed(4);
+  for (const k of ["HP", "K", "A", "B", "S4", "S2", "N"]) { D["FK_" + k + "Y"] = (+U[k + "Y"]).toFixed(4); D["FK_" + k + "Z"] = (+U[k + "Z"]).toFixed(4); }
+  D.FK_WOMAN = woman ? 1 : 0;
+  if (!FK_J[woman ? 1 : 0]) { const J = {}; for (const k of FK_KEYS) J[k] = [+U[k + "Y"], +U[k + "Z"]]; FK_J[woman ? 1 : 0] = J; }
   return { geo: mergeGeometries(G), D };
 }
-const FIG_HEAD = `attribute vec2 aPart;
-attribute vec4 iP, iC0, iC1, iC2, iC3, iLook, iPose, iAR, iAL;
+const fkGl = (n, A) => `const float ${n}[12] = float[12](${A.map((v) => v.toFixed(3)).join(", ")});\n`;
+const FIG_HEAD = `attribute vec2 aPart, aSk;
+attribute vec4 iP, iC0, iC1, iC2, iC3, iLook, iPose, iAR, iAL, iHand;
 varying vec3 vFigCol, vFigCol2, vFigLoc;
 varying float vFigM, vFigU, vFigDd;
 mat3 rX(float a) { float c = cos(a), s = sin(a); return mat3(1., 0., 0., 0., c, s, 0., -s, c); }
 mat3 rY(float a) { float c = cos(a), s = sin(a); return mat3(c, 0., -s, 0., 1., 0., s, 0., c); }
 mat3 rZ(float a) { float c = cos(a), s = sin(a); return mat3(c, s, 0., -s, c, 0., 0., 0., 1.); }
+mat2 r2(float a) { float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
+const int KPAR[12] = int[12](${FK_PAR.join(", ")});
+${fkGl("K_RUKU", FK_RUKU)}${fkGl("K_SUJ_M", FK_SUJ[0])}${fkGl("K_SUJ_W", FK_SUJ[1])}${fkGl("K_JALSA", FK_JALSA)}${fkGl("K_CROUCH", FK_CROUCH)}
+#if FK_WOMAN
+#define K_SUJ K_SUJ_W
+#else
+#define K_SUJ K_SUJ_M
+#endif
+const vec2 PV[12] = vec2[12](${FK_PIV.map((k) => `vec2(FK_${k}Y, FK_${k}Z)`).join(", ")});
+// углы звеньев — ровно как fkAngles() на процессоре
+void fkAng(out float T[12]) {
+  float tl = iPose.x, ch = iPose.y, kn = iPose.z, aR = clamp(-tl / 1.35, 0., 1.), aS = clamp(-tl / 1.95, 0., 1.), up = max(tl, 0.);
+  float s = iPose.w * (1. - kn) * (1. - ch);
+  for (int i = 0; i < 12; i++) {
+    float st = K_RUKU[i] * aR, kk = mix(K_JALSA[i], K_SUJ[i], aS), cr = K_CROUCH[i];
+    float t = kn < .5 ? mix(st, cr, 2. * kn) : mix(cr, kk, 2. * kn - 1.);
+    if (i < 4) t += up;
+    else {
+      int j = i & 3;
+      t = mix(t, j == 0 ? 1.57 : 0., ch);
+      float th = i < 8 ? 2.4 * s : -2.4 * s;
+      t += j == 0 ? th : j == 1 ? (th > 0. ? .25 * th : th) : j == 2 && th < 0. ? .8 * th : 0.;
+    }
+    T[i] = t;
+  }
+}
 `;
 const FIG_MAIN = `
   float fB = floor(aPart.x / 16. + .01), fM = aPart.x - fB * 16., fU = aPart.y;
@@ -711,33 +800,63 @@ const FIG_MAIN = `
   bool fUni = iC2.w > .5;
   vFigLoc = position; vFigM = fM; vFigU = iC2.w;
   vFigDd = dot(position.xy - vec2(.06, JY - .03), vec2(.54, .84));
-  if ((abs(fM - 12.) < .5) != fUni && (fB < .5 || fB > 5.5)) fP = vec3(0., HY, 0.);   // брюки — только у полиции, у неё нет изара
-  // шаг: ноги вперёд-назад по весу (у бедра 0); изар и абая — вслед за ногами, чуть меньше
-  float fStep = iPose.w * (1. - iPose.z);
-  if (fB > 5.5) fP.z += (fB < 6.5 ? 1. : -1.) * fStep * fU;
-  else if (fB < .5) fP.z += clamp(position.x / .1, -1., 1.) * fStep * fU * .8;
+  bool fBoot = fUni && fB > 5.5 && position.y < .11;   // стопа полицейского — ботинок
+  bool fHide = (abs(fM - 12.) < .5) != fUni && (fB < .5 || fB > 5.5) && !fBoot;   // брюки — только у полиции, у неё нет изара
   if (fB > 1.5 && fB < 5.5) {   // руки: предплечье вокруг локтя, потом вся рука вокруг плеча; вес смягчает локоть и подмышку
     bool fR = fB < 3.5; vec4 fA = fR ? iAR : iAL; float fS = fR ? 1. : -1.;
     vec3 fJ = vec3(fS * JX, JY, 0.);
     mat3 fSh = rZ(fS * fA.y) * rX(fA.x);
     if (abs(fB - 3.) < .5 || abs(fB - 5.) < .5) {
       vec3 fE = vec3(fS * EX, EY, EZ); mat3 fF = rY(fS * fA.w) * rX(fA.z);
+      // кисть: сгиб в запястье (ладонь к предплечью), потом пронация — поворот вокруг оси предплечья, к кисти полностью, у локтя — ноль
+      vec2 fH = fR ? iHand.xy : iHand.zw;
+      vec3 fW = vec3(fS * WX, WY, 0.); float fHw = smoothstep(WY + .005, WY - .025, position.y);
+      mat3 fWr = rZ(fS * fH.y); fP = mix(fP, fW + fWr * (fP - fW), fHw); fN = mix(fN, fWr * fN, fHw);
+      vec3 fK = normalize(fW - fE); float fPa = fS * fH.x * clamp((EY - position.y) / (EY - WY), 0., 1.), fCa = cos(fPa), fSa = sin(fPa);
+      vec3 fV = fP - fE; fP = fE + fV * fCa + cross(fK, fV) * fSa + fK * dot(fV, fK) * (1. - fCa);
+      fN = fN * fCa + cross(fK, fN) * fSa + fK * dot(fN, fK) * (1. - fCa);
       fP = mix(fP, fE + fF * (fP - fE), fU); fN = mix(fN, fF * fN, fU);
       fP = fJ + fSh * (fP - fJ); fN = fSh * fN;
     } else { fP = mix(fP, fJ + fSh * (fP - fJ), fU); fN = mix(fN, fSh * fN, fU); }
   }
-  // корпус наклоняется от бедра (руку, суджуд), опускается вместе с коленями; ниже пояса — плавный переход
-  float fW = fB > 1.5 && fB < 5.5 ? 1. : fB < 1.5 ? smoothstep(TY - .07, TY + .12, position.y) : 0.;
-  mat3 fT = rX(iPose.x);
-  vec3 fUp = vec3(0., HY * (1. + iPose.y), 0.) + fT * (fP - vec3(0., HY, 0.));
-  float fKz = mix(-.1, .14, clamp(-iPose.x / 1.95, 0., 1.));
-  vec3 fLo = mix(fP, vec3(fP.x * .9, fP.y * .39, fP.z * 1.7 + fKz), iPose.z);
-  fP = mix(fLo, fUp, fW); fN = normalize(mix(fN, fT * fN, fW));
+  // скелет: вершина поворачивается вокруг сустава своего звена (с долей угла родителя), суставы — цепочкой от таза;
+  // юбка изара/абаи — за бедром и голенью (справа — правой ногой, слева — левой); потом — на пол (iC3.w) и вперёд от пальцев ног (iC1.w)
+  float fT[12]; fkAng(fT);
+  int fC = int(aSk.x + .5); float fWk = aSk.y, fAng; vec2 fO, fPv;
+  if (fC >= 12) {
+    float sR = smoothstep(-.06, .06, position.x), tTh = mix(fT[8], fT[4], sR);
+    if (fC == 12) { fAng = mix(fT[0], tTh, fWk); fO = PV[0]; fPv = PV[0]; }
+    else { fAng = mix(tTh, mix(fT[9], fT[5], sR), fWk); fO = PV[0] + r2(tTh) * (PV[5] - PV[0]); fPv = PV[5]; }
+  } else {
+    int fA[5]; int fn = 0, k = fC;
+    for (int i = 0; i < 5; i++) { fA[i] = k; fn = i + 1; if (k == 0) break; k = KPAR[k]; }
+    fO = PV[0];
+    for (int i = fn - 2; i >= 0; i--) fO += r2(fT[fA[i + 1]]) * (PV[fA[i]] - PV[fA[i + 1]]);
+    fPv = PV[fC];
+    fAng = mix(fC == 0 ? 0. : fT[KPAR[max(fC, 1)]], fT[fC], fWk);
+  }
+  mat2 fR2 = r2(fAng);
+  fP.yz = fO + fR2 * (fP.yz - fPv); fN.yz = fR2 * fN.yz;
+  if (fC >= 12) {   // ткань под тяжестью: над лежащим бедром/голенью подол не держит форму трубы, а ложится на ногу
+    vec2 fD = fR2 * vec2(-1., 0.), fQ = fP.yz - fO, fOf = fQ - fD * dot(fQ, fD);
+    float fHz = abs(fD.y);
+    float fSg = fC == 13 ? mix(.8, .35, smoothstep(.2, .06, position.y)) : .55;   // у голени ткань ложится на икры, у самого подола держит край — стопы выходят из-под него
+    if (fOf.x > 0.) fP.y -= fOf.x * fSg * fHz;
+    if (fC == 13) {   // бока лежащей «трубы» не стоят стенкой: стекают на пол и чуть расходятся — подол как навес над голенями
+      float fSd = fHz * smoothstep(.09, .22, abs(position.x));
+      fP.y -= .14 * fSd; fP.x *= 1. + .18 * fSd;
+      fN = normalize(mix(fN, vec3(sign(position.x) * .4, 1., 0.), .35 * fSd));
+    }
+  }
+  fP += vec3(0., iC3.w, iC1.w);
+  if (fC >= 12 && fP.y < .006) { fP.y = .006 + (fP.y - .006) * .05; fN = normalize(mix(fN, vec3(0., 1., 0.), .5)); }   // ткань не уходит в пол — ложится на него
+  if (fHide) fP = vec3(0., -9., 0.);   // прячем уже после поворота: иначе точка разлетается вместе со звеном
   mat3 fRy = rY(iP.w);
   vec3 figP = iP.xyz + fRy * (fP * iC0.w), figN = fRy * fN;
   vec3 fSk = iC1.rgb, fCov = mix(fSk, iC0.rgb, fUni ? 1. : max(iLook.z, iLook.w));
   vFigCol = iC0.rgb; vFigCol2 = fCov;
-  if (abs(fM - 1.) < .5) vFigCol = fSk;
+  if (fBoot) vFigCol = vec3(.07);
+  else if (abs(fM - 1.) < .5) vFigCol = fSk;
   else if (abs(fM - 2.) < .5) vFigCol = mix(fSk * .88, iC2.rgb, clamp(iLook.x * 3., 0., 1.));   // после бритья — кожа головы
   else if (abs(fM - 3.) < .5) vFigCol = iLook.y > .01 ? iC3.rgb : fSk;
   else if (abs(fM - 5.) < .5) vFigCol = mix(fSk, iC0.rgb, fUni ? 1. : iLook.w);
@@ -747,6 +866,8 @@ const FIG_MAIN = `
   else if (abs(fM - 10.) < .5) vFigCol = fSk * vec3(.86, .62, .6);
   else if (abs(fM - 11.) < .5) vFigCol = fUni ? vec3(.07) : iLook.z > .99 && iLook.w > .99 && iLook.x > .99 ? vec3(.09, .08, .08) : vec3(.2, .13, .08);
   else if (abs(fM - 12.) < .5) vFigCol = iC0.rgb * .78;
+  else if (abs(fM - 13.) < .5) vFigCol = vec3(.03, .035, .04);   // стёкла солнцезащитных очков
+  else if (abs(fM - 14.) < .5) vFigCol = vec3(.09, .085, .08);   // оправа
 `;
 const FIG_FRAG = `
   vec3 fCol = vFigCol;
@@ -755,17 +876,20 @@ const FIG_FRAG = `
     fCol = vFigDd > 0. ? vFigCol2 : vFigCol;
     if (abs(vFigDd) < .012 && distance(vFigCol, vFigCol2) > .01) fCol *= .82;
   }
+  if (!gl_FrontFacing) fCol *= .3;   // изнанка ткани (под подолом, в рукаве) — в тени, а не «дырка» в пол
   diffuseColor.rgb *= fCol;
 `;
 // кожа и губы чуть глаже ткани, глаза блестят
 const FIG_ROUGH = `
   if (abs(vFigM - 8.) < .5 || abs(vFigM - 9.) < .5) roughnessFactor = .25;
+  else if (abs(vFigM - 13.) < .5) roughnessFactor = .08;   // стекло очков блестит
+  else if (abs(vFigM - 14.) < .5) roughnessFactor = .3;
   else if (abs(vFigM - 1.) < .5 || abs(vFigM - 5.) < .5 && vFigCol == vFigCol2 || abs(vFigM - 10.) < .5) roughnessFactor = .62;
 `;
 function figMat(woman, depth, D) {
   const m = depth ? new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }) : new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 });
   m.defines = { ...D };
-  m.customProgramCacheKey = () => "fig2" + (woman ? "w" : "m") + (depth ? "d" : "");
+  m.customProgramCacheKey = () => "fig5" + (woman ? "w" : "m") + (depth ? "d" : "");
   m.onBeforeCompile = (sh) => {
     let v = FIG_HEAD + sh.vertexShader.replace("void main() {", "void main() {" + FIG_MAIN).replace("#include <begin_vertex>", "vec3 transformed = figP;");
     if (!depth) {
@@ -778,23 +902,26 @@ function figMat(woman, depth, D) {
   return m;
 }
 // уровни: [имя, сколько людей, до какого расстояния (м)]; не влезли в ближний — идут в следующий
-const FIG_TIERS = [["near", 300, 12], ["mid", 1600, 40], ["far", 5000, 60], ["xfar", 18000, 1e9]], FIG_D2 = FIG_TIERS.map((t) => t[2] * t[2]), NT = FIG_TIERS.length;
-const FIG_ATTR = ["iP", "iC0", "iC1", "iC2", "iC3", "iLook", "iPose", "iAR", "iAL"];
+const FIG_TIERS = [["hi", 60, 7], ["near", 240, 14], ["mid", 1600, 40], ["far", 5000, 60], ["xfar", 18000, 1e9]], FIG_D2 = FIG_TIERS.map((t) => t[2] * t[2]), NT = FIG_TIERS.length;
+const FIG_ATTR = ["iP", "iC0", "iC1", "iC2", "iC3", "iLook", "iPose", "iAR", "iAL", "iHand"], FIG_ST = FIG_ATTR.length * 4;
 function figPool(woman, ti) {
   const [tier, cap] = FIG_TIERS[ti], { geo: src, D } = figGeo(woman, tier), g = new THREE.InstancedBufferGeometry();
-  g.index = src.index; for (const k of ["position", "normal", "aPart"]) g.setAttribute(k, src.attributes[k]);
-  const arr = new Float32Array(cap * 36), buf = new THREE.InstancedInterleavedBuffer(arr, 36, 1).setUsage(THREE.DynamicDrawUsage);
+  g.index = src.index; for (const k of ["position", "normal", "aPart", "aSk"]) g.setAttribute(k, src.attributes[k]);
+  const arr = new Float32Array(cap * FIG_ST), buf = new THREE.InstancedInterleavedBuffer(arr, FIG_ST, 1).setUsage(THREE.DynamicDrawUsage);
   FIG_ATTR.forEach((k, i) => g.setAttribute(k, new THREE.InterleavedBufferAttribute(buf, 4, i * 4)));
   g.instanceCount = 0;
   const m = new THREE.Mesh(g, figMat(woman, false, D));
+  if (ti < 2) m.material.side = THREE.DoubleSide;   // вблизи видна изнанка подола и рукавов
   m.customDepthMaterial = figMat(woman, true, D); m.frustumCulled = false; m.castShadow = ti < 2; scene.add(m);
   return { m, g, arr, buf, n: 0, cap };
 }
 const POOLS = [false, true].map((w) => FIG_TIERS.map((_, ti) => figPool(w, ti)));   // [мужчины, женщины] × [вблизи, средне, издали, очень далеко]
 const camP = new THREE.Vector3();
 const fq = { c0: new THREE.Color(), c1: new THREE.Color(), c2: new THREE.Color(), c3: new THREE.Color(), sc: 1, hair: 1, beard: 0, cover: 0, sleeve: 0,
-  tilt: 0, drop: 0, kneel: 0, fsw: 0, uni: 0, R: [0, 0, 0, 0], L: [0, 0, 0, 0] };   // человек, которого сейчас кладём в буфер
-const setA = (A, f, a, e, w = 0) => { A[0] = f; A[1] = a; A[2] = e; A[3] = w; };   // рука: вперёд, в сторону, локоть, поворот предплечья
+  tilt: 0, drop: 0, kneel: 0, fsw: 0, uni: 0, R: [0, 0, 0, 0, 0, 0], L: [0, 0, 0, 0, 0, 0] };   // человек, которого сейчас кладём в буфер
+const setA = (A, f, a, e, w = 0, pr = 0, wr = 0) => { A[0] = f; A[1] = a; A[2] = e; A[3] = w; A[4] = pr; A[5] = wr; };   // рука: вперёд, в сторону, локоть, поворот предплечья, пронация, сгиб запястья
+// v3.19: походка — рука у бедра, локоть мягко сгибается на взмахе вперёд и почти выпрямляется назад, как у живого человека
+const walkA = (A, s) => setA(A, s, 0.05, 0.2 + Math.max(0, s) * 1.1);
 const FRU = new THREE.Frustum(), FRU_M = new THREE.Matrix4(), FRU_S = new THREE.Sphere(new THREE.Vector3(), 3);   // кого камера не видит — не рисуем (3 м запаса — на тень)
 function crowdBegin() {
   for (const P of POOLS) for (const q of P) q.n = 0; camP.copy(camera.position); nA = 0;
@@ -807,21 +934,23 @@ function crowdPush(woman, x, h, y, r) {
   while (t < NT - 1 && P[t].n >= P[t].cap) t++;
   const q = P[t];
   if (q.n >= q.cap) return -1;
-  const a = q.arr, o = q.n++ * 36, f = fq, R = f.R, L = f.L;
+  const a = q.arr, o = q.n++ * FIG_ST, f = fq, R = f.R, L = f.L;
   a[o] = x; a[o + 1] = h; a[o + 2] = -y; a[o + 3] = r;
   a[o + 4] = f.c0.r; a[o + 5] = f.c0.g; a[o + 6] = f.c0.b; a[o + 7] = f.sc;
   a[o + 8] = f.c1.r; a[o + 9] = f.c1.g; a[o + 10] = f.c1.b;
+  const gr = figGround(woman, f.tilt, f.drop, f.kneel, f.fsw); a[o + 11] = gr[1]; a[o + 19] = gr[0];   // на пол и вперёд от пальцев ног
   a[o + 12] = f.c2.r; a[o + 13] = f.c2.g; a[o + 14] = f.c2.b; a[o + 15] = f.uni; f.uni = 0;   // форма — только для этого человека
   a[o + 16] = f.c3.r; a[o + 17] = f.c3.g; a[o + 18] = f.c3.b;
   a[o + 20] = f.hair; a[o + 21] = f.beard; a[o + 22] = f.cover; a[o + 23] = f.sleeve;
   a[o + 24] = f.tilt; a[o + 25] = f.drop; a[o + 26] = f.kneel; a[o + 27] = f.fsw;
   a[o + 28] = R[0]; a[o + 29] = R[1]; a[o + 30] = R[2]; a[o + 31] = R[3];
   a[o + 32] = L[0]; a[o + 33] = L[1]; a[o + 34] = L[2]; a[o + 35] = L[3];
+  a[o + 36] = R[4]; a[o + 37] = R[5]; a[o + 38] = L[4]; a[o + 39] = L[5];
   return ((woman ? NT : 0) + t) * 16777216 + o;   // «ручка» слота (номер в POOLS.flat() и смещение): решатель столкновений потом поправит x, y
 }
 function flushCrowd() {
   for (const P of POOLS) for (const q of P) {
-    if (q.n) { q.buf.clearUpdateRanges(); q.buf.addUpdateRange(0, q.n * 36); q.buf.needsUpdate = true; }
+    if (q.n) { q.buf.clearUpdateRanges(); q.buf.addUpdateRange(0, q.n * FIG_ST); q.buf.needsUpdate = true; }
     q.g.instanceCount = q.n;
   }
 }
@@ -1013,8 +1142,8 @@ function placeWalkers(t) {
       if (kid) setA(L, 0.05, 0.12, 0.1); else setA(L, a - m * sw, b + m * 0.08, c + m * 0.3);
     } else {
       const kk = yem * 0.35;
-      setA(R, kk * 2.3 + sw, 0.08 + kk * 0.4 - yem * 1.3, 0.3 + yem * 0.3);
-      if (kid) setA(L, 0.05, 0.12, 0.1); else setA(L, -sw, 0.08, 0.3);
+      setA(R, kk * 2.3 + sw, 0.05 + kk * 0.43 - yem * 1.3, 0.2 + Math.max(0, sw) * 1.1 + yem * 0.4);
+      if (kid) setA(L, 0.05, 0.12, 0.1); else walkA(L, -sw);
     }
     w.x = x; w.y = y; w.r = rot; w.vis = true;
     const ag = agentAdd(x, y, 0, 0.25, 0, crowdPush(w.woman, x, 0, y, rot), i, 0, i);
@@ -1023,7 +1152,7 @@ function placeWalkers(t) {
       f.c0.copy(kid.c); f.c1.copy(kid.s); f.c2.copy(kid.woman ? kid.hj : kid.hc); f.c3.copy(kid.s);
       f.hair = kid.woman ? 1 : 0.8; f.beard = 0; f.cover = kid.woman ? 1 : 0; f.sleeve = kid.woman ? 1 : 0;
       f.sc = kid.sc; f.fsw = ksw * 0.45;
-      setA(R, 0.05, 1.12, 0.05); setA(L, ksw, 0.08, 0.3);
+      setA(R, 0.05, 1.12, 0.05); walkA(L, ksw);
       w.kx = kx; w.ky = ky; w.kv = true;
       agentPair(ag, agentAdd(kx, ky, 0, 0.17, 0, crowdPush(kid.woman, kx, 0, ky, rp), -1, 1, i));   // идут вместе: решатель двигает пару целиком
     }
@@ -1254,84 +1383,79 @@ scene.add(new THREE.Points(sparkGeo, new THREE.PointsMaterial({ map: GLOW, size:
 // «Вы» — главный паломник: белый ихрам, подробнее толпы, золотое сияние растёт вместе с прогрессом умры.
 // Рида закрывает оба плеча до тавафа и после него; на тавафе правое плечо открыто (идтиба).
 // Рисуется отдельной сценой поверх города: его видно и под крышей галереи саъя, и издалека (масштаб растёт с расстоянием).
-// Верх тела — группа с осью в поясе (поклоны); руки — по два звена, локоть считается обратной кинематикой (IK) к цели позы.
+// Тело — та же скелетная фигура, что у толпы: поклоны, колени, шаг и руки задаются углами в буфере (heroSync).
 const heroScene = new THREE.Scene();
 heroScene.environment = scene.environment; heroScene.environmentIntensity = 0.55;
 heroScene.add(new THREE.HemisphereLight(0xfff4e2, 0x2a3a3a, 1.3));
 { const l = new THREE.DirectionalLight(0xfff1dc, 2.2); l.position.set(-60, 120, 70); heroScene.add(l); }
-// Герой — коллекция «Герой» в props.blend: низ (изар, стопы), верх с осью в поясе (ткань, кожа, накидка правого плеча), звенья рук и кисть
-const heroCloth = propMat("hero_cloth_upper"), heroSkin = propMat("hero_skin_upper");
-const HIP = 1.0;
-const you = new THREE.Group(), youFig = new THREE.Group(), youUpper = new THREE.Group();
-youUpper.position.y = HIP;
-const youCover = new THREE.Mesh(propGeo("hero_cover"), propMat("hero_cover"));   // правое плечо под тканью
-youUpper.add(new THREE.Mesh(propGeo("hero_cloth_upper"), heroCloth), new THREE.Mesh(propGeo("hero_skin_upper"), heroSkin), youCover);
-// Руки: плечо 0,30 м, предплечье 0,26 м; звено — цилиндр вдоль +Y, ставится от сустава к суставу
-const ARM_A = 0.3, ARM_B = 0.26, Y1 = new THREE.Vector3(0, 1, 0);
-const heroArm = (side) => {
-  const a = { side, S: new THREE.Vector3(0.28 * side, 1.44 - HIP, 0),
-    up: new THREE.Mesh(propGeo("hero_arm_up"), propMat("hero_arm_up")), fore: new THREE.Mesh(propGeo("hero_arm_fore"), propMat("hero_arm_fore")),
-    hand: new THREE.Mesh(propGeo("hero_hand"), propMat("hero_hand")) };
-  youUpper.add(a.up, a.fore, a.hand); return a;
-};
-const armR = heroArm(1), armL = heroArm(-1);
-const ikD = new THREE.Vector3(), ikP = new THREE.Vector3(), ikE = new THREE.Vector3(), ikT = new THREE.Vector3();
-function solveArm(a, T) {   // T — цель кисти в координатах верха тела
-  ikD.copy(T).sub(a.S); const L = THREE.MathUtils.clamp(ikD.length(), 0.08, ARM_A + ARM_B - 0.002); ikD.normalize();
-  ikT.copy(a.S).addScaledVector(ikD, L);
-  const along = (ARM_A * ARM_A + L * L - ARM_B * ARM_B) / (2 * L), h = Math.sqrt(Math.max(0, ARM_A * ARM_A - along * along));
-  ikP.set(a.side * 0.5, -0.5, 0.6); ikP.addScaledVector(ikD, -ikP.dot(ikD)).normalize();   // локоть — наружу, вниз и назад
-  ikE.copy(a.S).addScaledVector(ikD, along).addScaledVector(ikP, h);
-  a.up.position.copy(a.S); a.up.quaternion.setFromUnitVectors(Y1, ikP.copy(ikE).sub(a.S).normalize());
-  a.fore.position.copy(ikE); a.fore.quaternion.setFromUnitVectors(Y1, ikP.copy(ikT).sub(ikE).normalize());
-  a.hand.position.copy(ikT);
-}
-// Цели кистей по позам: l — в координатах верха тела, f — фигуры (кисти на коленях, на полу); [правая, левая]
-const ARMS = {
-  relaxed: { l: [[0.32, -0.15, -0.02], [-0.32, -0.15, -0.02]] },
-  takbir:  { l: [[0.2, 0.66, -0.08], [-0.2, 0.66, -0.08]] },                 // руки к ушам
-  qiyam:   { l: [[0.02, 0.04, -0.29], [-0.02, 0.02, -0.26]] },               // правая на левой, ниже пупка
-  ruku:    { f: [[0.17, 0.55, -0.2], [-0.17, 0.55, -0.2]] },                 // ладони на коленях
-  sujud:   { f: [[0.2, 0.03, -0.6], [-0.2, 0.03, -0.6]], floor: true },      // ладони на полу у головы
-  jalsa:   { f: [[0.18, 0.85, -0.3], [-0.18, 0.85, -0.3]] },                 // ладони на бёдрах
-  dua:     { l: [[0.12, 0.5, -0.32], [-0.12, 0.5, -0.32]] },                 // ладони перед лицом
-  // истилям издали: обе ладони — к Чёрному камню, затем поцеловать их
-  istilam: { l: [[0.2, 0.46, -0.44], [-0.2, 0.46, -0.44]] },   // ладони к камню на уровне плеч, не к ушам
-  kiss:    { l: [[0.035, 0.62, -0.15], [-0.035, 0.62, -0.15]] },
+// v3.19: «Вы» — та же анатомическая фигура, что у толпы (скелет, очки, правильный суджуд), но самая подробная и яркая:
+// один экземпляр в своей сцене; позу (наклон, колени, шаг, руки) пишем в её буфер каждый кадр — heroSync()
+const HG = figGeo(false, "hi"), heroArr = new Float32Array(FIG_ST), heroG = new THREE.InstancedBufferGeometry();
+const heroBuf = new THREE.InstancedInterleavedBuffer(heroArr, FIG_ST, 1).setUsage(THREE.DynamicDrawUsage);
+heroG.index = HG.geo.index; for (const k of ["position", "normal", "aPart", "aSk"]) heroG.setAttribute(k, HG.geo.attributes[k]);
+FIG_ATTR.forEach((k, i) => heroG.setAttribute(k, new THREE.InterleavedBufferAttribute(heroBuf, 4, i * 4)));
+heroG.instanceCount = 1;
+const heroMat = figMat(false, false, HG.D); heroMat.side = THREE.DoubleSide; heroMat.emissive.setHex(0xfff2dc);
+const heroMesh = new THREE.Mesh(heroG, heroMat); heroMesh.frustumCulled = false;
+// белоснежный ихрам, ровный тон кожи, тёмные волосы и аккуратная борода
+[[4, 0xffffff], [8, 0xd2a07a], [12, 0x1a120c], [16, 0x1a120c]].forEach(([o, hex]) => { const c = new THREE.Color(hex); heroArr[o] = c.r; heroArr[o + 1] = c.g; heroArr[o + 2] = c.b; });
+heroArr[7] = 1; heroArr[21] = 1;   // масштаб, борода
+// поза: наклон корпуса (минус — вперёд), колени (1 — на коленях), шаг, волосы (0 — после бритья), накидка (0 — правое плечо открыто), руки
+const hp = { tilt: 0, kneel: 0, fsw: 0, hair: 0.95, cover: 1, R: [0, 0, 0, 0, 0, 0], L: [0, 0, 0, 0, 0, 0] };
+// руки — те же 6 углов, что у толпы: вперёд, в сторону, локоть, поворот предплечья, пронация, сгиб запястья; [правая, левая]
+const HA_REL = [0.05, 0.08, 0.15, 0, 0, 0], HA_SUJ = [0.569, 1.502, 2.16, -1.098, -0.839, 0.838];
+const HARMS = {
+  relaxed: [HA_REL, HA_REL],
+  takbir: [[0.45, 0.55, 2.45, 0.2, 0, 0], [0.45, 0.55, 2.45, 0.2, 0, 0]],   // ладони к ушам
+  qiyam: [[0.25, 0.05, 1.45, 1.1, 0, 0], [0.25, 0.05, 1.45, 1.1, 0, 0]],   // правая на левой, ниже пупка
+  ruku: [[0.8, 0.12, 0.15, 0, 0, 0], [0.8, 0.12, 0.15, 0, 0, 0]],   // ладони на коленях
+  sujud: [HA_SUJ, HA_SUJ],   // ладони на полу у головы
+  jalsa: [[0.35, 0.1, 1.25, 0, 0, 0], [0.35, 0.1, 1.25, 0, 0, 0]],   // ладони на бёдрах
+  dua: [[1.2, 0.25, 1.1, 0, 0, 0], [1.2, 0.25, 1.1, 0, 0, 0]],   // ладони перед лицом
+  istilam: [[1.45, 0.25, 0.25, 0, 0, 0], [1.45, 0.25, 0.25, 0, 0, 0]],   // ладони к Чёрному камню на уровне плеч
+  kiss: [[0.9, 0.1, 2.4, 0.6, 0, 0], [0.9, 0.1, 2.4, 0.6, 0, 0]],   // поцеловать ладони
   // Замзам: стакан в правой руке — взять у кулера, к груди, к губам; умыть лицо; полить голову
-  cupLow:  { l: [[0.14, 0.3, -0.34], [-0.32, -0.15, -0.02]] },
-  cupChest: { l: [[0.1, 0.45, -0.3], [-0.32, -0.15, -0.02]] },
-  drink:   { l: [[0.04, 0.63, -0.17], [-0.32, -0.15, -0.02]] },
-  face:    { l: [[0.06, 0.66, -0.165], [-0.06, 0.66, -0.165]] },
-  face2:   { l: [[0.06, 0.52, -0.15], [-0.06, 0.52, -0.15]] },
-  pour:    { l: [[0.06, 0.92, -0.04], [-0.32, -0.15, -0.02]] },
+  cupLow: [[0.75, 0.1, 1.0, 0.4, 0, 0], HA_REL],
+  cupChest: [[0.55, 0.1, 1.75, 0.6, 0, 0], HA_REL],
+  drink: [[0.7, 0.15, 2.35, 0.7, 0, 0], HA_REL],
+  face: [[0.75, 0.2, 2.4, 0.5, 0, 0], [0.75, 0.2, 2.4, 0.5, 0, 0]],
+  face2: [[0.65, 0.2, 2.1, 0.5, 0, 0], [0.65, 0.2, 2.1, 0.5, 0, 0]],
+  pour: [[2.6, 0.35, 0.9, 0.3, 0, 0], HA_REL],
 };
-const rotX = new THREE.Matrix4(), armTmp = [new THREE.Vector3(), new THREE.Vector3()];
-function poseTarget(name, k, out) {   // k: 0 — правая, 1 — левая
-  const p = ARMS[name];
-  if (p.l) return out.fromArray(p.l[k]);
-  out.fromArray(p.f[k]); if (p.floor) out.y -= youFig.position.y;
-  return out.sub(youUpper.position).applyMatrix4(rotX.makeRotationX(-youUpper.rotation.x));
-}
+// стакан — у правой кисти: точка в координатах фигуры для поз со стаканом
+const CUP = { relaxed: [0.3, 0.8, 0], cupLow: [0.16, 1.18, -0.36], cupChest: [0.1, 1.42, -0.3], drink: [0.04, 1.5, -0.15], pour: [0, 1.85, -0.18] };
+const cupA = new THREE.Vector3(), cupB = new THREE.Vector3();
 function setArms(a, b = a, e = 1) {   // переход от позы a к позе b, e = 0…1
-  [armR, armL].forEach((arm, k) => solveArm(arm, poseTarget(a, k, armTmp[0]).lerp(poseTarget(b, k, armTmp[1]), e)));
+  const A = HARMS[a], B = HARMS[b];
+  for (let i = 0; i < 6; i++) { hp.R[i] = A[0][i] + (B[0][i] - A[0][i]) * e; hp.L[i] = A[1][i] + (B[1][i] - A[1][i]) * e; }
+  if (cup.visible) cup.position.copy(cupA.fromArray(CUP[a] || CUP.relaxed)).lerp(cupB.fromArray(CUP[b] || CUP.relaxed), e);
 }
-youFig.add(new THREE.Mesh(propGeo("hero_lower"), propMat("hero_lower")), youUpper);   // изар и стопы
+function heroSync() {   // поза → буфер фигуры (раз в кадр)
+  const a = heroArr, gr = figGround(false, hp.tilt, 0, hp.kneel, hp.fsw);
+  a[11] = gr[1]; a[19] = gr[0]; a[20] = hp.hair; a[22] = hp.cover;
+  a[24] = hp.tilt; a[25] = 0; a[26] = hp.kneel; a[27] = hp.fsw;
+  for (let i = 0; i < 4; i++) { a[28 + i] = hp.R[i]; a[32 + i] = hp.L[i]; }
+  a[36] = hp.R[4]; a[37] = hp.R[5]; a[38] = hp.L[4]; a[39] = hp.L[5];
+  heroBuf.needsUpdate = true;
+}
+function walkStep(sw) { hp.fsw = sw * 0.3; walkA(hp.R, sw * 0.6); walkA(hp.L, -sw * 0.6); }   // спокойный шаг: ноги и встречный мах рук
+const you = new THREE.Group(), youFig = new THREE.Group();
+youFig.add(heroMesh);
 const youGlow = glowSprite(0xffcf6a, 7, 0.9); youGlow.position.y = 1.2; youGlow.material.depthTest = false;
 // Метка «вы»: оранжевое кольцо под ногами и покачивающийся треугольник над головой — видно в любой толпе
 const youMark = new THREE.Group();
 const youRing = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.78, 40).rotateX(-Math.PI / 2),
-  new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, opacity: 0.95, depthTest: false }));
+  new THREE.MeshBasicMaterial({ color: 0xf07a1e, transparent: true, opacity: 0.95, depthWrite: false }));   // глубина своя (город уже сброшен): тело в суджуде закрывает кольцо
 youRing.position.y = 0.04;
 const youPin = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.42, 3).rotateX(Math.PI),
   new THREE.MeshBasicMaterial({ color: 0xf07a1e, depthTest: false }));
 youPin.position.y = 2.35;
 youMark.add(youRing, youPin); youMark.renderOrder = 5;
 you.add(youFig, youGlow, youMark); you.visible = false; heroScene.add(you);
-setArms("relaxed");
-// Стакан Замзама — в правой кисти (наклон: rotation.x — к себе, rotation.z — влево, в ладонь)
+// Стакан Замзама — у правой кисти, место по позе — таблица CUP (наклон: rotation.x — к себе, rotation.z — влево, в ладонь)
 const cup = new THREE.Mesh(propGeo("cup"), propMat("cup"));
-cup.position.set(-0.015, 0, -0.035); cup.visible = false; armR.hand.add(cup);
+cup.visible = false; youFig.add(cup);
+setArms("relaxed"); heroSync();
 // Капли: с лица при умывании и со стакана над головой; падают с ускорением g, прозрачность 0 — капли нет
 const ZD_N = 48, zdPos = new Float32Array(ZD_N * 3), zdCol = new Float32Array(ZD_N * 4).fill(1);
 const zdR = Array.from({ length: ZD_N }, () => [Math.random(), Math.random(), Math.random() * Math.PI * 2]);   // не rnd(): он задаёт толпу
@@ -1519,8 +1643,8 @@ function setProg(f) {   // f — доля текущего этапа 0…1
   return pct;
 }
 // 2 ракаата у Макама: такбир, стояние, руку, выпрямление, два суджуда с сидением между ними; во 2-м — ташаххуд, салам и дуа
-const POSE = { t: [0, 0, "takbir"], q: [0, 0, "qiyam"], k: [0, 0, "relaxed"], r: [-1.35, 0, "ruku"], s: [-1.95, -0.58, "sujud"],
-  j: [0, -0.5, "jalsa"], d: [0, -0.5, "dua"] };   // наклон верха тела, опускание фигуры, руки
+const POSE = { t: [0, 0, "takbir"], q: [0, 0, "qiyam"], k: [0, 0, "relaxed"], r: [-1.35, 0, "ruku"], s: [-1.95, 1, "sujud"],
+  j: [0, 1, "jalsa"], d: [0, 1, "dua"] };   // наклон корпуса, колени (1 — на коленях), руки
 const RAK = [["q", 2.2, "стояние"], ["r", 1.3, "руку"], ["k", 0.8, "стояние"], ["s", 1.2, "суджуд"], ["j", 0.8, "сидение"], ["s", 1.2, "суджуд"]];
 const PRAYER = [["t", 1.4, "такбир", 1], ...RAK.map((x) => [...x, 1]), ...RAK.map((x) => [...x, 2]),
   ["j", 2.4, "ташаххуд и салам", 2], ["d", 2.6, "дуа", 2]];
@@ -1732,7 +1856,7 @@ function updateWater(t) {
 // ---------- Толпа «как в жизни»: кто молится, кто в очереди, кто пьёт Замзам, кто идёт на саи ----------
 // Каждый человек — функция времени: где стоит, куда смотрит, в какой позе. Фигура одна (выше, «Фигуры v3.7»): поза
 // (стоя, руку, суджуд, сидя, наклон к камню, бег) и обе руки — числами в буфере. Сцены условные — по описаниям и снимкам.
-const XPOSE = [[0, 0, 0], [-1.35, 0, 0], [-1.95, -0.58, 1], [0, -0.58, 1], [-0.55, 0, 0], [-0.22, 0, 0]];   // наклон, опускание, колени; 5 — бег (корпус вперёд)
+const XPOSE = [[0, 0], [-1.35, 0], [-1.95, 1], [0, 1], [-0.55, 0], [-0.22, 0]];   // наклон, колени (0 — стоя, 1 — на коленях); 5 — бег (корпус вперёд)
 const chairs = new THREE.InstancedMesh(propGeo("chair"), propMat("chair"), 80);
 chairs.count = 0; chairs.frustumCulled = false; scene.add(chairs);
 const flag = new THREE.Group();   // флажок гида — оранжевый, его видно поверх толпы
@@ -2612,10 +2736,19 @@ function placeExtras(t) {
       f.beard = p.bc && !p.kid ? 1 : 0; f.cover = p.idt && !salah ? 0 : 1; f.sleeve = p.street ? 1 : 0; f.uni = p.uni ? 1 : 0;
     }
     f.c1.copy(p.s); f.c3.copy(p.bc || p.s);
-    f.sc = p.sc || 1; f.tilt = X[0] - xq.lean; f.drop = X[1]; f.kneel = X[2]; f.fsw = pose === 0 || pose === 5 ? sw * 0.45 : 0;
+    // поза не прыгает: наклон, колени и кресло догоняют цель за ~0,15 с — из кыяма в руку, в суджуд и обратно идут через промежуточные положения
+    const pT = X[0] - xq.lean, pK = X[1], pC = xq.chair ? 1 : 0, dtP = t - (p.pt ?? -1);
+    if (dtP > 0 && dtP < 0.5) { const e = 1 - Math.exp(-dtP * 7); p.pT += (pT - p.pT) * e; p.pK += (pK - p.pK) * e; p.pC += (pC - p.pC) * e; }
+    else { p.pT = pT; p.pK = pK; p.pC = pC; }
+    p.pt = t;
+    f.sc = p.sc || 1; f.tilt = p.pT; f.drop = p.pC; f.kneel = p.pK; f.fsw = pose === 0 || pose === 5 ? sw * 0.45 : 0;
     // руки: [вперёд, в сторону, локоть, поворот]
-    if (pose === 1) { setA(R, 1.0, 0.12, 0.1); setA(L, 1.0, 0.12, 0.1); }   // руку: ладони на коленях
-    else if (pose === 2) { setA(R, 2.6, 0.5, 1.0); setA(L, 2.6, 0.5, 1.0); }   // суджуд: ладони на полу у головы
+    if (pose === 1) { setA(R, 0.8, 0.12, 0.15); setA(L, 0.8, 0.12, 0.15); }   // руку: прямые руки, ладони на коленях
+    else if (pose === 2) {   // суджуд: ладони на полу у ушей; у мужчин локти подняты и в стороны, у женщин — прижаты
+      // углы подобраны по геометрии кисти (_work_figs/armsolve2.py): ладонь плашмя, пальцы вместе к кибле, кисти у ушей
+      if (p.woman) { setA(R, 1.546, 0.157, 2.129, -0.142, -1.323, 0.43); setA(L, 1.546, 0.157, 2.129, -0.142, -1.323, 0.43); }
+      else { setA(R, 0.569, 1.502, 2.16, -1.098, -0.839, 0.838); setA(L, 0.569, 1.502, 2.16, -1.098, -0.839, 0.838); }
+    }
     else if (pose === 3) { setA(R, 0.35, 0.1, 1.25 + bend * 0.3); setA(L, 0.35, 0.1, 1.25 + bend * 0.3); }   // сидя: руки на коленях
     else if (pose === 5) { setA(R, 0.1 + sw * 0.7, 0.1, 1.3); setA(L, 0.1 - sw * 0.7, 0.1, 1.3); }   // бег: согнутые руки в такт
     else if (xq.wall === 2) { setA(R, 2.5, 0.3, 0.15); setA(L, 2.5, 0.3, 0.15); }   // Мультазам: обе руки подняты на стену
@@ -2625,16 +2758,20 @@ function placeExtras(t) {
     else {
       if (xq.kidHand) setA(R, 0.05, 1.12, 0.05);   // ребёнок правой рукой держит взрослого
       else if (xq.wall === 1) setA(R, 1.25, 0.1, 0.3);   // правая ладонь на стенке Хатима
-      else setA(R, arm * 2.3 + sw, 0.08 + arm * 0.4, 0.3 + arm * 0.45 + bend);
+      else setA(R, arm * 2.3 + sw, 0.05 + arm * 0.43, 0.2 + Math.max(0, sw) * (1 - arm) * 1.1 + arm * 0.55 + bend);
       if (pose === 4) setA(L, 0.4, 0.1, 0.6);
       else if (p.lk) setA(L, 0.05, 0.12, 0.1);   // левой ведёт ребёнка
-      else setA(L, -sw, 0.08, 0.3);
+      else walkA(L, -sw);
     }
+    if (dtP > 0 && dtP < 0.5) {   // и руки переходят плавно (быстрее корпуса — чтобы ладони успевали к полу и к коленям)
+      const e = 1 - Math.exp(-dtP * 10);
+      for (let i = 0; i < 6; i++) { R[i] = p.aR[i] += (R[i] - p.aR[i]) * e; L[i] = p.aL[i] += (L[i] - p.aL[i]) * e; }
+    } else { p.aR = R.slice(); p.aL = L.slice(); }
     // в решатель столкновений: ряды и стоящие у стены — жёсткий якорь; молится или сидит — мягкий; кресло, коляска, гид,
     // уборщик и полицейский — якорь, пока стоят, а на ходу уступают дорогу (кресло с толкающим и коляска с хозяином — парой)
     const fix = p.row || xq.wall ? 2 : xq.chair ? 3 : salah || xq.pray || (pose !== 0 && pose !== 5) ? 1 : p.police || xq.push || xq.pram || xq.guide || xq.tool ? 3 : 0;
     const rad = p.kid ? 0.17 : xq.chair ? 0.45 : pose === 3 ? (p.row ? 0.3 : 0.35) : xq.wall === 2 ? 0.2 : 0.25, mate = p.kid && p.par;   // у Мультазама — плечом к плечу
-    p.ag = agentAdd(xq.x, xq.y, xq.h, rad, fix, crowdPush(p.woman, xq.x, xq.h, xq.y, xq.r), mate ? -1 : nW2 + k, 2, k);
+    p.ag = agentAdd(xq.x, xq.y, xq.h, rad, fix, crowdPush(p.woman, xq.x, xq.chair ? xq.h - 0.12 : xq.h, xq.y, xq.r), mate ? -1 : nW2 + k, 2, k);
     if (mate && p.par.ag >= 0 && p.par.lx !== undefined) agentPair(p.par.ag, p.ag);
     if (xq.chair) chA = p.ag; else if (xq.push && !xq.pram && prevCh >= 0) agentPair(prevCh, p.ag);
     mtx.makeRotationY(xq.r).setPosition(xq.x, xq.h, -xq.y);
@@ -2700,13 +2837,13 @@ function setFx(name) {
   fx = name; cine = name === "zamzam" || name === "tawaf" || name === "sai" || name === "halq"; cineA = null; setSub("");
   syncSai();
   you.visible = !!name;
-  youUpper.rotation.x = 0; youFig.position.y = 0; you.rotation.y = 0;
-  youCover.visible = name !== "tawaf";   // идтиба — только на тавафе
-  armR.up.material = name === "tawaf" ? heroSkin : heroCloth;
+  hp.tilt = hp.kneel = hp.fsw = 0; you.rotation.y = 0;
+  hp.cover = name === "tawaf" ? 0 : 1;   // идтиба — только на тавафе
+  hp.hair = name === "finish" ? 0 : 0.95;   // после бритья голова гладкая
   setArms(name === "finish" ? "dua" : "relaxed");
   cup.visible = zDrops.visible = false; cup.rotation.set(0, 0, 0);
   if (name === "ihram") you.position.copy(mainPath.v[0]).setY(0);
-  if (name === "finish") you.position.copy(HALQ[1]).setY(0);
+  if (name === "finish") you.position.copy(HALQ[1]);   // площадка у библиотеки — на уровне улицы пути халка (2 м), не 0: иначе паломник под мостовой
   runner.visible = name !== "enter";   // на шаге 2 по маршруту идёт сам паломник
   route.visible = routeOn || name === "enter";
   ring.visible = name === "maqam"; zamzam.visible = name === "zamzam";
@@ -2875,9 +3012,10 @@ function updateFx(dt) {
       const n = Math.round(laps), d = laps - n, end = u >= 1;
       const g = n >= 1 && (Math.abs(d) < TAW_G || end) ? (end ? 1 - sm(t - 7 * LAP, 1.1, 1.7) : 1 - sm(Math.abs(d), TAW_G * 0.55, TAW_G)) : 0;
       const f = end ? Math.min(1, 0.5 + (t - 7 * LAP) / 1.7) : (d + TAW_G) / (2 * TAW_G);
-      const bob = (laps < 3 ? 0.12 * Math.sin(fxT * 9) ** 2 : 0.04 * Math.sin(fxT * 6) ** 2) * (end ? 0 : Math.min(1, t / 0.8));   // рамаль — в первых 3 кругах
-      you.position.set(p.x, bob, -p.y); you.rotation.y = lerpAng(pathH, stoneH, 0.75 * g);
-      if (g > 0) poseTrack(TAW_NEXT, f); else setArms("relaxed");
+      const go = end ? 0 : Math.min(1, t / 0.8), ram = laps < 3, sw = Math.sin(fxT * (ram ? 9 : 6)) * go;   // рамаль — в первых 3 кругах: короткий бодрый шаг
+      hp.fsw = sw * (ram ? 0.42 : 0.3); hp.tilt = ram ? -0.08 * go : 0;
+      you.position.set(p.x, (ram ? 0.035 : 0.015) * Math.abs(sw), -p.y); you.rotation.y = lerpAng(pathH, stoneH, 0.75 * g);
+      if (g > 0) poseTrack(TAW_NEXT, f); else { walkA(hp.R, sw * 0.6); walkA(hp.L, -sw * 0.6); }
       const yem = !end && laps % 1 > 0.74 && laps % 1 < 0.97;   // отрезок от Йеменского угла до камня (~последняя четверть круга)
       if (yem && laps % 1 < 0.86) cue("atina");
       setSub(yem ? "Между Йеменским углом и камнем: «Ра́ббана́ а́тина́ фи-д-дунья́ хаса́на…» (Коран 2:201)" : "");
@@ -2899,7 +3037,7 @@ function updateFx(dt) {
     let t = Math.min(fxT, PRAYER_T), i = 0;
     while (i < PRAYER.length - 1 && t > PRAYER[i][1]) t -= PRAYER[i++][1];
     const [pose, , name, rk] = PRAYER[i], pa = POSE[PRAYER[Math.max(0, i - 1)][0]], pb = POSE[pose], e = Math.min(1, t / 0.45);
-    youUpper.rotation.x = pa[0] + (pb[0] - pa[0]) * e; youFig.position.y = pa[1] + (pb[1] - pa[1]) * e;
+    hp.tilt = pa[0] + (pb[0] - pa[0]) * e; hp.kneel = pa[1] + (pb[1] - pa[1]) * e;
     setArms(pa[2], pb[2], e);
     ring.scale.setScalar(1 + 0.25 * pulse); ring.material.opacity = 0.45 + 0.5 * pulse;
     pct = setProg(fxT / PRAYER_T);
@@ -2921,7 +3059,7 @@ function updateFx(dt) {
     zEnd.copy(SAFA2).sub(zH).normalize();
     const safaH = faceTo(zEnd.x, zEnd.y);
     let x = zH.x, y = zH.y, h = 0, r = kH, msg, sub = "";
-    youUpper.rotation.x = 0; cup.rotation.set(0, 0, 0); cup.visible = T > 4.45 && T < 11.95; zDrops.visible = false;
+    hp.tilt = hp.fsw = 0; cup.rotation.set(0, 0, 0); cup.visible = T > 4.45 && T < 11.95; zDrops.visible = false;
     if (inDua) {   // дуа после Замзама — стоя лицом к Каабе, руки подняты
       setArms("relaxed", "dua", sm(T0, 12, 12.4) - sm(T0, 12 + ZD - 0.4, 12 + ZD));
       msg = "Дуа после Замзама";
@@ -2929,8 +3067,8 @@ function updateFx(dt) {
     } else if (T < 4) {
       const e = ease(T / 4);
       x = ringPos.x + (zH.x - ringPos.x) * e; y = ringPos.y + (zH.y - ringPos.y) * e;
-      h = 0.05 * Math.sin(T * 6) ** 2 * Math.min(1, T / 0.4, (4 - T) / 0.4); r = walkH;
-      setArms("relaxed"); msg = "К кулерам с Замзамом";
+      walkStep(Math.sin(T * 6) * Math.min(1, T / 0.4, (4 - T) / 0.4)); r = walkH;
+      msg = "К кулерам с Замзамом";
     } else if (T < 5.3) {
       r = T < 4.8 ? lerpAng(walkH, cupH, sm(T, 4, 4.4)) : lerpAng(cupH, kH, sm(T, 4.8, 5.3));
       poseTrack([[4, "relaxed"], [4.6, "cupLow"], [4.8, "cupLow"], [5.3, "cupChest"]], T);
@@ -2949,7 +3087,7 @@ function updateFx(dt) {
       msg = "Умываем лицо Замзамом";
     } else if (T < 12) {   // полить голову: стакан над головой, чуть наклониться вперёд, чтобы не намочить ихрам
       poseTrack([[10.1, "cupChest"], [10.5, "pour"], [11.65, "pour"], [12, "relaxed"]], T);
-      youUpper.rotation.x = -0.2 * (sm(T, 10.2, 10.5) - sm(T, 11.6, 11.95));
+      hp.tilt = -0.2 * (sm(T, 10.2, 10.5) - sm(T, 11.6, 11.95));
       cup.rotation.z = 2 * (sm(T, 10.55, 10.8) - sm(T, 11.5, 11.75));
       zDrops.visible = true; updateDrops(T, 0.03, 1.88, -0.2, 0.14, sm(T, 10.65, 10.8) - sm(T, 11.6, 11.8), 0.3, 0, 1.3);
       msg = "Поливаем голову Замзамом";
@@ -2960,8 +3098,8 @@ function updateFx(dt) {
     } else {
       const e = ease(Math.min(1, Math.max(0, T - 15.3) / 2));
       x = zH.x + zEnd.x * 8 * e; y = zH.y + zEnd.y * 8 * e;
-      h = T > 15.3 && T < Z_END ? 0.05 * Math.sin(T * 6) ** 2 : 0; r = lerpAng(stH, safaH, sm(T, 14.5, 15.3));
-      setArms("relaxed"); msg = T < Z_END ? "К Сафе — на саи" : "Замзам и истилям ✓ — дальше саи";
+      walkStep(T > 15.3 && T < Z_END ? Math.sin(T * 6) * Math.min(1, (T - 15.3) / 0.4) : 0); r = lerpAng(stH, safaH, sm(T, 14.5, 15.3));
+      msg = T < Z_END ? "К Сафе — на саи" : "Замзам и истилям ✓ — дальше саи";
     }
     you.position.set(x, h, -y); you.rotation.y = r;
     setCounter(msg); setSub(sub);
@@ -2977,7 +3115,8 @@ function updateFx(dt) {
       if (u < u0) { you.position.lerpVectors(saiB, HALQ[0], ease(u / u0)); halqV.copy(HALQ[0]); }
       else { HALQ_P.at((u - u0) / (1 - u0) * HALQ_P.L, you.position); HALQ_P.at((u - u0) / (1 - u0) * HALQ_P.L + 6, halqV); }
       if (u < 1 && halqV.distanceToSquared(you.position) > 0.01) you.rotation.y = faceTo(halqV.x - you.position.x, you.position.z - halqV.z);
-      you.position.y += u < 1 ? Math.abs(Math.sin(fxT * 8)) * 0.06 : 0;
+      walkStep(u < 1 ? Math.sin(fxT * 6) : 0); you.position.y += u < 1 ? Math.abs(hp.fsw) * 0.05 : 0;
+      hp.hair = u >= 1 ? 0 : 0.95;   // на площадке — уже побрит
       pct = setProg(u);
       setCounter(u >= 1 ? "Бритьё (халк) или укорачивание ✓" : u < u0 + 0.04 ? "Выходим через ворота № 25 у Марвы" : `К площадке у библиотеки · ~${Math.round(HALQ_P.L / 10) * 10} м`);
       setSub(u >= 1 ? "Женщины укорачивают сами — не в салоне" : "Три варианта на схеме — места примерные и меняются по сезону: идите по указателям");
@@ -2987,13 +3126,17 @@ function updateFx(dt) {
       const k = Math.min(fxT / SAI_LEG, 7), leg = Math.min(Math.floor(k), 6), back = leg % 2, P = SAI_PASS[leg], tau = k >= 7 ? 1 : k - leg;
       const u = saiHeroAt(leg, tau, you.position); you.position.y = saiY - 1.2;
       const fast = k < 7 && u > P.ga && u < P.gb;
-      you.position.y += fast ? Math.abs(Math.sin(fxT * 16)) * 0.22 : Math.abs(Math.sin(fxT * 8)) * 0.06;   // в огнях — бодрая рысца
-      youUpper.rotation.x = fast ? 0.16 : 0;
+      const sw = k < 7 ? Math.sin(fxT * (fast ? 9 : 6)) : 0;   // в огнях — лёгкий бег: корпус вперёд, руки согнуты
+      hp.fsw = sw * (fast ? 0.4 : 0.3); hp.tilt = fast ? -0.22 : 0;   // бедро ±55° — лёгкая трусца, как у толпы (0,9 выбрасывало ногу горизонтально)
+      you.position.y += fast ? Math.abs(sw) * 0.06 : Math.abs(sw) * 0.015;
       saiWorld.getObjectByName("greenGlow").material.opacity = fast ? 0.6 + 0.4 * pulse : 0.9;
       saiMark(k >= 7 ? 7 : leg);
       if (tau < P.fl) you.rotation.y = faceTo(saiS.x * Math.sign(P.lat - P.lat0), saiS.y * Math.sign(P.lat - P.lat0));   // разворот на холме — поперёк галереи
       else you.rotation.y = faceTo((MARWA2.x - SAFA2.x) * (back ? -1 : 1), (MARWA2.y - SAFA2.y) * (back ? -1 : 1));
-      setArms("dua", "relaxed", Math.min(1, u / 0.12));   // на холме — дуа, потом в путь
+      const ua = Math.min(1, u / 0.12);   // на холме — дуа, потом в путь
+      if (fast) { setA(hp.R, 0.1 + sw * 0.7, 0.1, 1.3); setA(hp.L, 0.1 - sw * 0.7, 0.1, 1.3); }
+      else if (ua < 1 || k >= 7) setArms("dua", "relaxed", ua);
+      else { walkA(hp.R, sw * 0.6); walkA(hp.L, -sw * 0.6); }
       const fromSafa = P.qs + (P.qe - P.qs) * u, inGreen = k < 7 && fromSafa > GREEN[0] && fromSafa < GREEN[1];
       pct = setProg(k / 7);
       if (fxT > 0.3) cue("safa");
@@ -3028,7 +3171,8 @@ function updateFx(dt) {
   const mk = Math.max(1, px * 0.6);
   youPin.scale.setScalar(mk);
   const near = Math.min(1, D / 60);   // вблизи сияние тише, чтобы видеть позы
-  heroCloth.emissiveIntensity = 0.25 + pct * 0.002;
+  heroMat.emissiveIntensity = 0.06 + pct * 0.0012;
+  heroSync();
   const soft = fx === "halq" || fx === "finish" ? 0.35 : 1;
   youGlow.scale.setScalar(3 + pct * 0.012); youGlow.material.opacity = (0.4 + pct * 0.002) * (0.75 + 0.25 * pulse) * (0.25 + 0.75 * near) * soft;
   youPin.position.y = 2.1 * fig + 0.25 * mk + Math.abs(Math.sin(fxT * 3)) * 0.18 * mk; youPin.rotation.y = fxT * 1.5;
@@ -3580,6 +3724,7 @@ renderer.setAnimationLoop((now) => {
   if (_P) { const _t5=performance.now(); _P.n++; _P.pre+=_t1-_t0; _P.crowd+=_t2-_t1; _P.mid+=_t3-_t2; _P.rend+=_t4-_t3; _P.post+=_t5-_t4; }
 });
 if (new URLSearchParams(location.search).has("dbg")) window.__d = {   // проверка: ?dbg — доступ к толпе и шаг симуляции
+  POOLS, figGround, openStep, heroScene, hp, HARMS, CUP, setArms, heroSync, cup,
   scene, renderer, SAI_CAM, ZS, CL, XP, walkers, xq, STONE, stoneA, stoneDir, mq, mqOut, WSEC, BGRID, camera, controls, you, get cine() { return cine; },
   get crowdT() { return crowdT; },
   run(n = 1, dt = 0.05) { for (let i = 0; i < n; i++) { updateClock(dt); crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); updateHijrGate(crowdT); solveCrowd(); flushCrowd(); gridBuild(); } },

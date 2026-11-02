@@ -175,7 +175,7 @@ bpy.context.scene.unit_settings.system = "METRIC"
 # у вершины uv = (вес, 1 − кость): кость 0 изар/абая, 1 тело, 2/3 правые плечо/предплечье, 4/5 левые, 6/7 ноги.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import figs_blender
-FIGC = [0xf2f0ea, 0xc89a72, 0x2a2522, 0x2a2522, 0xf2f0ea, 0xc89a72, 0xc89a72, 0xf2f0ea, 0xebe6dc, 0x100c08, 0xa86a5c, 0x30201a, 0x3a4a3a]
+FIGC = [0xf2f0ea, 0xc89a72, 0x2a2522, 0x2a2522, 0xf2f0ea, 0xc89a72, 0xc89a72, 0xf2f0ea, 0xebe6dc, 0x100c08, 0xa86a5c, 0x30201a, 0x3a4a3a, 0x0a0c0e, 0x1c1a18]
 C_FIG = coll("Люди_толпы")
 for i, r in enumerate(figs_blender.build(C_FIG, lambda k: mat("fig_m%d" % k, FIGC[k]))):
     r.location = (i * 0.9 - 2.2, -6, 0)
