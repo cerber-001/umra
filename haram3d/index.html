@@ -229,6 +229,7 @@
   <label><input type="checkbox" data-l="gates"> Ворота и их номера</label>
   <label><input type="checkbox" data-l="wc"> Туалеты</label>
   <label><input type="checkbox" data-l="esc"> Эскалаторы и лифты</label>
+  <label><input type="checkbox" data-l="tiers"> Таваф на этажах и крыше</label>
   <label><input type="checkbox" data-l="all"> Все объекты (и исторические места)</label>
   <p id="linfo"></p>
   <div class="leg"><b>Условные знаки</b>
@@ -238,6 +239,7 @@
     <div class="lg"><span class="k" style="background:#1559B7;color:#fff">WC м</span><span class="k" style="background:#B0306A;color:#fff">WC ж</span><span class="k" style="background:#5C6B6D;color:#fff">WC</span>туалеты: мужские, женские, не указано</div>
     <div class="lg"><span class="k" style="background:#111;color:#FFD23F">⇅</span><span class="k" style="background:#111;color:#FFD23F">лифт</span>эскалаторы и лифты</div>
     <div class="lg"><span class="k" style="background:#F4EDE1;color:#00292C">дом Абу Джахля</span>исторические места</div>
+    <div class="lg"><span class="k" style="background:#005A5C;color:#F4EDE1">мезонин</span><span class="k" style="background:#1A9A9C;color:#fff">1-й этаж</span><span class="k" style="background:#F07A1E;color:#fff">крыша</span>круг тавафа на ярусах (схема); стрелки — направление</div>
   </div>
 </div>
 <div id="near"><b>Ближайшее от вас</b>
@@ -472,7 +474,7 @@ const [gltf, meta, walk, props, STREETS, terrBuf] = await Promise.all([
   new GLTFLoader().loadAsync("haram.glb"),
   fetch("haram_meta.json").then((r) => r.json()),
   fetch("walk_route.json").then((r) => r.json()),
-  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb?v=4b9959c5"),   // ?v= — первые 8 знаков md5 файла: после пересборки менять, иначе HTTP-кэш отдаст старых людей к новой странице
+  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb?v=1e8cf927"),   // ?v= — первые 8 знаков md5 файла: после пересборки менять, иначе HTTP-кэш отдаст старых людей к новой странице
   fetch("streets.json?v=a7fe18f4").then((r) => r.json()).catch((e) => (console.warn("streets:", e), null)),
   fetch("terrain.bin?v=e1ec580e").then((r) => r.ok ? r.arrayBuffer() : null).catch(() => null),
 ]);
@@ -698,7 +700,7 @@ function masaaGlass(base) {
   low.name = "Масъа_стекло_нижний_ярус"; upG.name = "Масъа_стекло_верхние_ярусы";
   return { low, up: upG };
 }
-new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb?v=d5e1678d").then((city) => {
+new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb?v=91696c04").then((city) => {
   const base = city.scene.getObjectByName("L_base");
   if (!base) return;
   const mqC = toV3(meta.spots.maqam[0], meta.spots.maqam[1]), bs = new THREE.Vector3();
@@ -4011,6 +4013,7 @@ const LINFO = {
   gates: "Оранжевые — главные ворота. Для умры можно входить через любые; через № 22 «Бану Шейба» входят по традиции.",
   wc: "Туалеты и места для омовения — снаружи мечети, под площадями. Синие — мужские, малиновые — женские, серые — пол на карте не указан: смотрите табличку у входа.",
   esc: "⇅ — эскалаторы на 1-й этаж и крышу; «лифт» — лифты (удобно с колясками).",
+  tiers: "Таваф можно совершать и на ярусах здания вокруг двора: мезонин (удобен для колясок и пожилых), 1-й этаж и крыша — круг там длиннее (на крыше 7 кругов ≈ 4 км, около часа). Подняться: эскалаторы ⇅ и лифты, лифты есть у ворот № 1 (короля Абдулазиза) и № 40 (Умра). Начало круга на каждом ярусе отмечено зелёным светом — как у Каабы. Двор у Каабы сейчас (2026) отведён для совершающих умру — правила меняются, смотрите указатели. Кресла-коляски выдают у ворот № 4, 19 и 64; по крыше ходят электрокары — где и почём, уточняйте на месте. У ханафитов таваф на этажах и на крыше мечети действителен; если сомневаетесь — спросите своего имама. Линии — схема, а не обмер коридоров.",
   all: "Всё сразу, в том числе место дома Абу Джахля (по преданию; сейчас там туалеты, показано приблизительно).",
 };
 const GATE_RU = { 79: "короля Фахда", 40: "Умра", 25: "Баб аль-Марва", 1: "короля Абдулазиза", 3: "Аджьяд", 100: "короля Абдуллы",
@@ -4031,6 +4034,24 @@ fetch("layers.json").then((r) => r.json()).then((d) => {
   syncLayers();
 }).catch(() => {});
 mkLayer("abujahl", [[150, 340, "дом Абу Джахля · ныне WC", "#F4EDE1", "#00292C", false]]);
+{ // v3.28 (Д4): таваф на ярусах — схема круга на мезонине (7 м), 1-м этаже (14 м) и крыше (21 м) здания вокруг матафа.
+  // Линия идёт параллельно фасаду (стена — RIM + 0,5 м): на мезонине ≈ 4 м, на этаже ≈ 6 м вглубь коридора, на крыше ≈ 10 м от края.
+  // Коридоры не смоделированы — это схема, не обмер. Стрелки — против часовой (RIM обходится по направлению тавафа).
+  const g = new THREE.Group(); g.visible = false;
+  for (const [z, d, col, name, at] of [[7, 4, 0x005a5c, "Мезонин (коляски)", 9], [14, 6, 0x1a9a9c, "1-й этаж", 7], [21, 10, 0xf07a1e, "Крыша", 5]]) {
+    const P = rimMitre(-d), pp = polyPath([...P, P[0]].map(([x, y]) => [x, y, z + 0.4])), mat = pathMat(col, 0.85);
+    g.add(tubeOn(pp, 600, 0.9, mat, 0));
+    const cone = new THREE.ConeGeometry(2.6, 7, 12).rotateX(Math.PI / 2), A = new THREE.Vector3();
+    for (let s = 20; s < pp.L; s += 40) {   // стрелка каждые 40 м
+      const u = s / pp.L, p = pp.curve.getPointAt(u);   // ломаная ровная по высоте — доля длины = доля по метрам
+      const a = new THREE.Mesh(cone, mat); a.position.copy(p); a.lookAt(A.copy(p).add(pp.curve.getTangentAt(u))); a.renderOrder = 12; g.add(a);
+    }
+    const n = Math.round(pp.L / 10) * 10, km = (pp.L * 7 / 1000).toFixed(1).replace(".", ",");
+    const l = label(`${name} · круг ≈ ${n} м · 7 кругов ≈ ${km} км`, "#" + col.toString(16).padStart(6, "0"), "#FFFFFF", 0.022);
+    l.position.copy(toV3(P[at][0], P[at][1], z + 5)); g.add(l);   // подписи на разных углах запада — не налезают
+  }
+  scene.add(g); LYR.tiers = g;
+}
 { // османская галерея (риваки конца XVI в., купола Синана при Селиме II, колонны отчасти от аль-Махди; восстановлены при расширении) —
   // всегда на схеме. v3.27: глубина в один пролёт — два ряда опор (GAL — выше, общий с толпой) и один ряд куполов, только север—запад—юг
   // (по спутнику 2026; на востоке белое саудовское здание). Стрельчатые арки, к Каабе — с тёмными клиньями, поперечные арки между рядами,
