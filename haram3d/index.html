@@ -255,7 +255,7 @@
 
 <script src="../prayer.js"></script>
 <script type="importmap">
-{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/", "three-mesh-bvh": "./vendor/three-mesh-bvh/index.module.js" } }
 </script>
 <script type="module">
 import * as THREE from "three";
@@ -414,12 +414,17 @@ const toV3 = (x, y, z = 0) => new THREE.Vector3(x, z, -y);   // Blender (сев�
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
 if (!renderer.getContext()) { $("fallback").style.display = "block"; throw new Error("no webgl"); }
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// Чёткость под силу устройства: на телефоне начинаем с 1,5 (почти вдвое меньше точек, чем 2), дальше подстраиваемся по кадрам
+const MOB = matchMedia("(pointer: coarse)").matches || Math.min(innerWidth, innerHeight) < 600;
+let dprMax = Math.min(devicePixelRatio, 2), dpr = MOB ? Math.min(dprMax, 1.5) : dprMax;
+const DPR_MIN = Math.min(devicePixelRatio, 1);
+renderer.setPixelRatio(dpr);
 renderer.setSize(innerWidth, innerHeight);
 renderer.setClearColor(0x000000, 0);
 renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;   // солнце и здания стоят — карту теней перерисовываем по надобности (см. цикл кадра)
 $("bg").after(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -2581,8 +2586,10 @@ const scan = (base, t, off = 0) => base + Math.sin(t * 0.6 + off) * 0.35;   // �
 // переносная ограда в северном проёме: две секции на петлях у краёв проёма; открываются, когда входит партия
 const hjGateM = new THREE.InstancedMesh(propGeo("barrier"), propMat("barrier"), 2);
 hjGateM.castShadow = true; scene.add(hjGateM);
+let hjG = -1, hjMove = false;   // створки в движении — тени перерисовываем каждый кадр
 function updateHijrGate(t) {
   const g = hjGate(hjSlot(t).tau), th = g * Math.PI * 0.5;
+  hjMove = g !== hjG; hjG = g;
   for (const sg of [-1, 1]) {   // петля — у края проёма (±1,36 м), секция 1,4 м поворачивается наружу
     const hx = HG_N.x + HG_NA.x * sg * 1.36, hy = HG_N.y + HG_NA.y * sg * 1.36;
     const dx = -sg * HG_NA.x * Math.cos(th) + HG_NO.x * Math.sin(th), dy = -sg * HG_NA.y * Math.cos(th) + HG_NO.y * Math.sin(th);
@@ -3822,10 +3829,23 @@ $("play").onclick = () => { playing = !playing; $("play").textContent = (playing
 
 // Видимость меток: прячем за зданиями (проверка лучом раз в несколько кадров)
 const ray = new THREE.Raycaster(), proj = new THREE.Vector3();
+ray.firstHitOnly = true;
+// Дерево BVH (three-mesh-bvh, MIT) ускоряет луч по зданиям в десятки раз; грузим после старта и строим по одной модели в простое
+import("three-mesh-bvh").then((B) => {
+  THREE.Mesh.prototype.raycast = B.acceleratedRaycast;   // без дерева — обычная проверка three.js
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 40));
+  const next = () => {
+    const o = occluders.find((o) => !o.geometry.boundsTree && o.geometry.attributes.position);
+    if (!o) return setTimeout(next, 1500);   // модели догружаются — проверяем ещё раз
+    o.geometry.boundsTree = new B.MeshBVH(o.geometry, { strategy: B.CENTER, indirect: true });   // indirect: порядок треугольников и группы материалов не трогаем
+    idle(next);
+  };
+  idle(next);
+}).catch(() => {});
 const shown = (o) => { for (; o; o = o.parent) if (!o.visible) return false; return true; };   // скрытые слои меток не заслоняют
 let frame = 0;
 function updateSpots() {
-  const w = innerWidth, h = innerHeight, check = frame++ % 8 === 0;
+  const w = innerWidth, h = innerHeight, k = frame++ % 8;   // каждую метку проверяем раз в 8 кадров, но вразбивку — без рывка
   const far = camera.position.distanceTo(controls.target) > 260;   // издали метки у Каабы сливаются — оставляем 1, 9, 10
   SPOTS.forEach((s, i) => {
     const el = spotEls[i];
@@ -3833,7 +3853,7 @@ function updateSpots() {
     if ((step >= 0 ? !STEPS[step].spots.includes(i) : far && i > 0 && i < 8 && cur !== i) || proj.z > 1 || Math.abs(proj.x) > 1.1 || Math.abs(proj.y) > 1.1) { el.classList.add("off"); return; }
     el.classList.remove("off");
     el.style.transform = `translate(${(proj.x + 1) / 2 * w}px, ${(1 - proj.y) / 2 * h}px)`;
-    if (check) {
+    if ((i & 7) === k) {
       const dir = s.pos.clone().sub(camera.position), dist = dir.length();
       ray.set(camera.position, dir.normalize()); ray.far = dist - 2.5;
       el.classList.toggle("hid", ray.intersectObjects(occluders, false).some((h) => shown(h.object)));
@@ -3843,7 +3863,22 @@ function updateSpots() {
 
 let simT = 0, last = performance.now(), viewShift = 0;
 const ease = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+// Подстройка чёткости: среднее время кадра за 2 с; медленно (< 22 кадров/с) — ступенька вниз и потолок ниже, чтобы не качало;
+// быстро (> 40 кадров/с) три окна подряд — ступенька вверх. 30 кадров/с (режим энергосбережения iPhone) не трогаем.
+let dprT = 0, dprN = 0, dprUp = 0;
+function adaptDpr(ms) {
+  if (ms > 250) return;   // вкладка была скрыта
+  dprT += ms; dprN++;
+  if (dprT < 2000) return;
+  const avg = dprT / dprN; dprT = dprN = 0;
+  let d = dpr;
+  if (avg > 45 && dpr > DPR_MIN) { d = Math.max(DPR_MIN, dpr - 0.25); dprMax = d; }
+  else if (avg < 25 && dpr < dprMax) { if (++dprUp >= 3) d = Math.min(dprMax, dpr + 0.25); }
+  else dprUp = 0;
+  if (d !== dpr) { dpr = d; dprUp = 0; renderer.setPixelRatio(dpr); }
+}
 renderer.setAnimationLoop((now) => {
+  adaptDpr(now - last);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (playing) simT += dt;
   if (fly) {
@@ -3883,6 +3918,8 @@ renderer.setAnimationLoop((now) => {
   updateLayers();
   if (saiG.visible) saiLblClamp();
   fitNear();
+  // тени: пока движутся створки Хиджра — каждый кадр; люди рядом с камерой — через кадр (сдвиг тени ≈ 2 см); иначе раз в 20 кадров (слои, догрузка моделей)
+  if (frame % 20 === 0 || hjMove || (frame & 1 && POOLS[0][0].n + POOLS[0][1].n + POOLS[1][0].n + POOLS[1][1].n)) renderer.shadowMap.needsUpdate = true;
   const _t3=performance.now();
   renderer.render(scene, camera);
   const _t4=performance.now();
@@ -3896,6 +3933,7 @@ if (new URLSearchParams(location.search).has("dbg")) window.__d = {   // про�
   POOLS, figGround, openStep, heroScene, hp, HARMS, CUP, setArms, heroSync, cup,
   scene, renderer, SAI_CAM, ZS, CL, XP, walkers, xq, STONE, stoneA, stoneDir, mq, mqOut, WSEC, BGRID, camera, controls, you, get cine() { return cine; },
   get crowdT() { return crowdT; },
+  get dpr() { return dpr; }, get bvh() { return occluders.filter((o) => o.geometry.boundsTree).length + "/" + occluders.length; },
   run(n = 1, dt = 0.05) { for (let i = 0; i < n; i++) { updateClock(dt); crowdBegin(); placeWalkers(crowdT); placeExtras(crowdT); updateHijrGate(crowdT); solveCrowd(); flushCrowd(); gridBuild(); } },
   prof(n = 20, dt = 0.016) {   // мс на кадр по этапам
     const T = [0, 0, 0, 0, 0, 0], F = [() => { updateClock(dt); crowdBegin(); }, () => placeWalkers(crowdT), () => placeExtras(crowdT), () => updateHijrGate(crowdT), solveCrowd, () => { flushCrowd(); gridBuild(); }];
