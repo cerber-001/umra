@@ -691,7 +691,7 @@ function masaaGlass(base) {
   low.name = "Масъа_стекло_нижний_ярус"; upG.name = "Масъа_стекло_верхние_ярусы";
   return { low, up: upG };
 }
-new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb?v=a31e3c00").then((city) => {
+new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb?v=ad61b2af").then((city) => {
   const base = city.scene.getObjectByName("L_base");
   if (!base) return;
   const mqC = toV3(meta.spots.maqam[0], meta.spots.maqam[1]), bs = new THREE.Vector3();
