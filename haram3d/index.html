@@ -2212,6 +2212,9 @@ for (let k = 0; k < 5; k++) xPerson((t, p) => { const s = (t * 0.95 + k * toZam.
 const RIM = [[56.3, 65], [36.2, 70.5], [13.8, 75.4], [-9, 80.4], [-40.3, 59.8], [-71.8, 38.7], [-76.4, 15.7], [-80, -5.1], [-59.8, -37.2],
   [-39.4, -68.3], [-17.1, -73.1], [4.9, -77.3], [19.4, -67.3], [29.6, -60.7], [43, -51.8], [66.9, -25.1], [62.1, 20.1]];
 const RIM_DEEP = 7, rimRing = (d) => RIM.map(([x, y]) => { const r = Math.hypot(x, y); return [x * (r + d) / r, y * (r + d) / r]; });
+// v3.27: османские риваки — только рёбра RIM 1→11 (север, запад, юг — по спутнику 2026); на востоке
+//   (11→1 через Масъа) сразу белое саудовское здание, галереи нет. Глубина — один пролёт ≈ 4,4 м: два ряда опор и ОДИН ряд куполов.
+const GAL_DEEP = 4.4, galEdge = (i) => i >= 1 && i <= 10;
 // Зелёная лампа (v3.20) — как в жизни: вертикальная зелёная трубка ≈ 1,2 м в светлом корпусе на колонне галереи, на стороне к Каабе,
 //   на высоте ≈ 2,4–3,6 м, ровно на линии от угла Чёрного камня; её не закрывает ни крыша, ни купола. Раньше была панель на 7 м
 //   под крышей галереи — купола её прятали. На фасаде на верхних ярусах и на крыше — такие же трубки и табличка «начало тавафа».
@@ -2223,22 +2226,24 @@ const rimMitre = (d) => {   // RIM, сдвинутый внутрь на d: рё
     if (Math.abs(den) < 1e-9) return [b[0], b[1]];
     const t = ((b[0] - a[0]) * b[3] - (b[1] - a[1]) * b[2]) / den; return [a[0] + a[2] * t, a[1] + a[3] * t]; });
 };
-const GL_COL = (() => {   // где линия «угол камня → gl» впервые пересекает внутренний ряд колонн галереи
+const GL_COL = (() => {   // где линия «угол камня → gl» впервые пересекает внутренний ряд колонн галереи, а где галереи нет — стену здания
   const s = meta.start[0], dx = gl[0] - s[0], dy = gl[1] - s[1];
   let best = null;
   RIM.forEach(([x0, y0], i) => {
-    const [x1, y1] = RIM[(i + 1) % RIM.length], L = Math.hypot(x1 - x0, y1 - y0);
+    const [x1, y1] = RIM[(i + 1) % RIM.length], L = Math.hypot(x1 - x0, y1 - y0), d = galEdge(i) ? GAL_DEEP : 0;
     let nx = (y1 - y0) / L, ny = -(x1 - x0) / L; if (nx * (x0 + x1) + ny * (y0 + y1) > 0) { nx = -nx; ny = -ny; }
-    const ax = x0 + nx * RIM_DEEP - s[0], ay = y0 + ny * RIM_DEEP - s[1], ex = x1 - x0, ey = y1 - y0, den = dx * ey - dy * ex;
+    const ax = x0 + nx * d - s[0], ay = y0 + ny * d - s[1], ex = x1 - x0, ey = y1 - y0, den = dx * ey - dy * ex;
     if (Math.abs(den) < 1e-9) return;
     const t = (ax * ey - ay * ex) / den, u = (ax * dy - ay * dx) / den;
-    if (t > 0 && u > -0.05 && u < 1.05 && (!best || t < best[2])) best = [s[0] + dx * t, s[1] + dy * t, t];
+    if (t > 0 && u > -0.05 && u < 1.05 && (!best || t < best[2])) best = [s[0] + dx * t, s[1] + dy * t, t, i];
   });
-  const C = best && rimMitre(RIM_DEEP).find(([x, y]) => Math.hypot(x - best[0], y - best[1]) < 1.5);   // рядом угловой столб — лампа на нём
-  return C ? [C[0], C[1], best[2], 1] : best;
+  if (!best) return best;
+  if (!galEdge(best[3])) return [best[0], best[1], best[2], 2];   // восток: на стене саудовского здания (флаг 2)
+  const C = rimMitre(GAL_DEEP).find(([x, y]) => Math.hypot(x - best[0], y - best[1]) < 1.5);   // рядом угловой столб — лампа на нём
+  return C ? [C[0], C[1], best[2], 1] : [best[0], best[1], best[2]];
 })();
 const GL_K = Math.hypot(GL_COL[0], GL_COL[1]), GL_IN = [-GL_COL[0] / GL_K, -GL_COL[1] / GL_K];   // от колонны к Каабе
-const GL_OFF = GL_COL[3] ? 0.53 : 0.4;   // от оси до корпуса лампы: столб шире колонны
+const GL_OFF = [0.4, 0.53, 0.1][GL_COL[3] || 0];   // от оси до корпуса лампы: столб шире колонны; на стене — вплотную
 const GL_AT = toV3(GL_COL[0] + GL_IN[0] * (GL_OFF + 0.06), GL_COL[1] + GL_IN[1] * (GL_OFF + 0.06), 3.0);   // середина трубки
 const GL_FLOORS = [7, 14], GL_ROOF = 21;   // ярусы фасада здания матафа (полосы арок в haram_city.glb) и его крыша
 {
@@ -2261,33 +2266,40 @@ const GL_FLOORS = [7, 14], GL_ROOF = 21;   // ярусы фасада здани
     g.position.copy(toV3(x, y, z + 0.6)); g.lookAt(0, g.position.y, 0); scene.add(g);
     const h = glowSprite(0x4dff8a, 1.8, 0.7); h.position.copy(toV3(x + GL_IN[0] * 0.2, y + GL_IN[1] * 0.2, z + 0.6)); h.renderOrder = 6; scene.add(h);
   };
-  lampAt(GL_COL[0] + GL_IN[0] * GL_OFF, GL_COL[1] + GL_IN[1] * GL_OFF, 2.4);   // на колонне (столбе) галереи
+  lampAt(GL_COL[0] + GL_IN[0] * GL_OFF, GL_COL[1] + GL_IN[1] * GL_OFF, 2.4);   // на колонне (столбе) галереи или на стене здания
   lampGlow.position.copy(GL_AT);
   for (const f of GL_FLOORS) lampAt(gl[0], gl[1], f + 2.4, true);   // фасад здания матафа, верхние ярусы
   lampAt(gl[0] - GL_IN[0] * 0.6, gl[1] - GL_IN[1] * 0.6, GL_ROOF + 1.0, true, true);   // крыша: на стойке у края
 }
-// v3.26: османская галерея — три ряда колонн по контуру матафа (RIM), сдвинутому внутрь на 0 / 3,5 / 7 м так, что рёбра параллельны,
-//   а углы — точные пересечения (сдвиг по лучу от центра на выпуклых углах перекрещивал ряды). На ребре пролёты одной доли во всех
-//   трёх рядах, в каждом углу — столб; зелёная лампа — на колонне (или угловом столбе, если он ближе 1,5 м) на линии Чёрного камня. Отсюда же — люди у колонн и сама галерея.
+// v3.26 → v3.27: османская галерея — два ряда опор по контуру матафа (RIM), сдвинутому внутрь на 0 / 4,4 м так, что рёбра параллельны,
+//   а углы — точные пересечения (сдвиг по лучу от центра на выпуклых углах перекрещивал ряды). Только рёбра galEdge (без востока);
+//   на ребре пролёты одной доли в обоих рядах, в каждом углу и на обоих концах — столб; зелёная лампа — на колонне (или угловом
+//   столбе, если он ближе 1,5 м) на линии Чёрного камня, а где галереи нет — на стене. Отсюда же — люди у колонн и сама галерея.
 const GAL = (() => {
-  const P = [0, 3.5, RIM_DEEP].map(rimMitre), N = RIM.length, E = [], cols = [];
+  const P = [0, GAL_DEEP].map(rimMitre), N = RIM.length, E = [], cols = [];
+  const dir = (i) => { const [x0, y0] = RIM[(i + N) % N], [x1, y1] = RIM[(i + 1 + N) % N], L = Math.hypot(x1 - x0, y1 - y0); return [(x1 - x0) / L, (y1 - y0) / L]; };
   let glAt = null;
   for (let i = 0; i < N; i++) {
+    if (!galEdge(i)) continue;
     const j = (i + 1) % N, [x0, y0] = RIM[i], [x1, y1] = RIM[j], L = Math.hypot(x1 - x0, y1 - y0), ux = (x1 - x0) / L, uy = (y1 - y0) / L;
     let nx = uy, ny = -ux; if (nx * (x0 + x1) + ny * (y0 + y1) > 0) { nx = -nx; ny = -ny; }
     const n = Math.max(1, Math.round(Math.hypot(P[1][j][0] - P[1][i][0], P[1][j][1] - P[1][i][1]) / 4.4)), ts = [];
     for (let k = 0; k <= n; k++) ts.push(k / n);
-    const [ax, ay] = P[2][i], ex = P[2][j][0] - ax, ey = P[2][j][1] - ay, el = Math.hypot(ex, ey);
+    const [ax, ay] = P[1][i], ex = P[1][j][0] - ax, ey = P[1][j][1] - ay, el = Math.hypot(ex, ey);
     const t = ((GL_COL[0] - ax) * ex + (GL_COL[1] - ay) * ey) / (el * el), off = Math.abs((GL_COL[0] - ax) * ey - (GL_COL[1] - ay) * ex) / el;
     if (n > 1 && off < 0.3 && t * n > 0.35 && t * n < n - 0.35) {   // ближайшую колонну внутреннего ряда (не угловой столб) — на линию камня
       const k = Math.min(n - 1, Math.max(1, Math.round(t * n)));
       ts[k] = Math.max(ts[k - 1] + 0.3 / n, Math.min(ts[k + 1] - 0.3 / n, t)); glAt = [i, k, +(ts[k] - t).toFixed(4)];
     }
-    E.push({ i, j, n, ts, ux, uy, nx, ny });
+    const pd = dir(i - 1);   // столб в начале ребра — по биссектрисе угла
+    E.push({ i, j, n, ts, ux, uy, nx, ny, pa: Math.atan2(uy + pd[1], ux + pd[0]) });
   }
   const at = (r, e, t) => { const a = P[r][e.i], b = P[r][e.j]; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; };
-  E.forEach((e) => { for (let r = 0; r < 3; r++) for (let k = 0; k < e.n; k++) {
-    const [x, y] = at(r, e, e.ts[k]); cols.push({ x, y, r, e, k, pier: k === 0 }); COLS.push([x, y]); } });
+  const last = E[E.length - 1], nd = dir(last.j);
+  E.forEach((e) => { for (let r = 0; r < 2; r++) for (let k = 0; k <= e.n; k++) {
+    if (k === e.n && e !== last) continue;   // конец ребра = начало следующего; у последнего — свой концевой столб
+    const [x, y] = at(r, e, e.ts[k]), pier = k === 0 || k === e.n;
+    cols.push({ x, y, r, e, k, pier, a: k === e.n ? Math.atan2(e.uy + nd[1], e.ux + nd[0]) : k ? Math.atan2(e.uy, e.ux) : e.pa }); COLS.push([x, y]); } });
   return { P, E, cols, at, glAt };
 })();
 const galClear = (x, y) => {   // точку пола — из колонны/столба наружу (≥ 0,75 / 1 м от оси); случайные числа не трогает
@@ -4020,7 +4032,8 @@ fetch("layers.json").then((r) => r.json()).then((d) => {
 }).catch(() => {});
 mkLayer("abujahl", [[150, 340, "дом Абу Джахля · ныне WC", "#F4EDE1", "#00292C", false]]);
 { // османская галерея (риваки конца XVI в., купола Синана при Селиме II, колонны отчасти от аль-Махди; восстановлены при расширении) —
-  // всегда на схеме. Три ряда колонн (GAL — выше, общий с толпой), стрельчатые арки с тёмными клиньями, поперечные арки между рядами,
+  // всегда на схеме. v3.27: глубина в один пролёт — два ряда опор (GAL — выше, общий с толпой) и один ряд куполов, только север—запад—юг
+  // (по спутнику 2026; на востоке белое саудовское здание). Стрельчатые арки, к Каабе — с тёмными клиньями, поперечные арки между рядами,
   // над каждой ячейкой — купол на барабане с латунным навершием. Куски из props.glb растягиваются по длине пролёта (makeBasis).
   const { E, at } = GAL, GH = 7.8, M = {}, m = new THREE.Matrix4(), X = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3();
   const add = (n) => (M[n] ||= []).push(m.clone());
@@ -4029,18 +4042,14 @@ mkLayer("abujahl", [[150, 340, "дом Абу Джахля · ныне WC", "#F4
     X.set(dx / w, 0, dz / w); Z.set(-dz / L, 0, dx / L); m.makeBasis(X, Y, Z).setPosition(toV3(p[0], p[1], 0)); add(n);
   };
   const ang = (e) => Math.atan2(e.uy, e.ux);
-  for (const c of GAL.cols) {
-    const pe = E[(c.e.i + E.length - 1) % E.length], a = c.pier ? Math.atan2(c.e.uy + pe.uy, c.e.ux + pe.ux) : ang(c.e);
-    m.makeRotationY(a).setPosition(toV3(c.x, c.y, 0)); add(c.pier ? "gallery_pier" : "gallery_column");
-  }
-  E.forEach((e) => { for (let k = 0; k < e.n; k++) {
+  for (const c of GAL.cols) { m.makeRotationY(c.a).setPosition(toV3(c.x, c.y, 0)); add(c.pier ? "gallery_pier" : "gallery_column"); }
+  E.forEach((e, ei) => { for (let k = 0; k < e.n; k++) {
     const t0 = e.ts[k], t1 = e.ts[k + 1];
-    for (let r = 0; r < 3; r++) { span("gallery_arcade", at(r, e, t0), at(r, e, t1), 4.6); if (r) span("gallery_ablaq", at(r, e, t0), at(r, e, t1), 4.6); }
-    for (let r = 0; r < 2; r++) {
-      span("gallery_tarch", at(r, e, t0), at(r + 1, e, t0), 3.5);
-      const q = [at(r, e, t0), at(r, e, t1), at(r + 1, e, t0), at(r + 1, e, t1)], x = q.reduce((s, p) => s + p[0], 0) / 4, y = q.reduce((s, p) => s + p[1], 0) / 4;
-      m.makeRotationY(ang(e)).setPosition(toV3(x, y, GH)); add("gallery_dome"); add("gallery_finial");
-    }
+    for (let r = 0; r < 2; r++) { span("gallery_arcade", at(r, e, t0), at(r, e, t1), 4.6); if (r) span("gallery_ablaq", at(r, e, t0), at(r, e, t1), 4.6); }
+    span("gallery_tarch", at(0, e, t0), at(1, e, t0), 3.5);
+    if (ei === E.length - 1 && k === e.n - 1) span("gallery_tarch", at(0, e, t1), at(1, e, t1), 3.5);   // торец на южном конце
+    const q = [at(0, e, t0), at(0, e, t1), at(1, e, t0), at(1, e, t1)], x = q.reduce((s, p) => s + p[0], 0) / 4, y = q.reduce((s, p) => s + p[1], 0) / 4;
+    m.makeRotationY(ang(e)).setPosition(toV3(x, y, GH)); add("gallery_dome"); add("gallery_finial");
   } });
   for (const [n, list] of Object.entries(M)) {   // v3.26: 4 стороны по отдельности — сторона вне кадра не рисуется (отсекается по своей сфере)
     const S = [[], [], [], []];
@@ -4051,9 +4060,9 @@ mkLayer("abujahl", [[150, 340, "дом Абу Джахля · ныне WC", "#F4
       part.forEach((mm, i) => im.setMatrixAt(i, mm)); im.computeBoundingSphere(); scene.add(im);
     }
   }
-  // кровля между рядами: кольцо от наружной грани до внутренней (на 2 см внутри стен — края не мерцают с гранью арок), 7,3–7,8 м
-  const v2 = (P) => P.map(([x, y]) => new THREE.Vector2(x, y));
-  const roof = new THREE.Shape(v2(rimMitre(-0.28))); roof.holes.push(new THREE.Path(v2(rimMitre(RIM_DEEP + 0.28))));
+  // кровля между рядами: полоса по рёбрам галереи от наружной грани до внутренней (на 2 см внутри стен — края не мерцают с гранью арок), 7,3–7,8 м
+  const v2 = (P) => P.map(([x, y]) => new THREE.Vector2(x, y)), vs = [E[0].i, ...E.map((e) => e.j)], ro = rimMitre(-0.28), ri = rimMitre(GAL_DEEP + 0.28);
+  const roof = new THREE.Shape(v2([...vs.map((i) => ro[i]), ...vs.reverse().map((i) => ri[i])]));
   scene.add(new THREE.Mesh(new THREE.ExtrudeGeometry(roof, { depth: 0.5, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, GH - 0.5, 0), propMat("gallery_dome")));
 }
 function syncLayers() {
