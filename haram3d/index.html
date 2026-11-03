@@ -472,7 +472,7 @@ const [gltf, meta, walk, props, STREETS, terrBuf] = await Promise.all([
   new GLTFLoader().loadAsync("haram.glb"),
   fetch("haram_meta.json").then((r) => r.json()),
   fetch("walk_route.json").then((r) => r.json()),
-  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb?v=4e9be7bc"),   // ?v= — первые 8 знаков md5 файла: после пересборки менять, иначе HTTP-кэш отдаст старых людей к новой странице
+  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb?v=4b9959c5"),   // ?v= — первые 8 знаков md5 файла: после пересборки менять, иначе HTTP-кэш отдаст старых людей к новой странице
   fetch("streets.json?v=a7fe18f4").then((r) => r.json()).catch((e) => (console.warn("streets:", e), null)),
   fetch("terrain.bin?v=e1ec580e").then((r) => r.ok ? r.arrayBuffer() : null).catch(() => null),
 ]);
@@ -582,7 +582,7 @@ scene.add(gltf.scene);
 // Хатым: белый мрамор — цоколь, тело, филёнки в светло-серых рамках, поясок и скруглённый карниз (1,32 м); 4 латунных фонаря
 // зелёного стекла на карнизе и золотые решётки на торцах (v3.25).
 // Мизаб: позолоченный жёлоб 2,58 м, из них наружу ≈ 2,0 м (Saudipedia), борта с чеканкой, шипы от голубей, «борода» на конце.
-// Простые версии, запечённые в haram.glb, вырезаем: стену — мрамор в кольце 4,3–6,05 м от центра дуги (пол ниже 0,5 м не трогаем),
+// Простые версии, запечённые в haram.glb, вырезаем: стену — мрамор в кольце 4,3–6,05 м (старая, тонкая) от центра дуги (пол ниже 0,5 м не трогаем),
 // жёлоб — золото на высоте 12,5–13,0 м не дальше 2,3 м от середины стены Каабы.
 const HT_C = toV3(-6.665, 8.763), MZ_MID = [-4.495, 4.91], MZ_OUT = new THREE.Vector2(-0.532, 0.847), MZ_Z = 12.65, MZ_TIP = 2.0;
 function cutHaram(mats, hit) {   // hit(v) по мировой вершине: 0 — не трогать, 1 — можно вместе с другими, 2 — режем треугольник
@@ -1311,9 +1311,9 @@ function decoShift() {
   }
   nDeco = 0;
 }
-// Препятствия (сняты лучами по самой модели): Кааба — выпуклый четырёхугольник; стена Хатима — кольцо 4,4…5,75 м от центра Хиджра
+// Препятствия (сняты лучами по самой модели): Кааба — выпуклый четырёхугольник; стена Хатима — кольцо 4,4…5,97 м (v3.26: толщина 1,48 м) от центра Хиджра
 // по дуге 0,251…3,961 рад; тумба Макама — круг 0,65 м; колонны галереи — 0,4 м; секции барьеров — 1,4 × 0,2 м
-const HJ_IN = 4.4, HJ_OUT = 5.75, HJ_A0 = 0.251, HJ_A1 = 3.961, MQ_R = 0.65, COL_R = 0.4, TAU = Math.PI * 2;
+const HJ_IN = 4.4, HJ_OUT = 5.97, HJ_A0 = 0.251, HJ_A1 = 3.961, MQ_R = 0.65, COL_R = 0.4, TAU = Math.PI * 2;
 let KQ = null, CGRID = null, OB = null;   // OB — клетки 1×1 м сетки решателя рядом с препятствиями: 1 Кааба/Хатим, 2 Макам, 4 колонны, 8 барьеры, 16 коридоры саи
 const sgCell = (x, y) => { const i = Math.floor(x) - SG_X0, j = Math.floor(y) - SG_Y0; return i < 0 || j < 0 || i >= SG_W || j >= SG_H ? -1 : i + j * SG_W; };
 function obMark(x0, y0, x1, y1, bit) { for (let x = Math.floor(x0); x <= x1; x++) for (let y = Math.floor(y0); y <= y1; y++) { const c = sgCell(x, y); if (c >= 0) OB[c] |= bit; } }
@@ -2086,6 +2086,7 @@ for (let d = 1.0; d < 8.5; d += 1.5) for (let w = -4.4; w <= 4.4; w += 1.1) {
 }
 HSP.sort((a, b) => a.k - b.k); HSP.length = HJ_N;
 const v2 = (p, a, ka, b = null, kb = 0) => [p.x + a.x * ka + (b ? b.x * kb : 0), p.y + a.y * ka + (b ? b.y * kb : 0)];
+const HG_POL = v2(HG_N, HG_NO, 2.0, HG_NA, 2.1);   // v3.26: полицейский у северного проёма — снаружи за торцом стенки (раньше стоял в самом торце)
 const hjSlot = (t) => { const i = Math.floor(t / HJ_S); return { s: ((i % 4) + 4) % 4, tau: t - i * HJ_S }; };
 const hjGate = (tau) => CL.phase ? 0 : tau < 1.5 ? tau / 1.5 : tau < 13 ? 1 : tau < 15 ? (15 - tau) / 2 : 0;   // ограда: 0 — закрыта, 1 — открыта
 function hijrMember(m) {   // m = { b — партия 0…3, k — номер в ней }; пути считаются при первом кадре
@@ -2131,12 +2132,12 @@ for (let k = 0; k < 16; k++) { const m = {}; hjAdd(xPerson(hijrMember(m)), m); }
 for (let b = 0; b < 4; b++) while (HJM[b].length < HJ_N) { const m = {}; hjAdd(xPerson(hijrMember(m), { R: rndH, woman: HJ_SEX[b], sp: 0.85 + rndH() * 0.3 }), m); }
 // нарушители: сестра подходит в окно братьев (партия 0), брат — в окно сестёр (партия 2); полицейский поднимает табличку, разворачиваются
 for (const [sex, slot] of [[true, 0], [false, 2]]) {
-  const far = v2(HG_N, HG_NO, 7, HG_NA, 3.2), near = v2(HG_N, HG_NO, 1.4, HG_NA, 1.9), pl = polyline([far, near]);
+  const far = v2(HG_N, HG_NO, 7, HG_NA, 3.2), near = v2(HG_N, HG_NO, 2.9, HG_NA, 1.75), pl = polyline([far, near]), rPol = faceTo(HG_POL[0] - near[0], HG_POL[1] - near[1]);
   xPerson((t, p) => {
     const { s, tau } = hjSlot(t);
     if (CL.phase || s !== slot || tau < 18 || tau > 35) { xq.hide = true; return; }
     if (tau < 24) { onPath(pl, (tau - 18) / 6 * pl.L); walkSw(t, p, 1); return; }
-    if (tau < 29) { xq.x = near[0]; xq.y = near[1]; xq.r = faceTo(-HG_NO.x, -HG_NO.y) + (tau > 26 ? 0.9 : 0); xq.arm = tau < 26 ? 0.35 : 0; return; }   // спрашивает — потом поворачивается к полицейскому
+    if (tau < 29) { xq.x = near[0]; xq.y = near[1]; xq.r = tau > 26 ? rPol : faceTo(-HG_NO.x, -HG_NO.y); xq.arm = tau < 26 ? 0.35 : 0; return; }   // спрашивает — потом поворачивается к полицейскому
     onPath(pl, (1 - (tau - 29) / 6) * pl.L); xq.r += Math.PI; walkSw(t, p, 1);
   }, { R: rndH, woman: sex });
 }
@@ -2214,6 +2215,14 @@ const RIM_DEEP = 7, rimRing = (d) => RIM.map(([x, y]) => { const r = Math.hypot(
 // Зелёная лампа (v3.20) — как в жизни: вертикальная зелёная трубка ≈ 1,2 м в светлом корпусе на колонне галереи, на стороне к Каабе,
 //   на высоте ≈ 2,4–3,6 м, ровно на линии от угла Чёрного камня; её не закрывает ни крыша, ни купола. Раньше была панель на 7 м
 //   под крышей галереи — купола её прятали. На фасаде на верхних ярусах и на крыше — такие же трубки и табличка «начало тавафа».
+const rimMitre = (d) => {   // RIM, сдвинутый внутрь на d: рёбра параллельны, углы — пересечения
+  const N = RIM.length, ln = RIM.map(([x0, y0], i) => { const [x1, y1] = RIM[(i + 1) % N], L = Math.hypot(x1 - x0, y1 - y0);
+    let nx = (y1 - y0) / L, ny = -(x1 - x0) / L; if (nx * (x0 + x1) + ny * (y0 + y1) > 0) { nx = -nx; ny = -ny; }
+    return [x0 + nx * d, y0 + ny * d, (x1 - x0) / L, (y1 - y0) / L]; });
+  return ln.map((b, i) => { const a = ln[(i + N - 1) % N], den = a[2] * b[3] - a[3] * b[2];
+    if (Math.abs(den) < 1e-9) return [b[0], b[1]];
+    const t = ((b[0] - a[0]) * b[3] - (b[1] - a[1]) * b[2]) / den; return [a[0] + a[2] * t, a[1] + a[3] * t]; });
+};
 const GL_COL = (() => {   // где линия «угол камня → gl» впервые пересекает внутренний ряд колонн галереи
   const s = meta.start[0], dx = gl[0] - s[0], dy = gl[1] - s[1];
   let best = null;
@@ -2225,10 +2234,12 @@ const GL_COL = (() => {   // где линия «угол камня → gl» в
     const t = (ax * ey - ay * ex) / den, u = (ax * dy - ay * dx) / den;
     if (t > 0 && u > -0.05 && u < 1.05 && (!best || t < best[2])) best = [s[0] + dx * t, s[1] + dy * t, t];
   });
-  return best;
+  const C = best && rimMitre(RIM_DEEP).find(([x, y]) => Math.hypot(x - best[0], y - best[1]) < 1.5);   // рядом угловой столб — лампа на нём
+  return C ? [C[0], C[1], best[2], 1] : best;
 })();
 const GL_K = Math.hypot(GL_COL[0], GL_COL[1]), GL_IN = [-GL_COL[0] / GL_K, -GL_COL[1] / GL_K];   // от колонны к Каабе
-const GL_AT = toV3(GL_COL[0] + GL_IN[0] * 0.46, GL_COL[1] + GL_IN[1] * 0.46, 3.0);   // середина трубки
+const GL_OFF = GL_COL[3] ? 0.53 : 0.4;   // от оси до корпуса лампы: столб шире колонны
+const GL_AT = toV3(GL_COL[0] + GL_IN[0] * (GL_OFF + 0.06), GL_COL[1] + GL_IN[1] * (GL_OFF + 0.06), 3.0);   // середина трубки
 const GL_FLOORS = [7, 14], GL_ROOF = 21;   // ярусы фасада здания матафа (полосы арок в haram_city.glb) и его крыша
 {
   const steel = new THREE.MeshStandardMaterial({ color: 0xdfe2de, roughness: 0.3, metalness: 0.55 });
@@ -2250,24 +2261,54 @@ const GL_FLOORS = [7, 14], GL_ROOF = 21;   // ярусы фасада здани
     g.position.copy(toV3(x, y, z + 0.6)); g.lookAt(0, g.position.y, 0); scene.add(g);
     const h = glowSprite(0x4dff8a, 1.8, 0.7); h.position.copy(toV3(x + GL_IN[0] * 0.2, y + GL_IN[1] * 0.2, z + 0.6)); h.renderOrder = 6; scene.add(h);
   };
-  lampAt(GL_COL[0] + GL_IN[0] * 0.4, GL_COL[1] + GL_IN[1] * 0.4, 2.4);   // на колонне галереи
+  lampAt(GL_COL[0] + GL_IN[0] * GL_OFF, GL_COL[1] + GL_IN[1] * GL_OFF, 2.4);   // на колонне (столбе) галереи
   lampGlow.position.copy(GL_AT);
   for (const f of GL_FLOORS) lampAt(gl[0], gl[1], f + 2.4, true);   // фасад здания матафа, верхние ярусы
   lampAt(gl[0] - GL_IN[0] * 0.6, gl[1] - GL_IN[1] * 0.6, GL_ROOF + 1.0, true, true);   // крыша: на стойке у края
 }
+// v3.26: османская галерея — три ряда колонн по контуру матафа (RIM), сдвинутому внутрь на 0 / 3,5 / 7 м так, что рёбра параллельны,
+//   а углы — точные пересечения (сдвиг по лучу от центра на выпуклых углах перекрещивал ряды). На ребре пролёты одной доли во всех
+//   трёх рядах, в каждом углу — столб; зелёная лампа — на колонне (или угловом столбе, если он ближе 1,5 м) на линии Чёрного камня. Отсюда же — люди у колонн и сама галерея.
+const GAL = (() => {
+  const P = [0, 3.5, RIM_DEEP].map(rimMitre), N = RIM.length, E = [], cols = [];
+  let glAt = null;
+  for (let i = 0; i < N; i++) {
+    const j = (i + 1) % N, [x0, y0] = RIM[i], [x1, y1] = RIM[j], L = Math.hypot(x1 - x0, y1 - y0), ux = (x1 - x0) / L, uy = (y1 - y0) / L;
+    let nx = uy, ny = -ux; if (nx * (x0 + x1) + ny * (y0 + y1) > 0) { nx = -nx; ny = -ny; }
+    const n = Math.max(1, Math.round(Math.hypot(P[1][j][0] - P[1][i][0], P[1][j][1] - P[1][i][1]) / 4.4)), ts = [];
+    for (let k = 0; k <= n; k++) ts.push(k / n);
+    const [ax, ay] = P[2][i], ex = P[2][j][0] - ax, ey = P[2][j][1] - ay, el = Math.hypot(ex, ey);
+    const t = ((GL_COL[0] - ax) * ex + (GL_COL[1] - ay) * ey) / (el * el), off = Math.abs((GL_COL[0] - ax) * ey - (GL_COL[1] - ay) * ex) / el;
+    if (n > 1 && off < 0.3 && t * n > 0.35 && t * n < n - 0.35) {   // ближайшую колонну внутреннего ряда (не угловой столб) — на линию камня
+      const k = Math.min(n - 1, Math.max(1, Math.round(t * n)));
+      ts[k] = Math.max(ts[k - 1] + 0.3 / n, Math.min(ts[k + 1] - 0.3 / n, t)); glAt = [i, k, +(ts[k] - t).toFixed(4)];
+    }
+    E.push({ i, j, n, ts, ux, uy, nx, ny });
+  }
+  const at = (r, e, t) => { const a = P[r][e.i], b = P[r][e.j]; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; };
+  E.forEach((e) => { for (let r = 0; r < 3; r++) for (let k = 0; k < e.n; k++) {
+    const [x, y] = at(r, e, e.ts[k]); cols.push({ x, y, r, e, k, pier: k === 0 }); COLS.push([x, y]); } });
+  return { P, E, cols, at, glAt };
+})();
+const galClear = (x, y) => {   // точку пола — из колонны/столба наружу (≥ 0,75 / 1 м от оси); случайные числа не трогает
+  for (const c of GAL.cols) { const m = c.pier ? 1 : 0.75, dx = x - c.x, dy = y - c.y, d = Math.hypot(dx, dy);
+    if (d < m) { const k = d > 1e-6 ? m / d : 0; x = d > 1e-6 ? c.x + dx * k : c.x + c.e.nx * m; y = d > 1e-6 ? c.y + dy * k : c.y + c.e.ny * m; } }
+  return [x, y];
+};
 const inPoly = (P, x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
   const [xi, yi] = P[i], [xj, yj] = P[j]; if (yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
 const rimIn = rimRing(-RIM_DEEP), rimOut = rimRing(0);
 for (let n = 0, tries = 0; n < 150 && tries < 3000; tries++) {   // двор: группы сидят лицом к Каабе, часть молится, часть стоит
-  const a = rnd() * Math.PI * 2, r = 57 + rnd() * 26, x = r * Math.cos(a), y = r * Math.sin(a);
+  const a = rnd() * Math.PI * 2, r = 57 + rnd() * 26; let x = r * Math.cos(a), y = r * Math.sin(a);
   if (!inPoly(rimIn, x, y) || Math.hypot(x - SAFA2.x, y - SAFA2.y) < 22) continue;
-  const kind = rnd(), sp = 0.8 + rnd() * 0.3;
+  const kind = rnd(), sp = 0.8 + rnd() * 0.3; [x, y] = galClear(x, y);
   xPerson(kind < 0.55 ? () => { xq.x = x; xq.y = y; xq.r = kaabaDir(x, y); xq.pose = 3; xq.bend = 1.5; }
     : kind < 0.8 ? praying(x, y) : () => { xq.x = x; xq.y = y; xq.r = kaabaDir(x, y); xq.both = true; }, { sp }); n++;
 }
 for (let n = 0, tries = 0; n < 70 && tries < 3000; tries++) {   // под галереей: на полу в тени, лицом к Каабе
-  const a = rnd() * Math.PI * 2, r = 70 + rnd() * 18, x = r * Math.cos(a), y = r * Math.sin(a);
+  const a = rnd() * Math.PI * 2, r = 70 + rnd() * 18; let x = r * Math.cos(a), y = r * Math.sin(a);
   if (!inPoly(rimOut, x, y) || inPoly(rimIn, x, y)) continue;
+  [x, y] = galClear(x, y);
   xPerson(() => { xq.x = x; xq.y = y; xq.r = kaabaDir(x, y); xq.pose = 3; xq.bend = 1.5; }); n++;
 }
 for (let k = 0; k < 24; k++) {   // идут от ворот к матафу и обратно — поперёк двора, по лучу
@@ -2575,14 +2616,14 @@ const scan = (base, t, off = 0) => base + Math.sin(t * 0.6 + off) * 0.35;   // �
   signed(police((t, p) => { xq.x = x; xq.y = y; xq.r = scan(r, t); showSign(p, t); }), ["Без фото у Камня", "Проходите, не стойте"], 14, 2);
 }
 { // у ворот Хиджра (северный проём): впускает партию, держит очередь, разворачивает не в своё время
-  const [x, y] = v2(HG_N, HG_NO, 0.5, HG_NA, 2.0), r0 = faceTo(HG_NO.x - HG_NA.x * 0.5, HG_NO.y - HG_NA.y * 0.5);
+  const [x, y] = HG_POL, r0 = faceTo(HG_NO.x - HG_NA.x * 0.5, HG_NO.y - HG_NA.y * 0.5);
   signed(police((t, p) => {
     xq.x = x; xq.y = y; const { s, tau } = hjSlot(t), sis = HJ_SEX[s];
     if (!CL.phase && (s === 0 || s === 2) && tau > 24 && tau < 29.5) { xq.r = faceTo(HG_NA.x * 0.3 + HG_NO.x, HG_NA.y * 0.3 + HG_NO.y) - 0.5; showSign(p, t, true, s === 0 ? 3 : 4, true); return; }
     if (!CL.phase && tau < 13) { xq.r = faceTo(-HG_NA.x + HG_NO.x * 0.3, -HG_NA.y + HG_NO.y * 0.3); showSign(p, t, true, 5, tau > 1 && tau < 9); return; }   // машет: заходите
     xq.r = scan(r0, t, 1); showSign(p, t, true, CL.phase ? 2 : ((t / 8) | 0) % 2 ? 2 : sis ? 1 : 0);
   }, { R: rndH }), ["Сейчас — братья", "Сейчас — сёстры", "Ждите — внутри молятся", "Сёстры — позже", "Братья — позже", "Заходите!"], 8, 0);
-  const [xw, yw] = v2(HG_W, HG_WO, 1.2, new THREE.Vector2(-0.42, 0.907), 1.9), rw = faceTo(-HG_WO.x, -HG_WO.y);   // у западного проёма — выход
+  const [xw, yw] = v2(HG_W, HG_WO, 1.5, new THREE.Vector2(-0.42, 0.907), 1.9), rw = faceTo(-HG_WO.x, -HG_WO.y);   // у западного проёма — выход
   signed(police((t, p) => { xq.x = xw; xq.y = yw; xq.r = scan(rw, t, 2); showSign(p, t); }, { R: rndH }), ["Выход здесь", "Проходите, не стойте"], 15, 5);
 }
 // переносная ограда в северном проёме: две секции на петлях у краёв проёма; открываются, когда входит партия
@@ -2815,7 +2856,7 @@ for (let k = 0; k < 6; k++) {
 }
 // 19. У Хатима (стенка Хиджра снаружи): стоят лицом к Каабе, кто-то держится рукой за стенку, кто-то делает дуа
 for (let k = 0; k < 9; k++) {
-  const a = 0.95 + k * 0.31 + (rnd2() - 0.5) * 0.1, r = 5.96 + rnd2() * 0.15, x = HC.x + r * Math.cos(a), y = HC.y + r * Math.sin(a), wall = rnd2() < 0.55;
+  const a = 0.95 + k * 0.31 + (rnd2() - 0.5) * 0.1, r = 6.18 + rnd2() * 0.15, x = HC.x + r * Math.cos(a), y = HC.y + r * Math.sin(a), wall = rnd2() < 0.55;
   xPerson((t, p) => { xq.x = x; xq.y = y; xq.r = faceTo(HC.x - x, HC.y - y); if (wall) xq.wall = 1; else xq.both = true; }, { R: rnd2, woman: rnd2() < 0.3, idt: rnd2() < 0.5 });
 }
 // 20. Угол Чёрного камня: второй полукруг за теми, кто у самого камня, — тянут руку, покачиваются, жест истиляма
@@ -3591,7 +3632,7 @@ scene.add(kaabaDecor);
   spotFx.door = g;
 }
 { // 4. Хиджр — сияние по полукруглой стене (центр, радиус и высота — по модели)
-  const g = new THREE.Group(), R = 5.21, H = KM.hijr_h, a0 = 0.251, a1 = 3.961, c = toV3(-6.665, 8.763, 0);
+  const g = new THREE.Group(), R = 5.32, H = KM.hijr_h, a0 = 0.251, a1 = 3.961, c = toV3(-6.665, 8.763, 0);
   const band = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.35, R + 0.35, H + 0.5, 64, 1, true, a0 + Math.PI / 2, a1 - a0), hiMat(0x4dff8a, 0.32));
   band.position.copy(c).setY((H + 0.5) / 2); g.add(band);
   const pts = []; for (let i = 0; i <= 48; i++) { const f = a0 + (a1 - a0) * i / 48; pts.push(toV3(-6.665 + (R + 0.35) * Math.cos(f), 8.763 + (R + 0.35) * Math.sin(f), H + 0.3)); }
@@ -3932,7 +3973,7 @@ renderer.setAnimationLoop((now) => {
   if (_P) { const _t5=performance.now(); _P.n++; _P.pre+=_t1-_t0; _P.crowd+=_t2-_t1; _P.mid+=_t3-_t2; _P.rend+=_t4-_t3; _P.post+=_t5-_t4; }
 });
 if (new URLSearchParams(location.search).has("dbg")) window.__d = {   // проверка: ?dbg — доступ к толпе и шаг симуляции
-  POOLS, figGround, openStep, heroScene, hp, HARMS, CUP, setArms, heroSync, cup,
+  POOLS, figGround, openStep, heroScene, GAL, GL_COL, hp, HARMS, CUP, setArms, heroSync, cup,
   scene, renderer, SAI_CAM, ZS, CL, XP, walkers, xq, STONE, stoneA, stoneDir, mq, mqOut, WSEC, BGRID, camera, controls, you, get cine() { return cine; },
   get crowdT() { return crowdT; },
   get dpr() { return dpr; }, get bvh() { return occluders.filter((o) => o.geometry.boundsTree).length + "/" + occluders.length; },
@@ -3978,30 +4019,42 @@ fetch("layers.json").then((r) => r.json()).then((d) => {
   syncLayers();
 }).catch(() => {});
 mkLayer("abujahl", [[150, 340, "дом Абу Джахля · ныне WC", "#F4EDE1", "#00292C", false]]);
-{ // османская галерея (риваки конца XVI в., восстановлены при расширении) — всегда на схеме, по контуру открытого матафа из OSM (RIM — выше, общий с толпой)
-  const BAY = 4.6, DEEP = RIM_DEEP, cols = [], domes = [];
-  RIM.forEach(([x0, y0], i) => {
-    const [x1, y1] = RIM[(i + 1) % RIM.length], L = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.round(L / BAY));
-    let nx = (y1 - y0) / L, ny = -(x1 - x0) / L; if (nx * (x0 + x1) + ny * (y0 + y1) > 0) { nx = -nx; ny = -ny; }   // внутрь, к Каабе: галерея стоит перед фасадом здания матафа
-    for (let k = 0; k < n; k++) {
-      const t = k / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t, tm = (k + 0.5) / n;
-      cols.push([x, y], [x + nx * DEEP, y + ny * DEEP]); COLS.push([x, y], [x + nx * DEEP, y + ny * DEEP]);
-      domes.push([x0 + (x1 - x0) * tm + nx * DEEP / 2, y0 + (y1 - y0) * tm + ny * DEEP / 2]);
+{ // османская галерея (риваки конца XVI в., купола Синана при Селиме II, колонны отчасти от аль-Махди; восстановлены при расширении) —
+  // всегда на схеме. Три ряда колонн (GAL — выше, общий с толпой), стрельчатые арки с тёмными клиньями, поперечные арки между рядами,
+  // над каждой ячейкой — купол на барабане с латунным навершием. Куски из props.glb растягиваются по длине пролёта (makeBasis).
+  const { E, at } = GAL, GH = 7.8, M = {}, m = new THREE.Matrix4(), X = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3();
+  const add = (n) => (M[n] ||= []).push(m.clone());
+  const span = (n, p, q, w) => {   // кусок шириной w в модели — от точки p до q (meta), по полу
+    const dx = q[0] - p[0], dz = -(q[1] - p[1]), L = Math.hypot(dx, dz); if (L < 1) return;
+    X.set(dx / w, 0, dz / w); Z.set(-dz / L, 0, dx / L); m.makeBasis(X, Y, Z).setPosition(toV3(p[0], p[1], 0)); add(n);
+  };
+  const ang = (e) => Math.atan2(e.uy, e.ux);
+  for (const c of GAL.cols) {
+    const pe = E[(c.e.i + E.length - 1) % E.length], a = c.pier ? Math.atan2(c.e.uy + pe.uy, c.e.ux + pe.ux) : ang(c.e);
+    m.makeRotationY(a).setPosition(toV3(c.x, c.y, 0)); add(c.pier ? "gallery_pier" : "gallery_column");
+  }
+  E.forEach((e) => { for (let k = 0; k < e.n; k++) {
+    const t0 = e.ts[k], t1 = e.ts[k + 1];
+    for (let r = 0; r < 3; r++) { span("gallery_arcade", at(r, e, t0), at(r, e, t1), 4.6); if (r) span("gallery_ablaq", at(r, e, t0), at(r, e, t1), 4.6); }
+    for (let r = 0; r < 2; r++) {
+      span("gallery_tarch", at(r, e, t0), at(r + 1, e, t0), 3.5);
+      const q = [at(r, e, t0), at(r, e, t1), at(r + 1, e, t0), at(r + 1, e, t1)], x = q.reduce((s, p) => s + p[0], 0) / 4, y = q.reduce((s, p) => s + p[1], 0) / 4;
+      m.makeRotationY(ang(e)).setPosition(toV3(x, y, GH)); add("gallery_dome"); add("gallery_finial");
     }
-  });
-  // колонна с зелёной лампой — точно на линии Чёрного камня: ближайшую сдвигаем к точке пересечения (≈ 1 м)
-  const near = (A) => A.reduce((b, p, i) => Math.hypot(p[0] - GL_COL[0], p[1] - GL_COL[1]) < Math.hypot(A[b][0] - GL_COL[0], A[b][1] - GL_COL[1]) ? i : b, 0);
-  cols[near(cols)] = [GL_COL[0], GL_COL[1]]; COLS[near(COLS)] = [GL_COL[0], GL_COL[1]];
-  const stone = propMat("gallery_column");
-  const put = (geo, pts, z) => { const im = new THREE.InstancedMesh(geo, stone, pts.length), m = new THREE.Matrix4();
-    pts.forEach(([x, y], i) => im.setMatrixAt(i, m.makeTranslation(...toV3(x, y, z).toArray()))); scene.add(im); };
-  put(propGeo("gallery_column"), cols, 0);   // тонкие колонны
-  put(propGeo("gallery_dome"), domes, 7.3);   // куполки над каждым пролётом
-  // кровля галереи — кольцо шириной DEEP
-  const ring = (d) => RIM.map(([x, y]) => { const r = Math.hypot(x, y); return new THREE.Vector2(x * (r + d) / r, y * (r + d) / r); });
-  const roof = new THREE.Shape(ring(0.6)); roof.holes.push(new THREE.Path(ring(-DEEP - 0.6)));
-  const rm = new THREE.Mesh(new THREE.ExtrudeGeometry(roof, { depth: 0.7, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, 6.5, 0), stone);
-  scene.add(rm);
+  } });
+  for (const [n, list] of Object.entries(M)) {   // v3.26: 4 стороны по отдельности — сторона вне кадра не рисуется (отсекается по своей сфере)
+    const S = [[], [], [], []];
+    list.forEach((mm) => S[(Math.floor(Math.atan2(mm.elements[14], mm.elements[12]) / (Math.PI / 2) + 0.5) + 4) % 4].push(mm));
+    for (const part of S) {
+      if (!part.length) continue;
+      const im = new THREE.InstancedMesh(propGeo(n), propMat(n), part.length);
+      part.forEach((mm, i) => im.setMatrixAt(i, mm)); im.computeBoundingSphere(); scene.add(im);
+    }
+  }
+  // кровля между рядами: кольцо от наружной грани до внутренней (на 2 см внутри стен — края не мерцают с гранью арок), 7,3–7,8 м
+  const v2 = (P) => P.map(([x, y]) => new THREE.Vector2(x, y));
+  const roof = new THREE.Shape(v2(rimMitre(-0.28))); roof.holes.push(new THREE.Path(v2(rimMitre(RIM_DEEP + 0.28))));
+  scene.add(new THREE.Mesh(new THREE.ExtrudeGeometry(roof, { depth: 0.5, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, GH - 0.5, 0), propMat("gallery_dome")));
 }
 function syncLayers() {
   for (const [k, g] of Object.entries(LYR)) g.visible = lyrOn.has(k);
