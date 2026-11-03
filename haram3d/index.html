@@ -472,7 +472,7 @@ const [gltf, meta, walk, props, STREETS, terrBuf] = await Promise.all([
   new GLTFLoader().loadAsync("haram.glb"),
   fetch("haram_meta.json").then((r) => r.json()),
   fetch("walk_route.json").then((r) => r.json()),
-  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb?v=c6c2b207"),   // ?v= — первые 8 знаков md5 файла: после пересборки менять, иначе HTTP-кэш отдаст старых людей к новой странице
+  new GLTFLoader().setDRACOLoader(DRACO).loadAsync("props.glb?v=4e9be7bc"),   // ?v= — первые 8 знаков md5 файла: после пересборки менять, иначе HTTP-кэш отдаст старых людей к новой странице
   fetch("streets.json?v=a7fe18f4").then((r) => r.json()).catch((e) => (console.warn("streets:", e), null)),
   fetch("terrain.bin?v=e1ec580e").then((r) => r.ok ? r.arrayBuffer() : null).catch(() => null),
 ]);
@@ -566,8 +566,8 @@ scene.add(gltf.scene);
     if (!o.isMesh) return;
     const m = o.material;
     o.receiveShadow = true;
-    if (m.name === "maqam_crystal") { m.transparent = true; m.opacity = 0.3; m.metalness = 0.1; m.depthWrite = false; m.roughness = 0.03; m.envMapIntensity = 2; m.side = THREE.DoubleSide; o.renderOrder = 2; return; }
-    if (m.name === "maqam_pane") { m.transparent = true; m.opacity = 0.1; m.depthWrite = false; m.envMapIntensity = 1.6; m.side = THREE.DoubleSide; o.renderOrder = 3; return; }
+    if (m.name === "maqam_crystal") { m.transparent = true; m.opacity = 0.14; m.metalness = 0.1; m.depthWrite = false; m.roughness = 0.03; m.envMapIntensity = 2.5; m.side = THREE.DoubleSide; o.renderOrder = 2; return; }
+    if (m.name === "maqam_pane") { m.transparent = true; m.opacity = 0.06; m.depthWrite = false; m.envMapIntensity = 1.6; m.side = THREE.DoubleSide; o.renderOrder = 3; return; }
     if (/gold|lattice|rim|dome|stand/.test(m.name)) { m.emissive.set(0x3a2a08); m.emissiveIntensity = 0.22; m.envMapIntensity = 1.4; }
     if (m.name === "maqam_silver") m.envMapIntensity = 1.3;
     if (m.name === "maqam_foot") m.envMapIntensity = 0.2;   // глубина следов: без бликов неба
@@ -579,7 +579,8 @@ scene.add(gltf.scene);
 }
 
 // Хиджр Исмаила (Хатым) и Мизаб ар-Рахма — подробные модели из Blender (props.glb, «hatim» и «mizab»).
-// Хатым: белый мрамор — цоколь, тело, филёнки с серо-зелёной инкрустацией и розетками, поясок и скруглённый карниз (1,32 м).
+// Хатым: белый мрамор — цоколь, тело, филёнки в светло-серых рамках, поясок и скруглённый карниз (1,32 м); 4 латунных фонаря
+// зелёного стекла на карнизе и золотые решётки на торцах (v3.25).
 // Мизаб: позолоченный жёлоб 2,58 м, из них наружу ≈ 2,0 м (Saudipedia), борта с чеканкой, шипы от голубей, «борода» на конце.
 // Простые версии, запечённые в haram.glb, вырезаем: стену — мрамор в кольце 4,3–6,05 м от центра дуги (пол ниже 0,5 м не трогаем),
 // жёлоб — золото на высоте 12,5–13,0 м не дальше 2,3 м от середины стены Каабы.
@@ -615,7 +616,8 @@ function cutHaram(mats, hit) {   // hit(v) по мировой вершине: 0
       if (!o.isMesh) return;
       const m = o.material;
       o.receiveShadow = true; o.castShadow = true;
-      if (/mizab/.test(m.name)) { m.emissive.set(0x3a2a08); m.emissiveIntensity = 0.22; m.envMapIntensity = 1.5; }
+      if (/mizab|hatim_brass/.test(m.name)) { m.emissive.set(0x3a2a08); m.emissiveIntensity = 0.22; m.envMapIntensity = 1.5; }
+      else if (m.name === "hatim_lamp") { m.envMapIntensity = 1.4; o.castShadow = false; }   // зелёное стекло светится само (emissive из glb)
       else m.envMapIntensity = m.name === "hatim_cap" ? 1.2 : 0.9;
       occluders.push(o);
     });
@@ -2517,7 +2519,7 @@ function police(f, o = {}) {
   p.police = true; p.uni = true; p.prays = R() < 0.6; return p;   // рубашка и брюки, не изар
 }
 function signed(p, texts, period = 14, off = rnd() * 14) {
-  p.signs = texts.map((t) => { const s = label(t, "#3b4a2e", "#fff", 0.022); s.visible = false; scene.add(s); return s; });
+  p.signs = texts.map((t) => { const s = label(t, "#3b4a2e", "#fff", 0.022); s.material.depthTest = true; s.visible = false; scene.add(s); return s; });   // depthTest: за Каабой табличку не видно (v3.25)
   p.sper = period; p.soff = off; return p;
 }
 const signV = new THREE.Vector3();
@@ -3670,7 +3672,7 @@ const SPOT_CAM = {
       toT: toV3(c.x, c.y, 1), toC: toV3(c.x + r0 * Math.cos(a0), c.y + r0 * Math.sin(a0), h0) };
     orbit = { c, a0, a1: 4.4, r0, r1: 42, h0, h1: 30, t0: performance.now() + 1300, dur: 9000 };
   },
-  mizab: (s) => flyTo(s.pos, 42, new THREE.Vector3(-0.796, 0.42, 0.605)),   // сбоку: видно, как вода падает в Хиджр
+  mizab: (s) => flyTo(s.pos, 26, new THREE.Vector3(-0.83, 0.32, 0.46)),   // сбоку и ближе (v3.25): жёлоб виден целиком, под ним Хиджр
   yemeni: (s) => flyTo(s.pos, 14, new THREE.Vector3(-0.191, 0.42, 0.982)),  // прямо на угол
 };
 function closeCard() {
