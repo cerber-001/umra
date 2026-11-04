@@ -4181,17 +4181,37 @@ document.querySelectorAll("#layers input").forEach((c) => c.onchange = () => {
   syncLayers();
 });
 // Подписи не налезают друг на друга: Абу Джахль и главные ворота первыми, дальше туалеты, эскалаторы, остальные ворота.
-// Подпись, которая перекрыла бы уже показанную, прячется — приближаешь карту, и она появляется
+// Подпись, которая перекрыла бы уже показанную, соскальзывает с помехи вверх или вниз (не дальше трёх своих высот);
+// некуда — прячется (приближаешь карту, и она появляется).
+// Помехи, занятые заранее (v3.33b): кружки шагов умры — кнопки поверх карты («11» стоит на крыше Address), шапка и открытая карточка
 const lblV = new THREE.Vector3(), lblBox = [];
+let uiBox = [], uiT = 0;
 function updateLayers() {   // что отмечено галочкой — видно всегда; наложения убираются по месту на экране
   const k2px = innerHeight / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
-  lblBox.length = 0;
+  if (uiT-- <= 0) {   // рамки шапки и карточки — раз в 30 кадров, чтобы не пересчитывать вёрстку каждый кадр
+    uiT = 30;
+    uiBox = [...document.querySelectorAll("header, #card.open")].map((e) => e.getBoundingClientRect())
+      .filter((r) => r.width).map((r) => [(r.left + r.right) / 2, (r.top + r.bottom) / 2, r.width / 2, r.height / 2]);
+  }
+  lblBox.length = 0; lblBox.push(...uiBox);
+  if ($("spots").style.display !== "none") SPOTS.forEach((s, i) => {
+    if (spotEls[i].classList.contains("off")) return;
+    lblV.copy(s.pos).project(camera);
+    lblBox.push([(lblV.x + 1) / 2 * innerWidth, (1 - lblV.y) / 2 * innerHeight, 17, 17]);
+  });
+  const hit = (x, y, hw, hh) => lblBox.find((b) => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < hh + b[3]);
   const place = (l) => {
     lblV.copy(l.position).project(camera);
-    const x = (lblV.x + 1) / 2 * innerWidth, y = (1 - lblV.y) / 2 * innerHeight;
+    if (lblV.z > 1) return false;
+    const x = (lblV.x + 1) / 2 * innerWidth, y0 = (1 - lblV.y) / 2 * innerHeight;
     const hw = l.scale.x * k2px / 2 + 2, hh = l.scale.y * k2px / 2 + 2;
-    if (lblV.z > 1 || lblBox.some((b) => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < hh + b[3])) return false;
-    lblBox.push(l.userData.box = [x, y, hw, hh]); return true;
+    for (const up of [true, false]) for (let y = y0, k = 0; k < 4 && Math.abs(y - y0) <= 6 * hh; k++) {
+      const b = hit(x, y, hw, hh);
+      if (b) { y = up ? b[1] - b[3] - hh - 1 : b[1] + b[3] + hh + 1; continue; }
+      l.center.y = 0.5 + (y - y0) / (l.scale.y * k2px);   // сдвиг на экране без смены точки привязки
+      lblBox.push(l.userData.box = [x, y, hw, hh]); return true;
+    }
+    return false;
   };
   const pass = (k, minor) => { if (LYR[k]?.visible) LYR[k].children.forEach((l) => { if (!!l.userData.minor === minor) l.visible = place(l); }); };
   // отели: сначала с проверенными фактами, потом крупные, мелкие — последними (они и прячутся первыми)
