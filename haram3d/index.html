@@ -62,8 +62,16 @@
   #card .nav button, #close { font: 600 13px "Exo 2", sans-serif; color: var(--cream); background: var(--sapphire);
     border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
   #close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; padding: 0; font-size: 18px; }
-  #card { max-height: 58vh; overflow-y: auto; overscroll-behavior: contain; }
+  #card { max-height: 58vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+  body:has(#card.open) #go:not(.on) { display: none; }   /* v3.33: развёрнутую карточку (отель, ворота) не закрывает кнопка «Пройти умру» */
   #card .src { font-size: 12px; color: rgba(244,237,225,.62); }
+  #card .src a { color: var(--copper); word-break: break-all; }
+  #card table.ht { width: 100%; border-collapse: collapse; margin: 0 0 8px; font-size: 13.5px; }
+  #card table.ht th { text-align: left; font-weight: 600; color: var(--copper); padding: 3px 10px 3px 0; vertical-align: top; white-space: nowrap; }
+  #card table.ht td { color: #E8E1D4; padding: 3px 0; }
+  #card ul { margin: 0 0 8px; padding-left: 18px; font-size: 14px; line-height: 1.42; color: #E8E1D4; }
+  #card ul.disp li { color: #F3C9A0; }
+  #card .ar { font-size: 16px; text-align: right; color: var(--cream); }
   /* «Пройти умру» — главная кнопка-действие: крупная, внизу по центру над панелью видов, с ▶ и подписью.
      Не в шапке — там её читали как заголовок. В режиме шагов превращается в маленькую «✕ Выйти» справа сверху */
   #go { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 12px;
@@ -230,6 +238,7 @@
   <label><input type="checkbox" data-l="wc"> Туалеты</label>
   <label><input type="checkbox" data-l="esc"> Эскалаторы и лифты</label>
   <label><input type="checkbox" data-l="tiers"> Таваф на этажах и крыше</label>
+  <label><input type="checkbox" data-l="hotels"> Отели (сведения — по нажатию)</label>
   <label><input type="checkbox" data-l="all"> Все объекты (и исторические места)</label>
   <p id="linfo"></p>
   <div class="leg"><b>Условные знаки</b>
@@ -239,6 +248,7 @@
     <div class="lg"><span class="k" style="background:#1559B7;color:#fff">WC м</span><span class="k" style="background:#B0306A;color:#fff">WC ж</span><span class="k" style="background:#5C6B6D;color:#fff">WC</span>туалеты: мужские, женские, не указано</div>
     <div class="lg"><span class="k" style="background:#111;color:#FFD23F">⇅</span><span class="k" style="background:#111;color:#FFD23F">лифт</span>эскалаторы и лифты</div>
     <div class="lg"><span class="k" style="background:#F4EDE1;color:#00292C">дом Абу Джахля</span>исторические места</div>
+    <div class="lg"><span class="k" style="background:#00292C;color:#E9A06A">Address</span><span class="k" style="background:#00292C;color:#F4EDE1">отель</span><span class="k" style="background:#5C6B6D;color:#fff">строится</span>отели — нажмите на название</div>
     <div class="lg"><span class="k" style="background:#005A5C;color:#F4EDE1">мезонин</span><span class="k" style="background:#1A9A9C;color:#fff">1-й этаж</span><span class="k" style="background:#F07A1E;color:#fff">крыша</span>круг тавафа на ярусах (схема); стрелки — направление</div>
   </div>
 </div>
@@ -700,7 +710,7 @@ function masaaGlass(base) {
   low.name = "Масъа_стекло_нижний_ярус"; upG.name = "Масъа_стекло_верхние_ярусы";
   return { low, up: upG };
 }
-new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb?v=91696c04").then((city) => {
+new GLTFLoader().setDRACOLoader(DRACO).loadAsync("haram_city.glb?v=4bcdd58e").then((city) => {
   const base = city.scene.getObjectByName("L_base");
   if (!base) return;
   const mqC = toV3(meta.spots.maqam[0], meta.spots.maqam[1]), bs = new THREE.Vector3();
@@ -4014,6 +4024,7 @@ const LINFO = {
   wc: "Туалеты и места для омовения — снаружи мечети, под площадями. Синие — мужские, малиновые — женские, серые — пол на карте не указан: смотрите табличку у входа.",
   esc: "⇅ — эскалаторы на 1-й этаж и крышу; «лифт» — лифты (удобно с колясками).",
   tiers: "Таваф можно совершать и на ярусах здания вокруг двора: мезонин (удобен для колясок и пожилых), 1-й этаж и крыша — круг там длиннее (на крыше 7 кругов ≈ 4 км, около часа). Подняться: эскалаторы ⇅ и лифты, лифты есть у ворот № 1 (короля Абдулазиза) и № 40 (Умра). Начало круга на каждом ярусе отмечено зелёным светом — как у Каабы. Двор у Каабы сейчас (2026) отведён для совершающих умру — правила меняются, смотрите указатели. Кресла-коляски выдают у ворот № 4, 19 и 64; по крыше ходят электрокары — где и почём, уточняйте на месте. У ханафитов таваф на этажах и на крыше мечети действителен; если сомневаетесь — спросите своего имама. Линии — схема, а не обмер коридоров.",
+  hotels: "Отели вокруг Харама по OpenStreetMap. Крупные подписаны всегда, мелкие — при приближении. Нажмите на название — карточка: факты из открытых источников со ссылками, спорное помечено, путь пешком до ворот (расчёт). Цен и свободных мест не указываем.",
   all: "Всё сразу, в том числе место дома Абу Джахля (по преданию; сейчас там туалеты, показано приблизительно).",
 };
 const GATE_RU = { 79: "короля Фахда", 40: "Умра", 25: "Баб аль-Марва", 1: "короля Абдулазиза", 3: "Аджьяд", 100: "короля Абдуллы",
@@ -4034,6 +4045,72 @@ fetch("layers.json").then((r) => r.json()).then((d) => {
   syncLayers();
 }).catch(() => {});
 mkLayer("abujahl", [[150, 340, "дом Абу Джахля · ныне WC", "#F4EDE1", "#00292C", false]]);
+// ---------- v3.33: отели вокруг Харама (hotels.json, конвейер mk_hotels.py: OSM + проверенные факты со ссылками) ----------
+// Подпись над крышей; нажатие по подписи — карточка. Уровни: 0 — с проверенными фактами, 1 — крупные, 2 — остальные (видны вблизи)
+const escH = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const hName = (h) => h.f?.ru || h.en || h.ar;
+fetch("hotels.json").then((r) => r.json()).then((d) => {
+  const g = new THREE.Group(); g.visible = false;
+  for (const h of d.hotels) {
+    const lv = h.f?.src?.length ? 0 : h.big ? 1 : 2;
+    let t = hName(h); if (t.length > 34) t = t.slice(0, 32) + "…";
+    const l = h.constr ? label((/строит/i.test(t) ? "" : "строится · ") + t, "#5C6B6D", "#FFFFFF", lv < 2 ? 0.018 : 0.015)
+      : label(t, "#00292C", lv ? "#F4EDE1" : "#E9A06A", [0.021, 0.018, 0.015][lv]);
+    l.position.copy(toV3(h.p[0], h.p[1], groundAt(h.p[0], h.p[1]) + Math.min(h.h || 30, 160) + 5));
+    l.userData.lv = lv; l.userData.h = h; g.add(l);
+  }
+  scene.add(g); LYR.hotels = g; syncLayers();
+}).catch(() => {});
+function hotelCard(h) {
+  const f = h.f || {}, row = (k, v) => v ? `<tr><th>${k}</th><td>${escH(v)}</td></tr>` : "";
+  const osm = (v, u = "") => v ? `${v}${u} (по OSM)` : "";
+  const walk = (g, main) => g ? `<p>🚶 До ${main ? "главных " : "ближайших "}ворот № ${escH(g.n)}${g.name ? " · " + escH(g.name) : ""} — ≈ ${g.m} м, ${g.min[0]}–${g.min[1]} мин.</p>` : "";
+  let html = h.ar && h.ar !== hName(h) ? `<p class="ar" dir="rtl" lang="ar">${escH(h.ar)}</p>` : "";
+  if (h.en && h.en !== hName(h)) html += `<p class="src">${escH(h.en)}</p>`;
+  if (f.t) html += `<p>${escH(f.t)}</p>`;
+  html += `<table class="ht">${row("Оператор", f.operator || h.operator || h.brand)}${row("Номеров", f.rooms || osm(h.rooms))}${row("Этажей", f.floors || osm(h.levels))}`
+    + `${row("Открыт", f.opened)}${row("Высота", h.h && `≈ ${h.h} м (по OSM)`)}${row("Звёзд", osm(h.stars))}${row("Улица", h.street)}`
+    + `${row("До Каабы", `≈ ${h.r} м по прямой`)}</table>`;
+  html += walk(h.gate) + walk(h.main, true);
+  if (h.gate) html += `<p class="src">Путь пешком — наш расчёт по пешеходной сети OpenStreetMap; на деле зависит от открытых проходов и толпы.</p>`;
+  if (f.notable?.length) html += `<ul>${f.notable.map((x) => `<li>${escH(x)}</li>`).join("")}</ul>`;
+  if (f.disputed?.length) html += `<p><b>Спорно или не проверено:</b></p><ul class="disp">${f.disputed.map((x) => `<li>${escH(x)}</li>`).join("")}</ul>`;
+  if (!f.src?.length) html += `<p class="src">Подробных проверенных сведений нет — только данные OpenStreetMap.</p>`;
+  const src = [...(f.src || []), ...(h.web ? [h.web] : []), ...(h.wd ? [`https://www.wikidata.org/wiki/${h.wd}`] : [])];
+  const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u; } };
+  if (src.length) html += `<p class="src">Источники: ${[...new Set(src)].filter((u) => /^https?:\/\//.test(u)).map((u) => `<a href="${escH(u)}" target="_blank" rel="noopener">${escH(host(u))}</a>`).join(" · ")}</p>`;
+  html += `<p class="src">Сведения на 04.11.2026. Цены и свободные места не указываем. Карта: © OpenStreetMap contributors (ODbL).</p>`;
+  showCard(h.constr ? "Строится" : "Отель", escH(hName(h)), html, false);
+  const z = groundAt(h.p[0], h.p[1]);
+  // здание — целиком в кадре; на телефоне стоя низ экрана занимает карточка, поэтому здание мельче (≈ 24 % высоты экрана);
+  // картинку над карточкой поднимает общий сдвиг viewShift (0,2 экрана) — середина здания встаёт на ≈ 0,3 от верха
+  const tall = innerHeight > innerWidth, hh = Math.min(h.h || 30, 160), dist = Math.max(200, hh * (tall ? 5.4 : 3.6));
+  const mid = toV3(h.p[0], h.p[1], z + hh * 0.5);
+  // ракурс без помех: начинаем с текущего направления и поворачиваем вокруг вертикали, пока луч к середине здания
+  // не перестанет упираться в соседние башни (своё здание не мешает — луч кончается за 60 м до середины)
+  const base = camera.position.clone().sub(controls.target).setY(0).normalize(), Y = new THREE.Vector3(0, 1, 0);
+  const clear = (d) => { ray.set(mid.clone().addScaledVector(d, dist), d.clone().negate()); ray.far = dist - 60; return !ray.intersectObjects(occluders, false).some((x) => shown(x.object)); };
+  let d = null;
+  for (const el of [0.45, 0.7]) for (const a of [0, 30, -30, 60, -60, 90, -90, 135, -135, 180]) {
+    const c = base.clone().applyAxisAngle(Y, THREE.MathUtils.degToRad(a)).multiplyScalar(Math.sqrt(1 - el * el)).setY(el);
+    if (!d && clear(c)) d = c;
+  }
+  d ??= base.clone().multiplyScalar(Math.sqrt(1 - 0.49)).setY(0.7);
+  flyTo(mid, dist, d);
+}
+{ // нажатие по подписи отеля: короткое касание без сдвига (иначе это вращение карты)
+  let pd = null;
+  renderer.domElement.addEventListener("pointerdown", (e) => { pd = [e.clientX, e.clientY, performance.now()]; });
+  renderer.domElement.addEventListener("pointerup", (e) => {
+    if (!pd || !LYR.hotels?.visible || Math.hypot(e.clientX - pd[0], e.clientY - pd[1]) > 8 || performance.now() - pd[2] > 600) return;
+    let best = null, bd = 1e9;
+    for (const l of LYR.hotels.children) {
+      const b = l.userData.box; if (!l.visible || !b) continue;
+      if (Math.abs(e.clientX - b[0]) < b[2] + 6 && Math.abs(e.clientY - b[1]) < b[3] + 8) { const dd = Math.hypot(e.clientX - b[0], e.clientY - b[1]); if (dd < bd) { bd = dd; best = l; } }
+    }
+    if (best) hotelCard(best.userData.h);
+  });
+}
 { // v3.28 (Д4): таваф на ярусах — схема круга на мезонине (7 м), 1-м этаже (14 м) и крыше (21 м) здания вокруг матафа.
   // Линия идёт параллельно фасаду (стена — RIM + 0,5 м): на мезонине ≈ 4 м, на этаже ≈ 6 м вглубь коридора, на крыше ≈ 10 м от края.
   // Коридоры не смоделированы — это схема, не обмер. Стрелки — против часовой (RIM обходится по направлению тавафа).
@@ -4114,10 +4191,12 @@ function updateLayers() {   // что отмечено галочкой — ви
     const x = (lblV.x + 1) / 2 * innerWidth, y = (1 - lblV.y) / 2 * innerHeight;
     const hw = l.scale.x * k2px / 2 + 2, hh = l.scale.y * k2px / 2 + 2;
     if (lblV.z > 1 || lblBox.some((b) => Math.abs(b[0] - x) < hw + b[2] && Math.abs(b[1] - y) < hh + b[3])) return false;
-    lblBox.push([x, y, hw, hh]); return true;
+    lblBox.push(l.userData.box = [x, y, hw, hh]); return true;
   };
   const pass = (k, minor) => { if (LYR[k]?.visible) LYR[k].children.forEach((l) => { if (!!l.userData.minor === minor) l.visible = place(l); }); };
-  pass("abujahl", false); pass("gates", false); pass("wc", true); pass("esc", true); pass("gates", true);
+  // отели: сначала с проверенными фактами, потом крупные, мелкие — последними (они и прячутся первыми)
+  const passH = (lv) => { if (LYR.hotels?.visible) LYR.hotels.children.forEach((l) => { if (l.userData.lv === lv) l.visible = place(l); }); };
+  pass("abujahl", false); pass("gates", false); passH(0); pass("wc", true); pass("esc", true); pass("gates", true); passH(1); passH(2);
 }
 
 // ---------- «Ближайшее»: туалет, ворота, эскалатор — от паломника или от центра экрана ----------
